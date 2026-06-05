@@ -1,12 +1,12 @@
 import { habitScore, isRestLog, logValueForHabit } from "./scoring";
 import type { DayLog, Habit, StreakResult } from "./types";
 
-/** Habit counts as done for streak: any progress, or rest preserves streak. */
+/** Habit counts as done for streak: check/one-time any progress; numeric/milestone at max; rest preserves streak. */
 export function isHabitDone(habit: Habit, value: number | null, isRest?: boolean): boolean {
   if (isRestLog(value, isRest)) return true;
   if (value === null) return false;
   if (habit.type === "check" || habit.type === "onetime") return value > 0;
-  return Number(value) > 0;
+  return habitScore(habit, value, isRest) === 100;
 }
 
 export function streak(habitId: string, habit: Habit, logs: DayLog[], today: string): StreakResult {
