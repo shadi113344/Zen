@@ -1,0 +1,9 @@
+node_modules/
+.git/
+supabase/
+docs/
+scripts/
+*.md
+.env*
+playwright-report/
+test-results/

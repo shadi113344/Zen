@@ -1,0 +1,6 @@
+# Supabase CLI — link with: npx supabase link --project-ref gzkwemcxxizzhcnotelt
+
+project_id = "gzkwemcxxizzhcnotelt"
+
+[db]
+major_version = 15

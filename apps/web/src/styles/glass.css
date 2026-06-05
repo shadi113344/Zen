@@ -1,0 +1,791 @@
+/* ——— Glass UI layer — inspired by soft monochrome + glassmorphism ——— */
+
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes glass-rise {
+    from {
+      opacity: 0;
+      transform: translateY(12px) scale(0.985);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  @keyframes glass-scale-in {
+    from {
+      opacity: 0;
+      transform: scale(0.94);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+}
+
+/* Shared glass surface (nav / chrome — not user card toggle) */
+.glass-surface,
+.modal.card,
+.desktop-header,
+.demo-banner {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow-glass), var(--shadow-inset);
+}
+
+/* Optional glass on cards — Theme → Glass cards + opacity */
+[data-glass-cards="true"] .card:not(.category-chip),
+[data-glass-cards="true"] .habit-group,
+[data-glass-cards="true"] .habit-activity-card,
+[data-glass-cards="true"] .hero-score,
+[data-glass-cards="true"] .theme-preview,
+[data-glass-cards="true"] .offline-banner,
+[data-glass-cards="true"] .demo-banner {
+  background: var(--card-glass-bg);
+  backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+  border-color: var(--card-glass-border);
+  box-shadow: var(--shadow-glass), var(--shadow-inset);
+}
+
+.card {
+  border-radius: var(--radius);
+  padding: 18px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .card,
+  .hero-score,
+  .habit-group,
+  .habit-activity-card,
+  .page-date-chrome__row,
+  .week-strip,
+  .log-page__header-stack,
+  .log-header,
+  .category-switcher {
+    animation: glass-rise var(--dur-med) var(--ease-out) both;
+  }
+
+  .habit-group:nth-child(2) {
+    animation-delay: 0.04s;
+  }
+
+  .habit-group:nth-child(3),
+  .habit-activity-card:nth-child(3) {
+    animation-delay: 0.08s;
+  }
+
+  .habit-activity-card:nth-child(2) {
+    animation-delay: 0.04s;
+  }
+}
+
+/* Interactive transitions */
+button,
+.btn,
+.week-strip__day,
+.category-chip,
+.habit-card__icon,
+.habit-card__step,
+.history-table__tap,
+.history-table__step,
+.habit-card__menu-btn,
+.page-date-chrome__today,
+.log-header__icon-btn,
+.fab {
+  transition:
+    background var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out),
+    transform var(--dur-fast) var(--ease-spring),
+    opacity var(--dur-fast) var(--ease-out);
+}
+
+button:active:not(:disabled),
+.week-strip__day:active:not(:disabled),
+.fab:active {
+  transform: scale(0.94);
+}
+
+.tab-bar__link,
+.desktop-nav__link,
+.seg-control__btn,
+.sub-tab-bar__btn,
+.category-switcher__pill {
+  transition: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.tab-bar__link:active,
+.desktop-nav__link:active,
+.seg-control__btn:active,
+.sub-tab-bar__btn:active,
+.category-switcher__pill:active {
+  transform: none;
+}
+
+.habit-card__step:active,
+.history-table__step:active {
+  transform: none;
+}
+
+/* Floating glass tab bar */
+.tab-bar {
+  left: max(14px, env(safe-area-inset-left));
+  right: max(14px, env(safe-area-inset-right));
+  bottom: max(12px, env(safe-area-inset-bottom));
+  width: auto;
+  height: auto;
+  min-height: var(--tab-h);
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg-strong);
+  backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+  box-shadow: var(--shadow-glass-lg), var(--shadow-inset);
+  border-top: 1px solid var(--glass-border);
+  padding: 5px 6px;
+  gap: 2px;
+}
+
+.tab-bar__link {
+  border-radius: var(--radius-pill);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--muted);
+}
+
+.tab-bar__link--active {
+  background: transparent;
+  color: var(--active-fg) !important;
+  box-shadow: none;
+}
+
+.app-shell__main {
+  padding-bottom: calc(var(--tab-h) + max(12px, env(safe-area-inset-bottom, 0px)) + 8px);
+}
+
+.app-shell__main:has(.log-page) {
+  padding-bottom: 0;
+}
+
+/* Desktop top header */
+.desktop-header {
+  background: var(--bg);
+  border-bottom: 1px solid var(--glass-border);
+}
+
+
+.desktop-nav {
+  background: var(--card-raised);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow-inset);
+}
+
+.desktop-nav__link--active {
+  color: var(--active-fg);
+}
+
+.desktop-header__cat-pill {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+}
+
+/* Segmented control — pill track + elevated active */
+.seg-control {
+  position: relative;
+  display: inline-flex;
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-pill);
+  padding: 5px;
+  gap: 4px;
+  box-shadow: var(--shadow-soft), var(--shadow-inset);
+}
+
+.seg-control__indicator {
+  border-radius: var(--radius-pill);
+}
+
+.seg-control__btn {
+  border-radius: var(--radius-pill);
+  padding: 10px 18px;
+  font-weight: 700;
+  font-size: 13px;
+  min-height: 40px;
+}
+
+.seg-control__btn--active {
+  background: transparent;
+  color: var(--active-fg);
+  box-shadow: none;
+}
+
+/* Week date strip — compact track */
+.week-strip {
+  padding: 4px 5px;
+  border-radius: 22px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow-soft);
+}
+
+.week-strip__scroll {
+  gap: 3px;
+  padding: 1px 2px 3px;
+}
+
+.week-strip__indicator {
+  background: var(--active);
+  box-shadow: 0 1px 4px rgba(26, 26, 26, 0.14);
+}
+
+.week-strip__day {
+  min-width: 44px;
+  min-height: 50px;
+  padding: 5px 6px;
+  border-radius: 16px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+}
+
+.week-strip__day:hover:not(:disabled):not(.week-strip__day--active) {
+  background: var(--card-raised);
+  color: var(--text);
+}
+
+.week-strip__day--active {
+  background: transparent;
+  color: var(--active-fg);
+  box-shadow: none;
+  transform: none;
+}
+
+.week-strip__num {
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.week-strip__wd {
+  font-size: 10px;
+}
+
+/* Category switcher pills */
+.category-switcher__scroll {
+  padding: 4px 2px 8px;
+}
+
+.category-switcher__pill {
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: var(--shadow-soft);
+}
+
+.category-switcher__pill--active {
+  background: var(--active);
+  border-color: transparent;
+  color: var(--active-fg);
+  box-shadow: var(--shadow-elevated);
+}
+
+/* Log header */
+.log-header:not(.log-header--pinned) {
+  margin-bottom: 18px;
+}
+
+.log-header__title {
+  font-size: 34px;
+  letter-spacing: -0.04em;
+}
+
+.log-header__date-badge {
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow-soft);
+}
+
+.log-header__icon-btn {
+  border: 1px solid var(--line-strong);
+  background: var(--card-raised);
+  color: var(--text);
+  border-radius: 50%;
+  box-shadow: var(--shadow-soft);
+}
+
+.log-header__icon-btn--theme,
+.log-header__icon-btn--density {
+  background: var(--card-raised);
+  border-color: var(--line-strong);
+  color: var(--text);
+}
+
+.log-header__icon-btn--theme .log-header__theme-icon {
+  filter: grayscale(1);
+  opacity: 0.9;
+}
+
+.log-header__avatar {
+  background: var(--card-raised);
+  color: var(--text);
+  border: 1px solid var(--line-strong);
+  box-shadow: var(--shadow-soft);
+}
+
+/* Hero score card */
+.hero-score {
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  margin-bottom: 18px;
+}
+
+.hero-score__pct {
+  letter-spacing: -0.03em;
+}
+
+/* Habit groups */
+.habit-group {
+  border-radius: var(--radius);
+  margin-bottom: 4px;
+}
+
+.habit-group__header {
+  padding: 6px 8px;
+}
+
+.habit-group__count {
+  background: var(--card-raised);
+  border: 1px solid var(--line-strong);
+  font-weight: 700;
+}
+
+.habit-card {
+  background: var(--card-raised);
+  border: 1px solid var(--line-strong);
+  padding: 6px 8px;
+}
+
+.habit-group.card .habit-card,
+.habit-activity-card .habit-card {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+.habit-card__name {
+  text-decoration: none;
+  font-weight: 750;
+  letter-spacing: -0.02em;
+}
+
+.habit-card__title-block:hover .habit-card__name,
+.habit-card__title-block:active .habit-card__name,
+.habit-card__title-block:focus .habit-card__name,
+.habit-card__title-block:focus-visible .habit-card__name {
+  text-decoration: none;
+}
+
+.habit-card__icon {
+  border-radius: var(--radius-xs);
+}
+
+.habit-card__icon--active,
+.habit-card__icon--moon.habit-card__icon--active {
+  background: var(--active);
+  color: var(--active-fg);
+  box-shadow: var(--shadow-soft);
+}
+
+.habit-card__step {
+  border-radius: 50%;
+  aspect-ratio: 1;
+  flex-shrink: 0;
+  border: 1px solid var(--line-strong);
+  background: var(--card-raised);
+  box-shadow: var(--check-inset);
+}
+
+.habit-card__step:hover:not(:disabled) {
+  background: var(--active);
+  color: var(--active-fg);
+  border-color: var(--active);
+}
+
+/* Insights / Categories date row — match pill tab bars */
+.page-date-chrome .week-strip {
+  border-radius: var(--radius-pill);
+  padding: 5px;
+}
+
+.page-date-chrome .week-strip__indicator {
+  border-radius: var(--radius-pill);
+}
+
+.page-date-chrome .week-strip__day {
+  border-radius: var(--radius-pill);
+}
+
+.page-date-chrome__today {
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--line-strong);
+  background: var(--card-raised);
+  box-shadow: var(--shadow-soft);
+}
+
+.page-date-chrome__today:hover {
+  background: var(--active);
+  color: var(--active-fg);
+  border-color: var(--active);
+}
+
+/* Buttons */
+.btn--primary {
+  background: var(--active);
+  color: var(--active-fg);
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-elevated);
+}
+
+.btn--primary:hover {
+  box-shadow: var(--shadow-glass-lg);
+}
+
+.btn--ghost {
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--line-strong);
+  background: var(--card-raised);
+}
+
+.btn--dark {
+  background: var(--active);
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-elevated);
+}
+
+/* FAB */
+.fab {
+  border-radius: 50%;
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+  border: 1px solid var(--glass-border);
+  color: var(--text);
+  box-shadow: var(--shadow-soft), var(--shadow-inset);
+}
+
+.fab:active,
+.fab:focus-visible {
+  background: var(--active);
+  color: var(--active-fg);
+  border-color: var(--active);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  box-shadow: var(--shadow-elevated);
+}
+
+/* Modal */
+.modal-backdrop {
+  background: rgba(26, 26, 26, 0.35);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .modal.card {
+    animation: glass-scale-in var(--dur-med) var(--ease-out) both;
+  }
+}
+
+.modal {
+  border-radius: var(--radius);
+}
+
+.modal__close {
+  border-radius: var(--radius-pill);
+  width: 40px;
+  height: 40px;
+}
+
+.modal__close:hover {
+  background: var(--card-raised);
+}
+
+.field input,
+.field select,
+.day-notes__input,
+.habit-form__field input,
+.habit-form__field select,
+.habit-form__field textarea {
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line-strong);
+  background: var(--card-raised);
+  box-shadow: var(--shadow-inset);
+}
+
+.field input:focus,
+.field select:focus,
+.day-notes__input:focus {
+  outline: none;
+  border-color: var(--active);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--active) 12%, transparent);
+}
+
+/* Category chips — opaque pills, no glass track bleed */
+.category-chip.category-chip--card,
+.category-chip.card.category-chip--filter {
+  background: var(--card-solid);
+  border: 1px solid var(--line);
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+[data-glass-cards="true"] .category-chip.category-chip--card,
+[data-glass-cards="true"] .category-chip.card.category-chip--filter {
+  background: var(--card-solid);
+  border-color: var(--line);
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+/* History table interactive */
+.history-table__tap {
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--line-strong);
+  background: var(--card-raised);
+  box-shadow: var(--shadow-soft);
+}
+
+.history-table__tap--done {
+  background: var(--active);
+  color: var(--active-fg);
+  border-color: var(--active);
+  box-shadow: var(--shadow-elevated);
+}
+
+.history-table__step {
+  border-radius: var(--radius-xs);
+  box-shadow: var(--shadow-soft);
+}
+
+.history-table__step:hover {
+  background: var(--active);
+  color: var(--active-fg);
+}
+
+.history-table__rest-btn--active {
+  background: var(--active);
+  color: var(--active-fg);
+  border-color: var(--active);
+}
+
+/* Page headers */
+.page-header__title {
+  letter-spacing: -0.03em;
+}
+
+.page-header__back {
+  border: none;
+  background: var(--glass-bg);
+  border-radius: var(--radius-pill);
+  padding: 0 12px;
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow-soft);
+}
+
+/* Score ring label */
+.score-ring__pct {
+  letter-spacing: -0.04em;
+}
+
+
+/* Calendar */
+.calendar__day {
+  border-radius: var(--radius-xs);
+  transition: background var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-spring);
+}
+
+.calendar__day--selected {
+  background: var(--active) !important;
+  color: var(--active-fg);
+  box-shadow: var(--shadow-elevated);
+}
+
+/* Profile & misc cards */
+.profile-page .card,
+.coach-page .card {
+  border-radius: var(--radius);
+}
+
+.stat-tile {
+  background: var(--card-raised);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line-strong);
+  box-shadow: var(--shadow-soft);
+}
+
+.score-ring__track {
+  stroke: var(--score-ring-track);
+}
+
+/* Empty state */
+.empty-state {
+  border-radius: var(--radius);
+}
+
+/* Habit breakdown rows */
+.habit-row {
+  border-radius: var(--radius-sm);
+  margin-bottom: 6px;
+  background: var(--card-raised);
+  border: 1px solid var(--line-strong);
+  box-shadow: var(--shadow-soft);
+  transition: transform var(--dur-fast) var(--ease-spring), box-shadow var(--dur-fast) var(--ease-out);
+}
+
+.habit-row:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-glass);
+}
+
+.habit-row__bar {
+  background: var(--active);
+}
+
+/* Weight sliders */
+.weight-editor__slider {
+  accent-color: var(--active);
+}
+
+.demo-banner {
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line-strong);
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* Custom glass select (replaces native dropdown popup) */
+.glass-select {
+  position: relative;
+  width: 100%;
+}
+
+.glass-select--disabled {
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.glass-select__trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 16px;
+  min-height: 44px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--line-strong);
+  background: var(--card-raised);
+  box-shadow: var(--check-inset);
+  color: var(--text);
+  font-weight: 650;
+  text-align: left;
+}
+
+.glass-select__value {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.glass-select__chev {
+  flex-shrink: 0;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1;
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+
+.glass-select--open .glass-select__chev {
+  transform: rotate(180deg);
+}
+
+.glass-select__menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  z-index: 400;
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  border-radius: var(--radius-sm);
+  background: var(--glass-bg-strong);
+  backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow-glass-lg);
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.glass-select__menu--portal {
+  position: fixed;
+  top: auto;
+  left: auto;
+  right: auto;
+  z-index: 600;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .glass-select__menu {
+    animation: glass-scale-in var(--dur-fast) var(--ease-out) both;
+  }
+}
+
+.glass-select__option {
+  width: 100%;
+  display: block;
+  text-align: left;
+  padding: 10px 14px;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--text);
+  font-weight: 650;
+  min-height: 40px;
+}
+
+.glass-select__option:hover {
+  background: var(--card-raised);
+}
+
+.glass-select__option--active {
+  background: var(--active);
+  color: var(--active-fg);
+  box-shadow: var(--shadow-soft);
+}
+
+.glass-select.coach-input {
+  width: auto;
+  min-width: 160px;
+}

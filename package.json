@@ -1,0 +1,20 @@
+{
+  "name": "mottazen-habits",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "setup": "node scripts/setup.mjs",
+    "dev": "npm run dev -w apps/web",
+    "dev:lan": "npm run dev -w apps/web",
+    "build": "npm run build -w apps/web",
+    "preview": "npm run build -w apps/web && npm run preview -w apps/web",
+    "test": "npm run test -w @mottazen/core",
+    "db:push": "supabase db push",
+    "db:migrations": "node scripts/combine-migrations.mjs",
+    "deploy": "npm run build && npx wrangler deploy",
+    "legacy:convert": "node scripts/legacy-to-bundle.mjs"
+  }
+}
