@@ -88,20 +88,20 @@ describe("bumpNumericLogValue", () => {
 });
 
 describe("dayScore", () => {
-  it("averages logged habits", () => {
+  it("averages all active habits, counting unlogged as 0", () => {
     const logs: DayLog[] = [
       { habitId: "h1", date: "2026-06-04", value: 1 },
       { habitId: "h2", date: "2026-06-04", value: 1 },
     ];
-    expect(dayScore(habits, logs, "2026-06-04")).toBe(100);
+    expect(dayScore(habits, logs, "2026-06-04")).toBe(67);
   });
 
-  it("excludes rest from average", () => {
+  it("excludes rest from average but counts other unlogged habits as 0", () => {
     const logs: DayLog[] = [
       { habitId: "h1", date: "2026-06-04", value: 1 },
       { habitId: "h2", date: "2026-06-04", value: -1, isRest: true },
     ];
-    expect(dayScore(habits, logs, "2026-06-04")).toBe(100);
+    expect(dayScore(habits, logs, "2026-06-04")).toBe(50);
   });
 });
 

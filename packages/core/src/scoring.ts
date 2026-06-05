@@ -63,9 +63,9 @@ function scorableHabitsForDay(habits: Habit[], logs: DayLog[], date: string): Ar
   for (const habit of activeHabits(habits)) {
     const value = logValueForHabit(logs, habit.id, date);
     const row = logs.find((l) => l.habitId === habit.id && l.date === date);
+    if (isRestLog(value, row?.isRest)) continue;
     const score = habitScore(habit, value, row?.isRest);
-    if (score === null) continue;
-    items.push({ habit, score });
+    items.push({ habit, score: score ?? 0 });
   }
   return items;
 }

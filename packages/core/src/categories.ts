@@ -1,5 +1,5 @@
 import { habitScore } from "./scoring";
-import { average, dayScore, habitScoresOverRange, isAllRestDay, logValueForHabit } from "./scoring";
+import { average, dayScore, habitScoresOverRange, isAllRestDay, isRestLog, logValueForHabit } from "./scoring";
 import type { CategoryScoreResult, CategoryWeights, DayLog, Habit } from "./types";
 
 export function normalizeWeights(
@@ -68,7 +68,7 @@ export function resolveCategoryWeights(
 
 /**
  * Category score for one day: weighted average of habit scores in category.
- * Weights default to equal split. Rest / not-logged habits excluded from denominator.
+ * Weights default to equal split. Rest days excluded; unlogged habits count as 0.
  */
 export function categoryScore(
   category: string,
@@ -89,12 +89,12 @@ export function categoryScore(
   for (const habit of scoped) {
     const value = logValueForHabit(logs, habit.id, date);
     const row = logs.find((l) => l.habitId === habit.id && l.date === date);
-    const score = habitScore(habit, value, row?.isRest);
-    if (score === null) continue;
+    if (isRestLog(value, row?.isRest)) continue;
 
     const weight = w[habit.id] ?? 0;
     if (weight <= 0) continue;
 
+    const score = habitScore(habit, value, row?.isRest) ?? 0;
     weightedSum += weight * score;
     weightTotal += weight;
   }
