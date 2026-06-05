@@ -137,7 +137,7 @@ button:active:not(:disabled),
 .tab-bar {
   left: max(14px, env(safe-area-inset-left));
   right: max(14px, env(safe-area-inset-right));
-  bottom: max(12px, env(safe-area-inset-bottom));
+  bottom: var(--tab-bar-offset);
   width: auto;
   height: auto;
   min-height: var(--tab-h);
@@ -167,7 +167,7 @@ button:active:not(:disabled),
 }
 
 .app-shell__main {
-  padding-bottom: calc(var(--tab-h) + max(12px, env(safe-area-inset-bottom, 0px)) + 8px);
+  padding-bottom: var(--tab-bar-stack);
 }
 
 .app-shell__main:has(.log-page) {

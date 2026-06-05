@@ -12,7 +12,9 @@ export function LogDateChrome({ className }: { className?: string }) {
 
   return (
     <div className={`log-date-chrome${className ? ` ${className}` : ""}`}>
-      <WeekDateStrip className="log-date-chrome__strip" />
+      <div className="log-date-chrome__strip-wrap">
+        <WeekDateStrip />
+      </div>
       <button
         type="button"
         className="log-date-chrome__calendar"

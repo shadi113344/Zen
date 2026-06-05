@@ -229,7 +229,7 @@
   background: var(--card);
   border-top: 1px solid var(--line);
   display: flex;
-  padding-bottom: env(safe-area-inset-bottom);
+  padding-bottom: 0;
   z-index: 200;
   pointer-events: auto;
 }
@@ -237,7 +237,7 @@
 .tab-bar__indicator {
   position: absolute;
   top: 5px;
-  bottom: calc(5px + env(safe-area-inset-bottom, 0px));
+  bottom: 5px;
   left: 0;
   border-radius: var(--radius-pill);
   background: var(--active);
@@ -964,7 +964,7 @@
 
 .log-page {
   position: relative;
-  padding-bottom: calc(var(--tab-h) + max(12px, env(safe-area-inset-bottom, 0px)) + 4px);
+  padding-bottom: var(--tab-bar-stack);
 }
 
 .log-page__scroll {
@@ -1035,7 +1035,7 @@
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
     overscroll-behavior-y: contain;
-    padding-bottom: calc(var(--tab-h) + max(12px, env(safe-area-inset-bottom, 0px)) + 4px);
+    padding-bottom: var(--tab-bar-stack);
   }
 
   .app-shell__main:has(.log-page) {
@@ -1108,11 +1108,22 @@
     background: transparent;
   }
 
+  .log-page__date-wrap .log-date-chrome {
+    width: 100%;
+  }
+
+  .log-page__date-wrap .log-date-chrome__strip-wrap {
+    flex: 1;
+    min-width: 0;
+  }
+
   .log-page__date-wrap .week-strip {
     margin: 0;
     padding: 4px 5px;
     border-radius: 22px;
     box-shadow: var(--shadow-soft);
+    width: 100%;
+    min-width: 0;
   }
 
   .log-page__date-wrap .week-strip__scroll {
@@ -2935,7 +2946,7 @@ body.habit-menu-active .log-page__scroll {
 .fab {
   position: fixed;
   right: calc(var(--page-pad) + 4px);
-  bottom: calc(var(--tab-h) + max(12px, env(safe-area-inset-bottom, 0px)) + 8px);
+  bottom: calc(var(--tab-bar-stack) + 4px);
   width: 45px;
   height: 45px;
   border-radius: 50%;
@@ -4545,7 +4556,7 @@ body.reorder-active .insights-reorder-card {
   position: fixed;
   left: max(var(--page-pad), env(safe-area-inset-left));
   right: max(var(--page-pad), env(safe-area-inset-right));
-  bottom: calc(var(--tab-h) + max(8px, env(safe-area-inset-bottom, 0px)));
+  bottom: var(--tab-bar-stack);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -6313,11 +6324,15 @@ body.reorder-active .insights-reorder-card {
   display: flex;
   align-items: stretch;
   gap: 8px;
+  width: 100%;
+  min-width: 0;
 }
 
-.log-date-chrome__strip {
+.log-date-chrome__strip-wrap {
   flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .log-date-chrome__calendar {

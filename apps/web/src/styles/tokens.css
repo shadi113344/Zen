@@ -55,6 +55,9 @@
   --page-pad: 18px;
   --sidebar-w: 260px;
   --tab-h: 58px;
+  --tab-bar-gap: 10px;
+  --tab-bar-offset: calc(var(--tab-bar-gap) + env(safe-area-inset-bottom, 0px));
+  --tab-bar-stack: calc(var(--tab-h) + var(--tab-bar-gap) + 12px + env(safe-area-inset-bottom, 0px));
 
   --font: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 
