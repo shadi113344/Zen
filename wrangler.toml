@@ -1,4 +1,5 @@
 name = "zen"
+account_id = "de2e8ee2273398b5ce5e912dba28d300"
 compatibility_date = "2024-08-01"
 workers_dev = true
 

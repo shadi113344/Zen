@@ -1,55 +1,64 @@
 # Connect Zen to GitHub
 
-## 1. Create the repo on GitHub
+**Repo:** [github.com/shadi113344/Zen](https://github.com/shadi113344/Zen)
 
-1. Go to [github.com/new](https://github.com/new)
-2. **Repository name:** `zen`
-3. **Visibility:** Private (recommended — habit data app)
-4. Do **not** add README, .gitignore, or license (this project already has them)
-5. Click **Create repository**
+## Push succeeded?
 
-## 2. Push local code (first time)
+If `git push` printed `main -> main`, you are connected — even if Windows showed a **Bonjour / mdnsNSP.dll** popup. That warning is from Apple Bonjour (old iTunes networking), not Git. Click **Cancel** and ignore it.
 
-From `c:\cody\zen` (after the initial commit exists):
+---
 
-```bash
-git branch -M main
-git remote add origin https://github.com/YOUR_USERNAME/zen.git
-git push -u origin main
-```
+## GitHub Actions secrets (required for auto-deploy)
 
-Replace `YOUR_USERNAME` with your GitHub username.
+1. Open **[Settings → Secrets and variables → Actions](https://github.com/shadi113344/Zen/settings/secrets/actions)**
+2. Click **New repository secret** for each row below
 
-## 3. GitHub Actions secrets (auto-deploy)
+| Name | Value | Where to get it |
+|------|--------|-----------------|
+| `VITE_SUPABASE_URL` | `https://gzkwemcxxizzhcnotelt.supabase.co` | Supabase → Settings → API |
+| `VITE_SUPABASE_ANON_KEY` | your anon public key | Supabase → Settings → API → anon |
+| `CLOUDFLARE_API_TOKEN` | API token | Cloudflare → [API Tokens](https://dash.cloudflare.com/profile/api-tokens) → **Create Token** → template **Edit Cloudflare Workers** |
+| `CLOUDFLARE_ACCOUNT_ID` | `de2e8ee2273398b5ce5e912dba28d300` | Cloudflare dashboard URL or Workers overview |
 
-Repo → **Settings** → **Secrets and variables** → **Actions** → **New repository secret**
+Optional:
 
-| Secret | Value |
-|--------|--------|
-| `CLOUDFLARE_API_TOKEN` | [Cloudflare API token](https://dash.cloudflare.com/profile/api-tokens) with **Workers Scripts: Edit** |
-| `VITE_SUPABASE_URL` | `https://gzkwemcxxizzhcnotelt.supabase.co` |
-| `VITE_SUPABASE_ANON_KEY` | Supabase → Settings → API → anon public |
-| `VITE_VAPID_PUBLIC_KEY` | optional, for background push |
+| Name | Value |
+|------|--------|
+| `VITE_VAPID_PUBLIC_KEY` | Web push public key (skip if not using push) |
 
-After secrets are set, every push to `main` runs tests, builds, and `wrangler deploy` to the **zen** Worker.
+### You cannot “view” secrets after saving
 
-## 4. Verify
+GitHub only shows secret **names**, not values. That is normal. To verify:
 
-1. Push a small change to `main`
-2. **Actions** tab → **Deploy** workflow should pass
-3. **https://zen.mottazen.com** serves the new build
+1. **[Actions](https://github.com/shadi113344/Zen/actions)** tab
+2. Open the failed **Deploy** run → **Re-run all jobs**  
+   Or push any commit to `main`
+3. Green check = deploy worked → **https://zen.mottazen.com** updated
 
-## 5. What is never committed
+### If Deploy still fails
 
-`.gitignore` excludes:
+| Error | Fix |
+|-------|-----|
+| `Unrecognized named-value: 'secrets'` in workflow file | Pull latest `main` (workflow was fixed) |
+| `CLOUDFLARE_API_TOKEN` not set | Add token secret; use **Edit Cloudflare Workers** template |
+| Build shows demo mode on site | `VITE_SUPABASE_*` secrets missing or wrong on build step |
+| Authentication error 10000 | Regenerate Cloudflare token with Workers Scripts **Edit** |
 
-- `apps/web/.env.local` (Supabase keys)
-- `node_modules/`, `dist/`, `.wrangler/`
+---
 
-Never commit anon key to a public repo without understanding it's designed for client-side use — still prefer private repo.
-
-## Manual deploy (without GitHub)
+## Manual deploy (no GitHub)
 
 ```bash
 npm run deploy
+```
+
+Uses your local `apps/web/.env.local` — never commit that file.
+
+---
+
+## First-time push (already done)
+
+```bash
+git remote add origin https://github.com/shadi113344/Zen.git
+git push -u origin main
 ```
