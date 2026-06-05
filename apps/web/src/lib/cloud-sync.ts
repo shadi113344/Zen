@@ -4,6 +4,13 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { LocalDataSnapshot } from "@/lib/local-data-store";
 import { goalHabitToDb, goalToDb } from "@/lib/goal-db";
 
+function normalizeRemindAt(remind: string | undefined): string | null {
+  if (!remind?.trim()) return null;
+  const [h, m] = remind.trim().split(":");
+  if (!h || !m) return null;
+  return `${h.padStart(2, "0")}:${m.padStart(2, "0")}:00`;
+}
+
 export function habitToDb(habit: Habit) {
   const remind = habit.remindAt ?? habit.notify?.remindAt;
   return {
@@ -15,7 +22,7 @@ export function habitToDb(habit: Habit) {
     step: habit.step ?? null,
     color: habit.color ?? null,
     paused: habit.paused ?? false,
-    remind_at: remind ? `${remind}:00` : null,
+    remind_at: normalizeRemindAt(remind),
     notify: habit.notify ?? {},
     meta: habit.why ? { why: habit.why } : {},
   };

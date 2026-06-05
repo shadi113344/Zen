@@ -539,10 +539,32 @@ export function DataProvider({ children }: { children: ReactNode }) {
   };
 
   const updateHabit = (habit: Habit) => {
-    setHabits((prev) => prev.map((h) => (h.id === habit.id ? habit : h)));
+    const next = habitsRef.current.map((h) => (h.id === habit.id ? habit : h));
+    habitsRef.current = next;
+    setHabits(next);
+    persistLocal();
 
-    if (!isDemoMode && supabase) {
-      void supabase.from("habits").update(habitToDb(habit)).eq("id", habit.id);
+    if (!isDemoMode && supabase && userId) {
+      const orderIndex =
+        habit.orderIndex ??
+        next.findIndex((h) => h.id === habit.id);
+      void supabase
+        .from("habits")
+        .upsert(
+          {
+            id: habit.id,
+            user_id: userId,
+            ...habitToDb(habit),
+            order_index: orderIndex >= 0 ? orderIndex : 0,
+          },
+          { onConflict: "id" },
+        )
+        .then(({ error }) => {
+          if (error) {
+            logDbError("update habit", error);
+            showToastRef.current(`Could not save activity: ${error.message}`);
+          }
+        });
     }
   };
 
