@@ -5,6 +5,9 @@
     "apps/*",
     "packages/*"
   ],
+  "devDependencies": {
+    "sharp": "^0.34.2"
+  },
   "scripts": {
     "setup": "node scripts/setup.mjs",
     "dev": "npm run dev -w apps/web",

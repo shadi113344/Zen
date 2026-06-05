@@ -25,6 +25,7 @@ Optional:
 | Name | Value |
 |------|--------|
 | `VITE_VAPID_PUBLIC_KEY` | Web push public key (skip if not using push) |
+| `CRON_SECRET` | Same random string as Supabase `CRON_SECRET` — powers `.github/workflows/cron-reminders.yml` |
 
 ### You cannot “view” secrets after saving
 

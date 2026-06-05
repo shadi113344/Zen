@@ -62,7 +62,7 @@ Install [Supabase CLI](https://supabase.com/docs/guides/cli), log in, and link t
 ```bash
 cd mottazen-habits
 supabase login
-supabase link --project-ref evvlrdvoynocriyjkbek
+supabase link --project-ref gzkwemcxxizzhcnotelt
 ```
 
 Set secrets (use your real keys):
@@ -98,12 +98,14 @@ The `send-reminders` function must be called on a schedule.
 
 **Option A — free external cron** ([cron-job.org](https://cron-job.org) or similar):
 
-- URL: `https://evvlrdvoynocriyjkbek.supabase.co/functions/v1/send-reminders`
+- URL: `https://gzkwemcxxizzhcnotelt.supabase.co/functions/v1/send-reminders`
 - Method: `POST`
 - Header: `x-cron-secret: YOUR_CRON_SECRET` (same value as in step 5)
 - Interval: every **5 minutes**
 
-**Option B — Supabase cron** (if enabled on your plan): schedule a pg_cron job or Dashboard scheduled function that POSTs to the same URL with the secret header.
+**Option B — GitHub Actions** (included in repo): workflow `.github/workflows/cron-reminders.yml` runs every 5 minutes. Add GitHub secret `CRON_SECRET` (same value as Supabase Edge Function secret).
+
+**Option C — Supabase cron** (if enabled on your plan): schedule a pg_cron job or Dashboard scheduled function that POSTs to the same URL with the secret header.
 
 ## 8. iPhone notes
 

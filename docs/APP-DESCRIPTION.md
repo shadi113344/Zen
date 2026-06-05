@@ -110,7 +110,7 @@ This is a code audit against [`PHASE-1`](./rebuild/PHASE-1-interface-and-ia.md) 
 - Consistency goals (days/week) and cumulative goals (target units)
 - Weighted habit links, progress per habit, optional **goal color** picker
 - Category goals section on category detail pages
-- **Not on Today:** horizontal goal chips (Phase 3 spec)
+- **Today goal chips** (`GoalChipsRow` on `/log`)
 
 ### Insights (`/insights`)
 

@@ -22,9 +22,9 @@ export function DesktopHeader() {
   const location = useLocation();
   const navigate = useNavigate();
   const { habits } = useHabits();
-  const { user } = useSession();
-  const displayName = userDisplayName(user);
-  const avatarInitial = userInitial(user);
+  const { user, profile } = useSession();
+  const displayName = userDisplayName(user, "Account", profile);
+  const avatarInitial = userInitial(user, "?", profile);
   const categories = uniqueCategories(habits);
   const { toggleTheme, resolved } = useTheme();
   const { selectedDate, isToday } = useAppDate();

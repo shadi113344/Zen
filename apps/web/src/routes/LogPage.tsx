@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { EmptyState } from "@/components/EmptyState";
 
-import { WeekDateStrip } from "@/components/WeekDateStrip";
+import { LogDateChrome } from "@/components/LogDateChrome";
 
 import { AddHabitFAB, AddHabitModal } from "@/components/log/AddHabitModal";
 
@@ -75,7 +75,7 @@ export function LogPage() {
               <HeroScore habits={habits} logs={logs} date={selectedDate} compact />
             </div>
             <div className="log-page__date-wrap">
-              <WeekDateStrip className="log-page__date-strip" />
+              <LogDateChrome className="log-page__date-strip" />
             </div>
           </div>
         </>
@@ -128,7 +128,7 @@ export function LogPage() {
         {desktop && (
           <>
             <HeroScore habits={habits} logs={logs} date={selectedDate} />
-            <WeekDateStrip className="log-page__date-strip" />
+            <LogDateChrome className="log-page__date-strip" />
           </>
         )}
 

@@ -39,10 +39,10 @@ export function ProfilePage() {
     setCompletion: setHapticCompletion,
   } = useHapticSettings();
   const { theme, setTheme } = useTheme();
-  const { user, signOut } = useSession();
+  const { user, profile, signOut } = useSession();
   const demoMode = useData().demoMode;
 
-  const displayName = userDisplayName(user, demoMode ? "Demo User" : "Account");
+  const displayName = userDisplayName(user, demoMode ? "Demo User" : "Account", profile);
   const email = user?.email ?? (demoMode ? "demo@mottazen.app" : "");
 
   return (
@@ -114,6 +114,19 @@ export function ProfilePage() {
               />
             </>
           )}
+        </SettingsSection>
+
+        <SettingsSection title="Install app">
+          <p className="settings-page__intro muted-text">
+            Install Zen on your phone or desktop for a full-screen app with offline access and background reminders.
+          </p>
+          <p className="settings-field__hint settings-field__hint--block">
+            <strong>iPhone/iPad:</strong> Safari → Share → Add to Home Screen.
+            <br />
+            <strong>Android:</strong> Chrome menu → Install app or Add to Home screen.
+            <br />
+            <strong>Desktop:</strong> Chrome/Edge address bar → Install Zen.
+          </p>
         </SettingsSection>
 
         <SettingsSection title="Appearance">

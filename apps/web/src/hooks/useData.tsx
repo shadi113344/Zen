@@ -338,6 +338,40 @@ export function DataProvider({ children }: { children: ReactNode }) {
     void fetchCloud().finally(() => setLoading(false));
   }, [userId, sessionLoading, fetchCloud, applySnapshot]);
 
+  const syncOnReconnect = useCallback(async () => {
+    if (isDemoMode || !supabase || !userId) return;
+
+    const localPayload = {
+      habits: habitsRef.current,
+      logs: logsRef.current,
+      goals: goalsRef.current,
+      goalHabits: goalHabitsRef.current,
+      categoryWeights: categoryWeightsRef.current,
+      categoryColors: categoryColorsRef.current,
+      dailyNotes: mergeDailyNotesBlob(dailyNotesRef.current, dayMoodRef.current),
+      notificationSettings: settingsRef.current,
+      timezone: tzRef.current,
+    };
+
+    if (snapshotHasData(localPayload)) {
+      const pushError = await pushSnapshotToCloud(supabase, userId, localPayload);
+      if (pushError) {
+        logDbError("reconnect push", { message: pushError });
+        showToastRef.current(`Sync failed: ${pushError}`);
+        return;
+      }
+    }
+    await fetchCloud();
+    showToastRef.current("Back online — synced");
+  }, [userId, fetchCloud]);
+
+  useEffect(() => {
+    if (isDemoMode || !userId) return;
+    const onOnline = () => void syncOnReconnect();
+    window.addEventListener("online", onOnline);
+    return () => window.removeEventListener("online", onOnline);
+  }, [userId, syncOnReconnect]);
+
   useDebouncedEffect(() => {
     persistLocal();
   }, [habits, logs, goals, goalHabits, categoryWeights, categoryColors, dailyNotes, dayMood, notificationSettings, timezone, persistLocal]);
@@ -453,7 +487,12 @@ export function DataProvider({ children }: { children: ReactNode }) {
             },
             { onConflict: "habit_id,log_date" },
           )
-          .then(({ error }) => logDbError("save log", error));
+          .then(({ error }) => {
+            if (error) {
+              logDbError("save log", error);
+              showToastRef.current(`Could not save log: ${error.message}`);
+            }
+          });
       }
     }
 
@@ -599,24 +638,16 @@ export function DataProvider({ children }: { children: ReactNode }) {
     setNotificationSettings(settings);
     if (nextTz) setTimezone(nextTz);
 
-    if (isDemoMode) {
-      if (supabase && userId) {
-        void supabase.from("user_settings").upsert({
-          id: userId,
-          notification_prefs: serializeNotificationSettings(settings),
-          timezone: nextTz ?? timezone,
-        });
-      }
-      return;
-    }
+    if (isDemoMode || !supabase || !userId) return;
 
-    if (supabase && userId) {
-      void supabase.from("user_settings").upsert({
+    void supabase
+      .from("user_settings")
+      .upsert({
         id: userId,
         notification_prefs: serializeNotificationSettings(settings),
         timezone: nextTz ?? timezone,
-      });
-    }
+      })
+      .then(({ error }) => logDbError("save notification settings", error));
   };
 
   const getDayNote = (date: string) => dailyNotes[date] ?? "";

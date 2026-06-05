@@ -1,5 +1,5 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ReactNode } from "react";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ToastProvider } from "@/components/Toast";
 import { DataProvider } from "@/hooks/useData";
 import { DisplayProvider } from "@/hooks/useDisplayPrefs";
@@ -7,11 +7,9 @@ import { HapticSettingsProvider } from "@/hooks/useHapticSettings";
 import { SessionProvider } from "@/hooks/useSession";
 import { ThemeProvider } from "@/hooks/useTheme";
 
-const queryClient = new QueryClient();
-
 export function AppProviders({ children }: { children: ReactNode }) {
   return (
-    <QueryClientProvider client={queryClient}>
+    <ErrorBoundary>
       <SessionProvider>
         <ThemeProvider>
           <DisplayProvider>
@@ -23,6 +21,6 @@ export function AppProviders({ children }: { children: ReactNode }) {
           </DisplayProvider>
         </ThemeProvider>
       </SessionProvider>
-    </QueryClientProvider>
+    </ErrorBoundary>
   );
 }

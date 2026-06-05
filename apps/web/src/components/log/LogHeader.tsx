@@ -19,9 +19,9 @@ function formatLogDate(dateKey: string): string {
 
 export function LogHeader({ isToday }: LogHeaderProps) {
   const { selectedDate } = useAppDate();
-  const { user } = useSession();
+  const { user, profile } = useSession();
   const { toggleTheme, resolved } = useTheme();
-  const avatarInitial = userInitial(user);
+  const avatarInitial = userInitial(user, "?", profile);
 
   return (
     <header className="log-header tab-screen-header">

@@ -21,13 +21,17 @@ import {
 import { useNotifications } from "@/hooks/useData";
 import { useSession } from "@/hooks/useSession";
 import { subscribeToPush } from "@/lib/push-subscribe";
+import { sendTestPush } from "@/lib/push-test";
+import { useToast } from "@/components/Toast";
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 export function NotificationsPage() {
   const location = useLocation();
   const { user } = useSession();
+  const { showToast } = useToast();
   const { notificationSettings, timezone, saveNotificationSettings, habits, updateHabit } = useNotifications();
+  const vapidConfigured = !!import.meta.env.VITE_VAPID_PUBLIC_KEY;
   const [draft, setDraft] = useState<NotificationSettings>(notificationSettings);
   const [tz, setTz] = useState(timezone);
   const [dirty, setDirty] = useState(false);
@@ -66,10 +70,17 @@ export function NotificationsPage() {
     saveNotificationSettings(draft, tz);
     setDirty(false);
     setSaved(true);
-    if (draft.enabled && user?.id) {
-      await subscribeToPush(user.id);
+    if (draft.enabled && user?.id && vapidConfigured) {
+      const result = await subscribeToPush(user.id);
+      if (!result.ok) showToast(`Push subscribe failed: ${result.error}`);
     }
     window.setTimeout(() => setSaved(false), 2000);
+  };
+
+  const handleTestPush = async () => {
+    const result = await sendTestPush();
+    if (result.ok) showToast("Background test push sent");
+    else showToast(result.error ?? "Test push failed");
   };
 
   const handleEnablePermission = async () => {
@@ -104,7 +115,7 @@ export function NotificationsPage() {
         <SettingsSection title="General">
           <SettingsToggleRow
             label="Enable coach notifications"
-            hint="Foreground reminders while the app is open (background push in a later update)."
+            hint="Foreground reminders while open, plus background push when VAPID is configured and you save settings."
             checked={draft.enabled}
             onChange={(enabled) => patch({ enabled })}
           />
@@ -116,9 +127,16 @@ export function NotificationsPage() {
               </button>
             )}
             {permission === "granted" && (
-              <button type="button" className="btn btn--ghost btn--sm" onClick={handleTest}>
-                Send test
-              </button>
+              <>
+                <button type="button" className="btn btn--ghost btn--sm" onClick={handleTest}>
+                  Test in app
+                </button>
+                {vapidConfigured && user ? (
+                  <button type="button" className="btn btn--ghost btn--sm" onClick={() => void handleTestPush()}>
+                    Test push
+                  </button>
+                ) : null}
+              </>
             )}
           </div>
           <FieldRow label="Timezone">

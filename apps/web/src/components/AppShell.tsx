@@ -11,8 +11,11 @@ function ShellContent() {
   if (desktop) {
     return (
       <div className="app-shell app-shell--desktop">
+        <a href="#main-content" className="skip-link">
+          Skip to content
+        </a>
         <DesktopHeader />
-        <main className="app-shell__main">
+        <main id="main-content" className="app-shell__main">
           <Outlet />
         </main>
       </div>
@@ -21,7 +24,10 @@ function ShellContent() {
 
   return (
     <div className="app-shell">
-      <main className="app-shell__main">
+      <a href="#main-content" className="skip-link">
+        Skip to content
+      </a>
+      <main id="main-content" className="app-shell__main">
         <Outlet />
       </main>
       <TabBar />

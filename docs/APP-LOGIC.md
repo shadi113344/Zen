@@ -277,7 +277,7 @@ sequenceDiagram
 5. If authed → `supabase.from("habit_logs").upsert/delete`
 6. If today → optional coach notification via `checkMotivationOnLog`
 
-Same pattern for habits CRUD (immediate local + Supabase upsert). Goals mutations update React state + local snapshot **only** — no Supabase calls.
+Same pattern for habits CRUD (immediate local + Supabase upsert). Goals mutations update React state + local snapshot + Supabase (`goals`, `goal_habits` via `cloud-sync.ts` / `useData.tsx`).
 
 ### What syncs to Supabase
 
@@ -289,9 +289,9 @@ Same pattern for habits CRUD (immediate local + Supabase upsert). Goals mutation
 | Goals | `goals` | kind, dates, cumulative fields, color |
 | Goal links | `goal_habits` | weight, required; cascade delete |
 
-### localStorage snapshot (`mottazen-data-snapshot`)
+### localStorage snapshot (`mottazen-data-snapshot:<userId>`)
 
-Full offline cache: habits, logs, goals, goalHabits, weights, colors, notes, mood, notification settings, timezone, `savedAt`.
+Per-user offline cache: habits, logs, goals, goalHabits, weights, colors, notes, mood, notification settings, timezone, `savedAt`. On sign-in, local data is shown immediately then merged with cloud; empty cloud + local data triggers push-up sync.
 
 ### Export / import (`lib/export-import.ts`)
 

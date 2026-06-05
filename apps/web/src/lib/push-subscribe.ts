@@ -27,14 +27,18 @@ export async function subscribeToPush(userId: string): Promise<{ ok: boolean; er
     }
 
     const json = sub.toJSON();
+    if (!json.keys?.p256dh || !json.keys?.auth) {
+      return { ok: false, error: "Invalid push subscription keys" };
+    }
     const { error } = await supabase.from("push_subscriptions").upsert(
       {
         user_id: userId,
         endpoint: sub.endpoint,
         p256dh: json.keys?.p256dh,
-        auth: json.keys?.auth,
+        auth_key: json.keys?.auth,
+        user_agent: navigator.userAgent,
       },
-      { onConflict: "endpoint" },
+      { onConflict: "user_id,endpoint" },
     );
 
     if (error) return { ok: false, error: error.message };

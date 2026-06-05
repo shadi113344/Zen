@@ -57,7 +57,9 @@ POST every **5 minutes** to:
 
 Headers: `x-cron-secret: YOUR_CRON_SECRET`
 
-Options: [cron-job.org](https://cron-job.org), GitHub Actions scheduled workflow, or Supabase scheduled functions if on your plan.
+**Included in repo:** `.github/workflows/cron-reminders.yml` (every 5 min). Add GitHub secret `CRON_SECRET` matching Supabase.
+
+Alternatives: [cron-job.org](https://cron-job.org) or Supabase scheduled functions if on your plan.
 
 ## 5. Post-deploy smoke tests
 

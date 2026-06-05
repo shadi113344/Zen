@@ -3,10 +3,12 @@ import type { Session, User } from "@supabase/supabase-js";
 import { isDemoMode } from "@/lib/demo-data";
 import { clearAllLocalSnapshots } from "@/lib/local-data-store";
 import { supabase, supabaseConfigured } from "@/lib/supabase";
+import type { UserProfile } from "@/lib/user-display";
 
 interface SessionContextValue {
   user: User | null;
   session: Session | null;
+  profile: UserProfile | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
   signUp: (email: string, password: string) => Promise<{ error: string | null }>;
@@ -18,6 +20,7 @@ const SessionContext = createContext<SessionContextValue | null>(null);
 
 export function SessionProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(supabaseConfigured);
 
   useEffect(() => {
@@ -38,6 +41,26 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 
     return () => sub.subscription.unsubscribe();
   }, []);
+
+  useEffect(() => {
+    const userId = session?.user?.id;
+    if (!userId || !supabase) {
+      setProfile(null);
+      return;
+    }
+
+    void supabase
+      .from("profiles")
+      .select("display_name, avatar_url")
+      .eq("id", userId)
+      .maybeSingle()
+      .then(({ data }) => {
+        setProfile({
+          displayName: (data?.display_name as string | null) ?? null,
+          avatarUrl: (data?.avatar_url as string | null) ?? null,
+        });
+      });
+  }, [session?.user?.id]);
 
   const signIn = async (email: string, password: string) => {
     if (!supabase) return { error: "Supabase not configured" };
@@ -72,6 +95,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       /* ignore */
     }
     setSession(null);
+    setProfile(null);
   };
 
   return (
@@ -79,6 +103,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       value={{
         user: session?.user ?? null,
         session,
+        profile,
         loading,
         signIn,
         signUp,

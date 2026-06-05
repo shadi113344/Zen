@@ -45,10 +45,10 @@ Deno.serve(async (req) => {
     }
 
     const payload = {
-      title: "Mottazen test",
+      title: "Zen test",
       body: "Background push is working. You can close the app and still get reminders.",
-      tag: "mottazen-test",
-      url: "/",
+      tag: "zen-test",
+      url: "/log",
     };
 
     let sent = 0;
