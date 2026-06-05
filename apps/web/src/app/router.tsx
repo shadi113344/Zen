@@ -15,6 +15,8 @@ import {
 } from "@/routes/ProfilePages";
 import { GoalDetailPage } from "@/routes/GoalDetailPage";
 import { GoalsPage } from "@/routes/GoalsPage";
+import { ProfileAccountPage } from "@/routes/ProfileAccountPage";
+import { ProfileHapticsPage } from "@/routes/ProfileHapticsPage";
 import { ProfileThemePage } from "@/routes/ProfileThemePage";
 import { isDemoMode } from "@/lib/demo-data";
 import { supabaseConfigured } from "@/lib/supabase";
@@ -65,6 +67,8 @@ export const router = createBrowserRouter([
       { path: "profile/goals", element: <Navigate to="/goals" replace /> },
       { path: "profile/notifications", element: <NotificationsPage /> },
       { path: "profile/data", element: <ProfileDataPage /> },
+      { path: "profile/account", element: <ProfileAccountPage /> },
+      { path: "profile/haptics", element: <ProfileHapticsPage /> },
       { path: "profile/display", element: <ProfileDisplayPage /> },
       { path: "profile/theme", element: <ProfileThemePage /> },
     ],

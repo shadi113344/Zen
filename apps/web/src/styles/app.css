@@ -4268,6 +4268,73 @@ body.reorder-active .insights-reorder-card {
   border-top: 1px solid var(--line);
 }
 
+.settings-account__save {
+  margin-top: 8px;
+}
+
+.settings-sign-out {
+  margin-top: 32px;
+  display: flex;
+  justify-content: center;
+}
+
+.settings-sign-out__btn {
+  border: none;
+  background: none;
+  font: inherit;
+  font-weight: 750;
+  font-size: 16px;
+  color: #b42318;
+  cursor: pointer;
+  padding: 14px 20px;
+  min-height: 44px;
+}
+
+.settings-slider {
+  padding: 10px 0 14px;
+  border-bottom: 1px solid var(--line);
+}
+
+.settings-slider:last-child {
+  border-bottom: none;
+}
+
+.settings-slider--disabled {
+  opacity: 0.45;
+}
+
+.settings-slider__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+
+.settings-slider__label {
+  font-weight: 750;
+  font-size: 14px;
+}
+
+.settings-slider__value {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.settings-slider__hint {
+  display: block;
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
+.settings-slider__input {
+  width: 100%;
+  accent-color: var(--active);
+}
+
 .settings-page__intro {
   margin: 0 0 12px;
   font-size: 13px;
@@ -5074,6 +5141,45 @@ body.reorder-active .insights-reorder-card {
   padding: 18px;
 }
 
+/* Account block (inset group with avatar header + sign-out row) */
+.settings-account {
+  margin-bottom: 4px;
+}
+
+.settings-account__head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 0;
+}
+
+/* Hairline divider when rows follow the avatar header */
+.settings-account__head:not(:last-child) {
+  border-bottom: 1px solid var(--line);
+}
+
+.settings-account__id {
+  min-width: 0;
+}
+
+.settings-account__status {
+  font-size: 12px;
+  font-weight: 650;
+  color: var(--muted);
+  margin-top: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.settings-account__status::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--status-dot, var(--muted));
+}
+
 .profile-user__avatar {
   width: 48px;
   height: 48px;
@@ -5151,6 +5257,14 @@ body.reorder-active .insights-reorder-card {
   color: inherit;
 }
 
+/* Inset grouped list — recessed surface, hairline rows, no floating-card shadow */
+.settings-group {
+  background: var(--card-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 2px 16px;
+}
+
 .profile-settings {
   padding: 4px 16px;
 }
@@ -5204,13 +5318,23 @@ body.reorder-active .insights-reorder-card {
   white-space: nowrap;
 }
 
+.profile-link-row__meta--mono {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+/* Read-only diagnostic row — no hover/press affordance */
+.profile-link-row--static {
+  cursor: default;
+}
+
 /* ——— Theme settings ——— */
 
 .theme-settings .card {
   overflow: visible;
 }
 
-.theme-settings .profile-settings:has(.glass-select--open) {
+.theme-settings .settings-group:has(.glass-select--open) {
   position: relative;
   z-index: 5;
 }

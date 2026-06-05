@@ -29,3 +29,16 @@ export function userInitial(
   const name = userDisplayName(user, "", profile);
   return (name[0] ?? fallback).toUpperCase();
 }
+
+/** Primary sign-in method: `email`, `google`, etc. */
+export function userAuthProvider(user: User | null | undefined): string | null {
+  if (!user) return null;
+  const fromMeta = user.app_metadata?.provider;
+  if (typeof fromMeta === "string") return fromMeta;
+  return user.identities?.[0]?.provider ?? null;
+}
+
+export function isPasswordAuthUser(user: User | null | undefined): boolean {
+  const provider = userAuthProvider(user);
+  return provider === "email" || provider === null;
+}

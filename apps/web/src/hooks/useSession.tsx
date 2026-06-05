@@ -14,6 +14,9 @@ interface SessionContextValue {
   signUp: (email: string, password: string) => Promise<{ error: string | null }>;
   signInWithGoogle: () => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
+  updateDisplayName: (displayName: string) => Promise<{ error: string | null }>;
+  updateEmail: (email: string) => Promise<{ error: string | null }>;
+  updatePassword: (password: string) => Promise<{ error: string | null }>;
 }
 
 const SessionContext = createContext<SessionContextValue | null>(null);
@@ -98,6 +101,35 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     setProfile(null);
   };
 
+  const updateDisplayName = async (displayName: string) => {
+    const userId = session?.user?.id;
+    if (!userId || !supabase) return { error: "Not signed in" };
+    const trimmed = displayName.trim();
+    const { error } = await supabase.from("profiles").upsert({
+      id: userId,
+      display_name: trimmed || null,
+    });
+    if (!error) {
+      setProfile((prev) => ({
+        displayName: trimmed || null,
+        avatarUrl: prev?.avatarUrl ?? null,
+      }));
+    }
+    return { error: error?.message ?? null };
+  };
+
+  const updateEmail = async (email: string) => {
+    if (!supabase) return { error: "Supabase not configured" };
+    const { error } = await supabase.auth.updateUser({ email: email.trim() });
+    return { error: error?.message ?? null };
+  };
+
+  const updatePassword = async (password: string) => {
+    if (!supabase) return { error: "Supabase not configured" };
+    const { error } = await supabase.auth.updateUser({ password });
+    return { error: error?.message ?? null };
+  };
+
   return (
     <SessionContext.Provider
       value={{
@@ -109,6 +141,9 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         signUp,
         signInWithGoogle,
         signOut,
+        updateDisplayName,
+        updateEmail,
+        updatePassword,
       }}
     >
       {children}

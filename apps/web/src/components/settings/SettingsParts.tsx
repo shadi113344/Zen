@@ -22,11 +22,11 @@ export function SettingsPageHeader({
   );
 }
 
-export function SettingsSection({ title, children }: { title: string; children: ReactNode }) {
+export function SettingsSection({ title, children }: { title?: string; children: ReactNode }) {
   return (
     <div className="settings-section">
-      <h2 className="profile-section-label">{title}</h2>
-      <section className="card profile-settings">{children}</section>
+      {title ? <h2 className="profile-section-label">{title}</h2> : null}
+      <section className="settings-group">{children}</section>
     </div>
   );
 }
@@ -88,11 +88,13 @@ export function SettingsActionRow({
   hint,
   onClick,
   danger,
+  meta,
 }: {
   title: string;
   hint?: string;
   onClick: () => void;
   danger?: boolean;
+  meta?: ReactNode;
 }) {
   return (
     <button
@@ -104,7 +106,72 @@ export function SettingsActionRow({
         <span className="profile-link-row__title">{title}</span>
         {hint ? <span className="profile-link-row__hint">{hint}</span> : null}
       </span>
+      {meta ? <span className="profile-link-row__meta">{meta}</span> : null}
     </button>
+  );
+}
+
+export function SettingsSliderRow({
+  label,
+  hint,
+  value,
+  onChange,
+  onRelease,
+  disabled,
+  min = 1,
+  max = 100,
+}: {
+  label: string;
+  hint?: string;
+  value: number;
+  onChange: (v: number) => void;
+  onRelease?: () => void;
+  disabled?: boolean;
+  min?: number;
+  max?: number;
+}) {
+  return (
+    <div className={`settings-slider${disabled ? " settings-slider--disabled" : ""}`}>
+      <div className="settings-slider__row">
+        <span className="settings-slider__label">{label}</span>
+        <span className="settings-slider__value">{value}%</span>
+      </div>
+      {hint ? <span className="settings-slider__hint">{hint}</span> : null}
+      <input
+        type="range"
+        className="settings-slider__input"
+        min={min}
+        max={max}
+        value={value}
+        disabled={disabled}
+        onChange={(e) => onChange(Number(e.target.value))}
+        onPointerUp={onRelease}
+        onKeyUp={onRelease}
+        aria-label={label}
+      />
+    </div>
+  );
+}
+
+export function SettingsValueRow({
+  label,
+  value,
+  hint,
+  mono,
+}: {
+  label: string;
+  value: ReactNode;
+  hint?: string;
+  mono?: boolean;
+}) {
+  return (
+    <div className="profile-link-row profile-link-row--static">
+      <span>
+        <span className="profile-link-row__title">{label}</span>
+        {hint ? <span className="profile-link-row__hint">{hint}</span> : null}
+      </span>
+      <span className={`profile-link-row__meta${mono ? " profile-link-row__meta--mono" : ""}`}>{value}</span>
+    </div>
   );
 }
 

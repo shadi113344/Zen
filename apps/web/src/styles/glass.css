@@ -38,6 +38,7 @@
 
 /* Optional glass on cards — Theme → Glass cards + opacity */
 [data-glass-cards="true"] .card:not(.category-chip),
+[data-glass-cards="true"] .settings-group,
 [data-glass-cards="true"] .habit-group,
 [data-glass-cards="true"] .habit-activity-card,
 [data-glass-cards="true"] .hero-score,

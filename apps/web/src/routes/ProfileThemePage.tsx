@@ -132,7 +132,7 @@ export function ProfileThemePage() {
 
       <h2 className="profile-section-label">Appearance</h2>
 
-      <section className="card profile-settings">
+      <section className="settings-group">
 
         <div className="theme-field">
 
@@ -168,7 +168,7 @@ export function ProfileThemePage() {
 
       <h2 className="profile-section-label">Accent</h2>
 
-      <section className="card profile-settings">
+      <section className="settings-group">
 
         <p className="theme-field__hint theme-field__hint--block">
 
@@ -216,7 +216,7 @@ export function ProfileThemePage() {
 
       <h2 className="profile-section-label">Background</h2>
 
-      <section className="card profile-settings">
+      <section className="settings-group">
 
         <p className="theme-field__hint theme-field__hint--block">
 
@@ -284,7 +284,7 @@ export function ProfileThemePage() {
 
       <h2 className="profile-section-label">Glass cards</h2>
 
-      <section className="card profile-settings">
+      <section className="settings-group">
 
         <label className="theme-glass-toggle">
 
@@ -350,7 +350,7 @@ export function ProfileThemePage() {
 
       <h2 className="profile-section-label">Category colors</h2>
 
-      <section className="card profile-settings">
+      <section className="settings-group">
 
         <p className="theme-field__hint theme-field__hint--block">
 

@@ -1,23 +1,21 @@
-import { useRef, useState } from "react";
-import { Link, Navigate } from "react-router-dom";
+import { useRef, useState, type CSSProperties } from "react";
+import { Navigate } from "react-router-dom";
 import { NotificationsPage } from "@/routes/NotificationsPage";
 import {
   SettingsActionRow,
   SettingsLinkRow,
   SettingsPageHeader,
   SettingsSection,
-  SettingsToggleRow,
-  ThemeModeRow,
+  SettingsValueRow,
 } from "@/components/settings/SettingsParts";
-import { useDisplayPrefs } from "@/hooks/useDisplayPrefs";
-import { useHapticSettings } from "@/hooks/useHapticSettings";
 import { hapticGoalComplete, hapticProgressBump, isAppleTouchDevice } from "@/lib/haptic";
-import { DISPLAY_DENSITY_ORDER, displayDensityLabel, type DisplayDensity } from "@/lib/display-density";
-import { useTheme } from "@/hooks/useTheme";
 import { useData } from "@/hooks/useData";
 import { useSession } from "@/hooks/useSession";
-import { userDisplayName } from "@/lib/user-display";
+import { userDisplayName, userInitial } from "@/lib/user-display";
 import { useToast } from "@/components/Toast";
+import { getNotifyPermission, isStandalonePWA } from "@/lib/coach-notify";
+import { clearNotifyLog } from "@/lib/notify-log";
+import { supabaseConfigured } from "@/lib/supabase";
 import {
   buildExportBundle,
   downloadJson,
@@ -28,178 +26,222 @@ import {
 
 export { NotificationsPage };
 
+const DEV_UNLOCK_KEY = "zen.devUnlocked";
+const DEV_TAP_TARGET = 7;
+
+function useDevUnlock(): readonly [boolean, (next: boolean) => void] {
+  const [unlocked, setUnlocked] = useState(() => {
+    try {
+      return localStorage.getItem(DEV_UNLOCK_KEY) === "1";
+    } catch {
+      return false;
+    }
+  });
+  const persist = (next: boolean) => {
+    try {
+      if (next) localStorage.setItem(DEV_UNLOCK_KEY, "1");
+      else localStorage.removeItem(DEV_UNLOCK_KEY);
+    } catch {
+      /* storage unavailable — keep in-memory state only */
+    }
+    setUnlocked(next);
+  };
+  return [unlocked, persist] as const;
+}
+
 export function ProfilePage() {
-  const { displayDensity, showEditButtons, setDisplayDensity, setShowEditButtons } = useDisplayPrefs();
-  const {
-    enabled: hapticEnabled,
-    progressSteps: hapticProgressSteps,
-    completion: hapticCompletion,
-    setEnabled: setHapticEnabled,
-    setProgressSteps: setHapticProgressSteps,
-    setCompletion: setHapticCompletion,
-  } = useHapticSettings();
-  const { theme, setTheme } = useTheme();
   const { user, profile, signOut } = useSession();
-  const demoMode = useData().demoMode;
+  const data = useData();
+  const { demoMode } = data;
+  const { showToast } = useToast();
+
+  const [devUnlocked, setDevUnlocked] = useDevUnlock();
+  const [installOpen, setInstallOpen] = useState(false);
+  const tapCount = useRef(0);
 
   const displayName = userDisplayName(user, demoMode ? "Demo User" : "Account", profile);
-  const email = user?.email ?? (demoMode ? "demo@mottazen.app" : "");
+  const email = user?.email ?? (demoMode ? "demo@mottazen.app" : "Stored on this device");
+
+  const status = demoMode
+    ? { label: "Demo mode", color: "#f59e0b" }
+    : user
+      ? { label: "Synced to cloud", color: "var(--green)" }
+      : { label: "Local only", color: "var(--muted)" };
+
+  const handleVersionTap = () => {
+    if (devUnlocked) return;
+    tapCount.current += 1;
+    const remaining = DEV_TAP_TARGET - tapCount.current;
+    if (remaining <= 0) {
+      tapCount.current = 0;
+      setDevUnlocked(true);
+      showToast("Developer options unlocked");
+    } else if (remaining <= 3) {
+      showToast(`${remaining} more tap${remaining === 1 ? "" : "s"} to unlock developer options`);
+    }
+  };
+
+  const loadSampleData = () => {
+    if (
+      !window.confirm(
+        "Load sample data? This replaces your current habits and logs with 90 days of demo entries.",
+      )
+    ) {
+      return;
+    }
+    data.loadSampleData();
+    showToast("Sample data loaded");
+  };
+
+  const clearAllData = () => {
+    if (!window.confirm("Clear all data? This removes every habit, log, and setting. This cannot be undone.")) {
+      return;
+    }
+    data.clearAllData();
+    showToast("All data cleared");
+  };
 
   return (
     <div className="profile-page settings-page">
       <SettingsPageHeader title="Settings" backTo="/log" backLabel="Today" />
 
-      <section className="card profile-user settings-page__account">
-        <div className="profile-user__avatar">{(displayName[0] ?? "U").toUpperCase()}</div>
-        <div>
-          <div className="profile-user__name">{displayName}</div>
-          <div className="profile-user__email">{email}</div>
+      <section className="settings-group settings-account">
+        <div className="settings-account__head">
+          <div className="profile-user__avatar">{userInitial(user, demoMode ? "D" : "U", profile)}</div>
+          <div className="settings-account__id">
+            <div className="profile-user__name">{displayName}</div>
+            <div className="profile-user__email">{email}</div>
+            <div className="settings-account__status" style={{ "--status-dot": status.color } as CSSProperties}>
+              {status.label}
+            </div>
+          </div>
         </div>
+        {user ? (
+          <SettingsLinkRow to="/profile/account" title="Profile" hint="Name, email, and password" />
+        ) : null}
       </section>
 
       <div className="settings-page__groups">
-        <SettingsSection title="Today">
-          <SettingsLinkRow
-            to="/goals"
-            title="Goals"
-            hint="View, add, and edit goals with linked activities and category groups"
-            meta="Open →"
-          />
-          <LayoutDensityRow value={displayDensity} onChange={setDisplayDensity} />
-          <SettingsToggleRow
-            label="Edit buttons on cards"
-            hint="Show the drag handle when reordering activities"
-            checked={showEditButtons}
-            onChange={setShowEditButtons}
-          />
-        </SettingsSection>
-
-        <SettingsSection title="Haptic feedback">
-          <SettingsToggleRow
-            label="Haptic feedback"
-            hint="Vibration when you log progress (Android and desktop browsers with vibration support)"
-            checked={hapticEnabled}
-            onChange={setHapticEnabled}
-          />
-          <SettingsToggleRow
-            label="Progress steps"
-            hint="Short buzz each time you move an activity forward"
-            checked={hapticProgressSteps}
-            disabled={!hapticEnabled}
-            onChange={setHapticProgressSteps}
-          />
-          <SettingsToggleRow
-            label="Milestones"
-            hint="Longer pattern when an activity, goal, or your day hits 100%"
-            checked={hapticCompletion}
-            disabled={!hapticEnabled}
-            onChange={setHapticCompletion}
-          />
-          {isAppleTouchDevice() ? (
-            <p className="settings-field__hint settings-field__hint--block">
-              On iPhone and iPad, only direct taps on checkboxes and +/− controls use the system Taptic
-              Engine. Milestone buzzes from the app are not available on iOS.
-            </p>
-          ) : (
-            <>
-              <SettingsActionRow
-                title="Test progress buzz"
-                hint="Preview the short step vibration"
-                onClick={() => hapticProgressBump({ force: true })}
-              />
-              <SettingsActionRow
-                title="Test milestone buzz"
-                hint="Preview the longer completion pattern"
-                onClick={() => hapticGoalComplete({ force: true })}
-              />
-            </>
-          )}
-        </SettingsSection>
-
-        <SettingsSection title="Install app">
-          <p className="settings-page__intro muted-text">
-            Install Zen on your phone or desktop for a full-screen app with offline access and background reminders.
-          </p>
-          <p className="settings-field__hint settings-field__hint--block">
-            <strong>iPhone/iPad:</strong> Safari → Share → Add to Home Screen.
-            <br />
-            <strong>Android:</strong> Chrome menu → Install app or Add to Home screen.
-            <br />
-            <strong>Desktop:</strong> Chrome/Edge address bar → Install Zen.
-          </p>
-        </SettingsSection>
-
-        <SettingsSection title="Appearance">
-          <ThemeModeRow value={theme} onChange={setTheme} />
+        <SettingsSection title="General Settings">
           <SettingsLinkRow
             to="/profile/theme"
-            title="Colors & background"
-            hint="Accent, tints, glass cards"
-            meta="Customize →"
+            title="Appearance"
+            hint="Theme, accent, background, glass & category colors"
           />
-        </SettingsSection>
-
-        <SettingsSection title="Notifications">
           <SettingsLinkRow
             to="/profile/notifications"
-            title="Coach & reminders"
-            hint="Daily nudges, habit times, motivation & reviews"
-            meta="Configure →"
+            title="Notifications"
+            hint="Coach nudges, habit times, motivation & reviews"
+          />
+          <SettingsLinkRow
+            to="/profile/haptics"
+            title="Haptics"
+            hint="Vibration for progress steps and milestones"
+          />
+          <SettingsLinkRow
+            to="/profile/data"
+            title="Data"
+            hint="Export JSON or CSV, restore from a file"
           />
         </SettingsSection>
 
-        <SettingsSection title="Data">
-          <SettingsLinkRow
-            to="/profile/data"
-            title="Backup & import"
-            hint="Export JSON or CSV, restore from a file"
-            meta="Open →"
+        <SettingsSection title="About">
+          {!isStandalonePWA() ? (
+            <>
+              <SettingsActionRow
+                title="Install app"
+                hint="Full-screen, offline access, background reminders"
+                meta={installOpen ? "▾" : "▸"}
+                onClick={() => setInstallOpen((v) => !v)}
+              />
+              {installOpen ? (
+                <p className="settings-field__hint settings-field__hint--block">
+                  <strong>iPhone/iPad:</strong> Safari → Share → Add to Home Screen.
+                  <br />
+                  <strong>Android:</strong> Chrome menu → Install app or Add to Home screen.
+                  <br />
+                  <strong>Desktop:</strong> Chrome/Edge address bar → Install Zen.
+                </p>
+              ) : null}
+            </>
+          ) : null}
+          <SettingsActionRow
+            title="Version"
+            hint={devUnlocked ? "Developer options unlocked" : undefined}
+            meta={__APP_VERSION__}
+            onClick={handleVersionTap}
           />
         </SettingsSection>
+
+        {devUnlocked ? (
+          <SettingsSection title="Developer">
+            <SettingsValueRow label="App version" value={__APP_VERSION__} mono />
+            <SettingsValueRow label="Supabase configured" value={supabaseConfigured ? "Yes" : "No"} />
+            <SettingsValueRow label="VAPID push key" value={import.meta.env.VITE_VAPID_PUBLIC_KEY ? "Yes" : "No"} />
+            <SettingsValueRow label="Notification permission" value={getNotifyPermission()} />
+            <SettingsValueRow label="Standalone PWA" value={isStandalonePWA() ? "Yes" : "No"} />
+            <SettingsValueRow label="Demo mode" value={demoMode ? "Yes" : "No"} />
+            <SettingsValueRow label="Timezone" value={data.timezone} mono />
+            <SettingsActionRow
+              title="Load sample data"
+              hint="90 days across Health, Mind, Movement & Life"
+              onClick={loadSampleData}
+            />
+            <SettingsActionRow
+              title="Reset today's sent log"
+              hint="Clear the notification de-dupe log for today"
+              onClick={() => {
+                clearNotifyLog();
+                showToast("Today's sent log reset");
+              }}
+            />
+            <SettingsActionRow
+              title="Clear all data"
+              hint="Remove habits, logs, categories, and notes"
+              onClick={clearAllData}
+              danger
+            />
+            {!isAppleTouchDevice() ? (
+              <>
+                <SettingsActionRow
+                  title="Test progress buzz"
+                  hint="Preview the short step vibration"
+                  onClick={() => hapticProgressBump({ force: true })}
+                />
+                <SettingsActionRow
+                  title="Test milestone buzz"
+                  hint="Preview the longer completion pattern"
+                  onClick={() => hapticGoalComplete({ force: true })}
+                />
+              </>
+            ) : null}
+            <SettingsActionRow
+              title="Hide developer options"
+              hint="Re-lock this section"
+              onClick={() => {
+                setDevUnlocked(false);
+                showToast("Developer options hidden");
+              }}
+            />
+          </SettingsSection>
+        ) : null}
       </div>
 
       {user ? (
-        <button
-          type="button"
-          className="btn btn--ghost btn--block profile-signout"
-          onClick={async () => {
-            await signOut();
-            window.location.replace("/auth");
-          }}
-        >
-          Sign out
-        </button>
+        <div className="settings-sign-out">
+          <button
+            type="button"
+            className="settings-sign-out__btn"
+            onClick={async () => {
+              await signOut();
+              window.location.replace("/auth");
+            }}
+          >
+            Sign out
+          </button>
+        </div>
       ) : null}
     </div>
-  );
-}
-
-function LayoutDensityRow({
-  value,
-  onChange,
-}: {
-  value: DisplayDensity;
-  onChange: (density: DisplayDensity) => void;
-}) {
-  return (
-    <label className="profile-toggle-row profile-layout-row">
-      <span>
-        <span className="profile-toggle-row__label">Activity layout</span>
-        <span className="profile-toggle-row__hint">Normal groups, compact rows, or activity-only</span>
-      </span>
-      <select
-        className="profile-layout-row__select"
-        value={value}
-        onChange={(e) => onChange(e.target.value as DisplayDensity)}
-        aria-label="Activity layout"
-      >
-        {DISPLAY_DENSITY_ORDER.map((density) => (
-          <option key={density} value={density}>
-            {displayDensityLabel(density)}
-          </option>
-        ))}
-      </select>
-    </label>
   );
 }
 
@@ -236,26 +278,6 @@ export function ProfileDataPage() {
       logsToCsv(data.logs, data.habits),
       "text/csv",
     );
-  };
-
-  const loadSampleData = () => {
-    if (
-      !window.confirm(
-        "Load sample data? This replaces your current habits and logs with 90 days of demo entries.",
-      )
-    ) {
-      return;
-    }
-    data.loadSampleData();
-    showToast("Sample data loaded");
-  };
-
-  const clearAllData = () => {
-    if (!window.confirm("Clear all data? This removes every habit, log, and setting. This cannot be undone.")) {
-      return;
-    }
-    data.clearAllData();
-    showToast("All data cleared");
   };
 
   const onFile = (file: File) => {
@@ -319,19 +341,10 @@ export function ProfileDataPage() {
           ) : null}
         </SettingsSection>
 
-        <SettingsSection title="Advanced">
-          <SettingsActionRow
-            title="Load sample data"
-            hint="90 days across Health, Mind, Movement & Life"
-            onClick={loadSampleData}
-          />
-          <SettingsActionRow
-            title="Clear all data"
-            hint="Remove habits, logs, categories, and notes"
-            onClick={clearAllData}
-            danger
-          />
-        </SettingsSection>
+        <p className="settings-page__intro muted-text">
+          Looking for sample data or a full reset? Those live under Settings → About → tap Version to
+          reveal Developer options.
+        </p>
       </div>
     </div>
   );

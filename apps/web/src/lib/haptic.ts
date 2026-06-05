@@ -45,6 +45,21 @@ function vibrate(pattern: number | number[]): void {
   }
 }
 
+const PROGRESS_BASE_MS = 20;
+const COMPLETION_PATTERN = [32, 100, 48, 100, 64, 100, 88];
+
+function strengthFactor(strength: number): number {
+  return Math.max(0.1, Math.min(1, strength / 100));
+}
+
+function scaleDuration(ms: number, strength: number): number {
+  return Math.max(1, Math.round(ms * strengthFactor(strength)));
+}
+
+function scalePattern(pattern: number[], strength: number): number[] {
+  return pattern.map((ms) => scaleDuration(ms, strength));
+}
+
 type HapticOptions = { force?: boolean };
 
 /**
@@ -53,12 +68,10 @@ type HapticOptions = { force?: boolean };
  * Android/other: a brief buzz.
  */
 export function hapticProgressBump(options?: HapticOptions): void {
-  if (!options?.force) {
-    const prefs = readHapticSettings();
-    if (!prefs.enabled || !prefs.progressSteps) return;
-  }
+  const prefs = readHapticSettings();
+  if (!options?.force && (!prefs.enabled || !prefs.progressSteps)) return;
   if (isAppleTouchDevice()) return;
-  vibrate(14);
+  vibrate(scaleDuration(PROGRESS_BASE_MS, prefs.progressStrength));
 }
 
 /**
@@ -67,10 +80,8 @@ export function hapticProgressBump(options?: HapticOptions): void {
  * blocks programmatic haptics, so it's a no-op. Android/other: a triple buzz.
  */
 export function hapticGoalComplete(options?: HapticOptions): void {
-  if (!options?.force) {
-    const prefs = readHapticSettings();
-    if (!prefs.enabled || !prefs.completion) return;
-  }
+  const prefs = readHapticSettings();
+  if (!options?.force && (!prefs.enabled || !prefs.completion)) return;
   if (isAppleTouchDevice()) return;
-  vibrate([32, 100, 48, 100, 64, 100, 88]);
+  vibrate(scalePattern(COMPLETION_PATTERN, prefs.completionStrength));
 }

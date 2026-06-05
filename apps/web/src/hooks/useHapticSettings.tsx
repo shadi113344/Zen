@@ -10,6 +10,8 @@ type HapticSettingsContext = HapticSettings & {
   setEnabled: (v: boolean) => void;
   setProgressSteps: (v: boolean) => void;
   setCompletion: (v: boolean) => void;
+  setProgressStrength: (v: number) => void;
+  setCompletionStrength: (v: number) => void;
 };
 
 const HapticSettingsCtx = createContext<HapticSettingsContext | null>(null);
@@ -26,6 +28,10 @@ export function HapticSettingsProvider({ children }: { children: ReactNode }) {
   const setEnabled = (enabled: boolean) => setSettings((s) => persist({ enabled }, s));
   const setProgressSteps = (progressSteps: boolean) => setSettings((s) => persist({ progressSteps }, s));
   const setCompletion = (completion: boolean) => setSettings((s) => persist({ completion }, s));
+  const setProgressStrength = (progressStrength: number) =>
+    setSettings((s) => persist({ progressStrength }, s));
+  const setCompletionStrength = (completionStrength: number) =>
+    setSettings((s) => persist({ completionStrength }, s));
 
   const value = useMemo(
     () => ({
@@ -33,6 +39,8 @@ export function HapticSettingsProvider({ children }: { children: ReactNode }) {
       setEnabled,
       setProgressSteps,
       setCompletion,
+      setProgressStrength,
+      setCompletionStrength,
     }),
     [settings],
   );
