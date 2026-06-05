@@ -3,7 +3,11 @@ import type { NotificationSettings } from "@mottazen/core";
 import { defaultNotificationSettings } from "@mottazen/core";
 import type { ExportBundle } from "@/lib/export-import";
 
-const STORAGE_KEY = "mottazen-data-snapshot";
+const LEGACY_STORAGE_KEY = "mottazen-data-snapshot";
+
+export function snapshotStorageKey(userId: string): string {
+  return `${LEGACY_STORAGE_KEY}:${userId}`;
+}
 
 export interface LocalDataSnapshot {
   habits: Habit[];
@@ -18,10 +22,8 @@ export interface LocalDataSnapshot {
   savedAt: string;
 }
 
-export function readLocalSnapshot(): LocalDataSnapshot | null {
+function parseSnapshot(raw: string): LocalDataSnapshot | null {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return null;
     const parsed = JSON.parse(raw) as Partial<LocalDataSnapshot>;
     if (!Array.isArray(parsed.habits) || !Array.isArray(parsed.logs)) return null;
     return {
@@ -41,12 +43,29 @@ export function readLocalSnapshot(): LocalDataSnapshot | null {
   }
 }
 
-export function writeLocalSnapshot(snapshot: Omit<LocalDataSnapshot, "savedAt">) {
+export function readLocalSnapshot(userId?: string | null): LocalDataSnapshot | null {
   try {
-    localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify({ ...snapshot, savedAt: new Date().toISOString() } satisfies LocalDataSnapshot),
-    );
+    if (userId) {
+      const userRaw = localStorage.getItem(snapshotStorageKey(userId));
+      if (userRaw) return parseSnapshot(userRaw);
+    }
+    const legacyRaw = localStorage.getItem(LEGACY_STORAGE_KEY);
+    if (!legacyRaw) return null;
+    return parseSnapshot(legacyRaw);
+  } catch {
+    return null;
+  }
+}
+
+export function writeLocalSnapshot(snapshot: Omit<LocalDataSnapshot, "savedAt">, userId?: string | null) {
+  try {
+    const payload = JSON.stringify({ ...snapshot, savedAt: new Date().toISOString() } satisfies LocalDataSnapshot);
+    if (userId) {
+      localStorage.setItem(snapshotStorageKey(userId), payload);
+      localStorage.removeItem(LEGACY_STORAGE_KEY);
+      return;
+    }
+    localStorage.setItem(LEGACY_STORAGE_KEY, payload);
   } catch {
     /* quota / private mode */
   }
@@ -66,9 +85,23 @@ export function snapshotFromBundle(bundle: ExportBundle): Omit<LocalDataSnapshot
   };
 }
 
-export function clearLocalSnapshot() {
+export function clearLocalSnapshot(userId?: string | null) {
   try {
-    localStorage.removeItem(STORAGE_KEY);
+    if (userId) localStorage.removeItem(snapshotStorageKey(userId));
+    localStorage.removeItem(LEGACY_STORAGE_KEY);
+  } catch {
+    /* ignore */
+  }
+}
+
+export function clearAllLocalSnapshots() {
+  try {
+    const keys: string[] = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key?.startsWith(`${LEGACY_STORAGE_KEY}:`) || key === LEGACY_STORAGE_KEY) keys.push(key);
+    }
+    for (const key of keys) localStorage.removeItem(key);
   } catch {
     /* ignore */
   }

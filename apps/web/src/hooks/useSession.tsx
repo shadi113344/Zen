@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import type { Session, User } from "@supabase/supabase-js";
 import { isDemoMode } from "@/lib/demo-data";
+import { clearAllLocalSnapshots } from "@/lib/local-data-store";
 import { supabase, supabaseConfigured } from "@/lib/supabase";
 
 interface SessionContextValue {
@@ -60,16 +61,17 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   };
 
   const signOut = async () => {
-    if (supabase) await supabase.auth.signOut();
-    setSession(null);
+    clearAllLocalSnapshots();
     try {
       localStorage.removeItem("demo_notification_prefs");
       localStorage.removeItem("demo_timezone");
       localStorage.removeItem("demo_category_colors");
       sessionStorage.removeItem("mottazen-app-date");
+      if (supabase) await supabase.auth.signOut({ scope: "global" });
     } catch {
       /* ignore */
     }
+    setSession(null);
   };
 
   return (

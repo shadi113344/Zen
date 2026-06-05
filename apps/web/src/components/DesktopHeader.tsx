@@ -3,6 +3,8 @@ import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { categoryToSlug, uniqueCategories } from "@mottazen/core";
 import { useAppDate } from "@/hooks/useAppDate";
 import { useHabits } from "@/hooks/useData";
+import { useSession } from "@/hooks/useSession";
+import { userDisplayName, userInitial } from "@/lib/user-display";
 import { useSlidingIndicator } from "@/hooks/useSlidingIndicator";
 import { useTheme } from "@/hooks/useTheme";
 import { AppLogo } from "@/components/AppLogo";
@@ -20,6 +22,9 @@ export function DesktopHeader() {
   const location = useLocation();
   const navigate = useNavigate();
   const { habits } = useHabits();
+  const { user } = useSession();
+  const displayName = userDisplayName(user);
+  const avatarInitial = userInitial(user);
   const categories = uniqueCategories(habits);
   const { toggleTheme, resolved } = useTheme();
   const { selectedDate, isToday } = useAppDate();
@@ -67,7 +72,7 @@ export function DesktopHeader() {
               ) : null}
             </div>
             <div className="desktop-header__actions">
-              <span className="desktop-header__user">Demo User</span>
+              <span className="desktop-header__user">{displayName}</span>
               <DisplayDensityToggle />
               <button
                 type="button"
@@ -80,7 +85,7 @@ export function DesktopHeader() {
                 </span>
               </button>
               <Link to="/profile" className="log-header__avatar" aria-label="Profile">
-                D
+                {avatarInitial}
               </Link>
             </div>
           </>

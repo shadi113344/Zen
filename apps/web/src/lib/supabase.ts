@@ -1,11 +1,16 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-import { isDemoMode } from "./demo-data";
+import { getSupabaseEnv } from "@/lib/supabase-env";
 
-const url = import.meta.env.VITE_SUPABASE_URL ?? "";
-const anon = import.meta.env.VITE_SUPABASE_ANON_KEY ?? "";
+const { url, anonKey, configured } = getSupabaseEnv();
 
-export const supabaseConfigured = !isDemoMode;
+export const supabaseConfigured = configured;
 
-export const supabase: SupabaseClient | null = supabaseConfigured
-  ? createClient(url, anon)
+export const supabase: SupabaseClient | null = configured
+  ? createClient(url, anonKey, {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true,
+      },
+    })
   : null;

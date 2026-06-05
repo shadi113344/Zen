@@ -103,4 +103,6 @@ export const demoCategoryColors: Record<string, string> = {
   Movement: "#dfe8f0",
 };
 
-export const isDemoMode = !import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY;
+import { getSupabaseEnv } from "@/lib/supabase-env";
+
+export const isDemoMode = !getSupabaseEnv().configured;

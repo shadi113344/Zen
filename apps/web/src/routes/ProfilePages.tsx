@@ -16,6 +16,7 @@ import { DISPLAY_DENSITY_ORDER, displayDensityLabel, type DisplayDensity } from 
 import { useTheme } from "@/hooks/useTheme";
 import { useData } from "@/hooks/useData";
 import { useSession } from "@/hooks/useSession";
+import { userDisplayName } from "@/lib/user-display";
 import { useToast } from "@/components/Toast";
 import {
   buildExportBundle,
@@ -41,7 +42,7 @@ export function ProfilePage() {
   const { user, signOut } = useSession();
   const demoMode = useData().demoMode;
 
-  const displayName = user?.user_metadata?.full_name ?? user?.email?.split("@")[0] ?? "Demo User";
+  const displayName = userDisplayName(user, demoMode ? "Demo User" : "Account");
   const email = user?.email ?? (demoMode ? "demo@mottazen.app" : "");
 
   return (
@@ -144,13 +145,13 @@ export function ProfilePage() {
         </SettingsSection>
       </div>
 
-      {!demoMode ? (
+      {user ? (
         <button
           type="button"
           className="btn btn--ghost btn--block profile-signout"
-          onClick={() => {
-            void signOut();
-            window.location.href = "/auth";
+          onClick={async () => {
+            await signOut();
+            window.location.replace("/auth");
           }}
         >
           Sign out

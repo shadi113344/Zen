@@ -62,6 +62,8 @@ create policy "Users read own push notify log"
 create or replace function public.set_push_subscription_updated_at()
 returns trigger
 language plpgsql
+security invoker
+set search_path = public
 as $$
 begin
   new.updated_at = now();

@@ -28,6 +28,12 @@ import {
 } from "@/lib/demo-data";
 import { markTagSent } from "@/lib/notify-log";
 import { mergeDailyNotesBlob, splitDailyNotesBlob } from "@/lib/day-mood";
+import {
+  ensureUserSettingsRow,
+  habitToDb,
+  pushSnapshotToCloud,
+  snapshotHasData,
+} from "@/lib/cloud-sync";
 import { clearLocalSnapshot, readLocalSnapshot, writeLocalSnapshot } from "@/lib/local-data-store";
 import { buildSampleBundle } from "@/lib/sample-data";
 import { goalHabitToDb, goalToDb, mapGoalHabitRow, mapGoalRow } from "@/lib/goal-db";
@@ -35,8 +41,11 @@ import { snapCategoryPastel } from "@/lib/theme-colors";
 import { supabase } from "@/lib/supabase";
 import { useSession } from "@/hooks/useSession";
 import { useDebouncedEffect } from "@/hooks/useSync";
+import { useToast } from "@/components/Toast";
 
-const initialSnapshot = readLocalSnapshot();
+function logDbError(label: string, error: { message: string } | null | undefined) {
+  if (error) console.warn(`[zen] ${label}:`, error.message);
+}
 
 interface DataContextValue {
   habits: Habit[];
@@ -102,52 +111,29 @@ function mapHabitRow(h: Record<string, unknown>): Habit {
   };
 }
 
-function habitToDb(habit: Habit) {
-  const remind = habit.remindAt ?? habit.notify?.remindAt;
-  return {
-    name: habit.name,
-    category: habit.category,
-    type: habit.type,
-    min: habit.min ?? null,
-    max: habit.max ?? null,
-    step: habit.step ?? null,
-    color: habit.color ?? null,
-    paused: habit.paused ?? false,
-    remind_at: remind ? `${remind}:00` : null,
-    notify: habit.notify ?? {},
-    meta: habit.why ? { why: habit.why } : {},
-  };
-}
-
 export function DataProvider({ children }: { children: ReactNode }) {
-  const { user } = useSession();
+  const { user, loading: sessionLoading } = useSession();
+  const { showToast } = useToast();
   const userId = user?.id;
+  const showToastRef = useRef(showToast);
+  showToastRef.current = showToast;
 
-  const [habits, setHabits] = useState<Habit[]>(
-    () => initialSnapshot?.habits ?? (isDemoMode ? demoHabits : []),
+  const [habits, setHabits] = useState<Habit[]>(() => (isDemoMode ? demoHabits : []));
+  const [logs, setLogs] = useState<DayLog[]>(() => (isDemoMode ? demoLogs : []));
+  const [goals, setGoals] = useState<Goal[]>(() => (isDemoMode ? demoGoals : []).map(normalizeGoal));
+  const [goalHabits, setGoalHabits] = useState<GoalHabitLink[]>(() => (isDemoMode ? demoGoalHabits : []));
+  const [categoryWeights, setCategoryWeightsState] = useState<Record<string, CategoryWeights>>(() =>
+    isDemoMode ? demoCategoryWeights : {},
   );
-  const [logs, setLogs] = useState<DayLog[]>(() => initialSnapshot?.logs ?? (isDemoMode ? demoLogs : []));
-  const [goals, setGoals] = useState<Goal[]>(() =>
-    (initialSnapshot?.goals ?? (isDemoMode ? demoGoals : [])).map(normalizeGoal),
+  const [categoryColors, setCategoryColorsState] = useState<Record<string, string>>(() =>
+    isDemoMode ? demoCategoryColors : {},
   );
-  const [goalHabits, setGoalHabits] = useState<GoalHabitLink[]>(
-    () => initialSnapshot?.goalHabits ?? (isDemoMode ? demoGoalHabits : []),
+  const [notificationSettings, setNotificationSettings] = useState<NotificationSettings>(() =>
+    defaultNotificationSettings(),
   );
-  const [categoryWeights, setCategoryWeightsState] = useState<Record<string, CategoryWeights>>(
-    () => initialSnapshot?.categoryWeights ?? (isDemoMode ? demoCategoryWeights : {}),
-  );
-  const [categoryColors, setCategoryColorsState] = useState<Record<string, string>>(
-    () => initialSnapshot?.categoryColors ?? (isDemoMode ? demoCategoryColors : {}),
-  );
-  const [notificationSettings, setNotificationSettings] = useState<NotificationSettings>(
-    () => initialSnapshot?.notificationSettings ?? defaultNotificationSettings(),
-  );
-  const [timezone, setTimezone] = useState(
-    () => initialSnapshot?.timezone ?? defaultTimezone(),
-  );
-  const initialNotesSplit = splitDailyNotesBlob(initialSnapshot?.dailyNotes ?? {});
-  const [dailyNotes, setDailyNotes] = useState<Record<string, string>>(initialNotesSplit.dailyNotes);
-  const [dayMood, setDayMoodState] = useState<Record<string, string>>(initialNotesSplit.dayMood);
+  const [timezone, setTimezone] = useState(() => defaultTimezone());
+  const [dailyNotes, setDailyNotes] = useState<Record<string, string>>({});
+  const [dayMood, setDayMoodState] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(!isDemoMode);
 
   const habitsRef = useRef(habits);
@@ -170,28 +156,114 @@ export function DataProvider({ children }: { children: ReactNode }) {
   goalsRef.current = goals;
   const goalHabitsRef = useRef(goalHabits);
   goalHabitsRef.current = goalHabits;
+  const userIdRef = useRef(userId);
+  userIdRef.current = userId;
+
+  const applySnapshot = useCallback((snap: NonNullable<ReturnType<typeof readLocalSnapshot>>) => {
+    setHabits(snap.habits);
+    setLogs(snap.logs);
+    setGoals(snap.goals.map(normalizeGoal));
+    setGoalHabits(snap.goalHabits);
+    setCategoryWeightsState(snap.categoryWeights);
+    setCategoryColorsState(snap.categoryColors);
+    setNotificationSettings(snap.notificationSettings);
+    setTimezone(snap.timezone);
+    const split = splitDailyNotesBlob(snap.dailyNotes);
+    setDailyNotes(split.dailyNotes);
+    setDayMoodState(split.dayMood);
+  }, []);
 
   const persistLocal = useCallback(() => {
-    writeLocalSnapshot({
-      habits: habitsRef.current,
-      logs: logsRef.current,
-      categoryWeights: categoryWeightsRef.current,
-      categoryColors: categoryColorsRef.current,
-      dailyNotes: mergeDailyNotesBlob(dailyNotesRef.current, dayMoodRef.current),
-      notificationSettings: settingsRef.current,
-      timezone: tzRef.current,
-      goals: goalsRef.current,
-      goalHabits: goalHabitsRef.current,
-    });
+    writeLocalSnapshot(
+      {
+        habits: habitsRef.current,
+        logs: logsRef.current,
+        categoryWeights: categoryWeightsRef.current,
+        categoryColors: categoryColorsRef.current,
+        dailyNotes: mergeDailyNotesBlob(dailyNotesRef.current, dayMoodRef.current),
+        notificationSettings: settingsRef.current,
+        timezone: tzRef.current,
+        goals: goalsRef.current,
+        goalHabits: goalHabitsRef.current,
+      },
+      userIdRef.current,
+    );
   }, []);
 
   const fetchCloud = useCallback(async () => {
     if (isDemoMode || !supabase || !userId) return;
 
-    const { data: habitRows } = await supabase.from("habits").select("*").order("order_index");
-    setHabits(habitRows?.length ? habitRows.map((h) => mapHabitRow(h)) : []);
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (!sessionData.session) {
+      logDbError("sync", { message: "No active session — sign in again" });
+      return;
+    }
 
-    const { data: logRows } = await supabase.from("habit_logs").select("*");
+    const settingsRowError = await ensureUserSettingsRow(supabase, userId);
+    if (settingsRowError) logDbError("ensure settings", { message: settingsRowError });
+
+    const localSnap = readLocalSnapshot(userId);
+
+    const { data: habitRows, error: habitsError } = await supabase
+      .from("habits")
+      .select("*")
+      .eq("user_id", userId)
+      .order("order_index");
+
+    const { data: logRows, error: logsError } = await supabase
+      .from("habit_logs")
+      .select("*")
+      .eq("user_id", userId);
+
+    const { data: settings, error: settingsError } = await supabase
+      .from("user_settings")
+      .select("daily_notes, category_weights, category_colors, notification_prefs, timezone")
+      .eq("id", userId)
+      .maybeSingle();
+
+    const { data: goalRows, error: goalsError } = await supabase
+      .from("goals")
+      .select("*")
+      .eq("user_id", userId)
+      .order("start_date", { ascending: false });
+
+    const { data: linkRows, error: linksError } = await supabase.from("goal_habits").select("*");
+
+    logDbError("fetch habits", habitsError);
+    logDbError("fetch logs", logsError);
+    logDbError("fetch settings", settingsError);
+    logDbError("fetch goals", goalsError);
+    logDbError("fetch goal links", linksError);
+
+    if (habitsError || logsError || settingsError || goalsError || linksError) {
+      return;
+    }
+
+    const cloudEmpty = (habitRows?.length ?? 0) === 0 && (logRows?.length ?? 0) === 0;
+    const localPayload = localSnap ?? {
+      habits: habitsRef.current,
+      logs: logsRef.current,
+      goals: goalsRef.current,
+      goalHabits: goalHabitsRef.current,
+      categoryWeights: categoryWeightsRef.current,
+      categoryColors: categoryColorsRef.current,
+      dailyNotes: mergeDailyNotesBlob(dailyNotesRef.current, dayMoodRef.current),
+      notificationSettings: settingsRef.current,
+      timezone: tzRef.current,
+    };
+
+    if (cloudEmpty && snapshotHasData(localPayload)) {
+      const pushError = await pushSnapshotToCloud(supabase, userId, localPayload);
+      if (pushError) {
+        logDbError("push local", { message: pushError });
+        showToastRef.current(`Could not sync: ${pushError}`);
+      } else {
+        persistLocal();
+      }
+      return;
+    }
+
+    setHabits(habitRows?.length ? habitRows.map((h) => mapHabitRow(h)) : []);
     setLogs(
       logRows?.length
         ? logRows.map((l) => ({
@@ -203,34 +275,25 @@ export function DataProvider({ children }: { children: ReactNode }) {
         : [],
     );
 
-    const { data: settings } = await supabase
-      .from("user_settings")
-      .select("daily_notes, category_weights, category_colors, notification_prefs, timezone")
-      .eq("id", userId)
-      .maybeSingle();
+    if (settings) {
+      if (settings.daily_notes && typeof settings.daily_notes === "object") {
+        const split = splitDailyNotesBlob(settings.daily_notes as Record<string, string>);
+        setDailyNotes(split.dailyNotes);
+        setDayMoodState(split.dayMood);
+      }
+      if (settings.category_weights && typeof settings.category_weights === "object") {
+        setCategoryWeightsState(settings.category_weights as Record<string, CategoryWeights>);
+      }
+      if (settings.category_colors && typeof settings.category_colors === "object") {
+        setCategoryColorsState(settings.category_colors as Record<string, string>);
+      }
+      if (settings.notification_prefs) {
+        setNotificationSettings(parseNotificationSettings(settings.notification_prefs));
+      }
+      if (settings.timezone) setTimezone(settings.timezone);
+    }
 
-    if (settings?.daily_notes && typeof settings.daily_notes === "object") {
-      const split = splitDailyNotesBlob(settings.daily_notes as Record<string, string>);
-      setDailyNotes(split.dailyNotes);
-      setDayMoodState(split.dayMood);
-    }
-    if (settings?.category_weights && typeof settings.category_weights === "object") {
-      setCategoryWeightsState(settings.category_weights as Record<string, CategoryWeights>);
-    }
-    if (settings?.category_colors && typeof settings.category_colors === "object") {
-      setCategoryColorsState(settings.category_colors as Record<string, string>);
-    }
-    if (settings?.notification_prefs) {
-      setNotificationSettings(parseNotificationSettings(settings.notification_prefs));
-    }
-    if (settings?.timezone) setTimezone(settings.timezone);
-
-    const { data: goalRows } = await supabase.from("goals").select("*").eq("user_id", userId).order("start_date", {
-      ascending: false,
-    });
     setGoals(goalRows?.length ? goalRows.map((row) => mapGoalRow(row as Record<string, unknown>)) : []);
-
-    const { data: linkRows } = await supabase.from("goal_habits").select("*");
     setGoalHabits(
       linkRows?.length
         ? linkRows
@@ -242,20 +305,38 @@ export function DataProvider({ children }: { children: ReactNode }) {
     persistLocal();
   }, [userId, persistLocal]);
 
-  const loadCloud = useCallback(async () => {
-    if (isDemoMode || !supabase || !userId) return;
-    setLoading(true);
-    await fetchCloud();
-    setLoading(false);
-  }, [fetchCloud]);
-
   const reloadFromCloud = useCallback(async () => {
     await fetchCloud();
   }, [fetchCloud]);
 
   useEffect(() => {
-    void loadCloud();
-  }, [loadCloud]);
+    if (isDemoMode) {
+      setLoading(false);
+      return;
+    }
+    if (sessionLoading) return;
+
+    if (!userId) {
+      setHabits([]);
+      setLogs([]);
+      setGoals([]);
+      setGoalHabits([]);
+      setCategoryWeightsState({});
+      setCategoryColorsState({});
+      setDailyNotes({});
+      setDayMoodState({});
+      setNotificationSettings(defaultNotificationSettings());
+      setTimezone(defaultTimezone());
+      setLoading(false);
+      return;
+    }
+
+    const snap = readLocalSnapshot(userId);
+    if (snap) applySnapshot(snap);
+
+    setLoading(true);
+    void fetchCloud().finally(() => setLoading(false));
+  }, [userId, sessionLoading, fetchCloud, applySnapshot]);
 
   useDebouncedEffect(() => {
     persistLocal();
@@ -263,12 +344,15 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   useDebouncedEffect(() => {
     if (isDemoMode || !supabase || !userId) return;
-    void supabase.from("user_settings").upsert({
-      id: userId,
-      daily_notes: mergeDailyNotesBlob(dailyNotesRef.current, dayMoodRef.current),
-      category_weights: categoryWeightsRef.current,
-      category_colors: categoryColorsRef.current,
-    });
+    void supabase
+      .from("user_settings")
+      .upsert({
+        id: userId,
+        daily_notes: mergeDailyNotesBlob(dailyNotesRef.current, dayMoodRef.current),
+        category_weights: categoryWeightsRef.current,
+        category_colors: categoryColorsRef.current,
+      })
+      .then(({ error }) => logDbError("save settings", error));
   }, [dailyNotes, dayMood, categoryWeights, categoryColors, userId]);
 
   const setLogValue = (
@@ -354,18 +438,22 @@ export function DataProvider({ children }: { children: ReactNode }) {
           .delete()
           .eq("habit_id", habitId)
           .eq("log_date", date)
-          .eq("user_id", userId);
+          .eq("user_id", userId)
+          .then(({ error }) => logDbError("delete log", error));
       } else {
-        void supabase.from("habit_logs").upsert(
-          {
-            user_id: userId,
-            habit_id: habitId,
-            log_date: date,
-            value: resolvedRest || resolvedValue === -1 ? -1 : resolvedValue,
-            is_rest: resolvedRest || resolvedValue === -1,
-          },
-          { onConflict: "habit_id,log_date" },
-        );
+        void supabase
+          .from("habit_logs")
+          .upsert(
+            {
+              user_id: userId,
+              habit_id: habitId,
+              log_date: date,
+              value: resolvedRest || resolvedValue === -1 ? -1 : resolvedValue,
+              is_rest: resolvedRest || resolvedValue === -1,
+            },
+            { onConflict: "habit_id,log_date" },
+          )
+          .then(({ error }) => logDbError("save log", error));
       }
     }
 
@@ -391,12 +479,23 @@ export function DataProvider({ children }: { children: ReactNode }) {
     setHabits((prev) => [...prev, habit]);
 
     if (!isDemoMode && supabase && userId) {
-      void supabase.from("habits").insert({
-        id: habit.id,
-        user_id: userId,
-        ...habitToDb(habit),
-        order_index: habits.length,
-      });
+      void supabase
+        .from("habits")
+        .upsert(
+          {
+            id: habit.id,
+            user_id: userId,
+            ...habitToDb(habit),
+            order_index: habits.length,
+          },
+          { onConflict: "id" },
+        )
+        .then(({ error }) => {
+          if (error) {
+            logDbError("add habit", error);
+            showToastRef.current(`Could not save activity: ${error.message}`);
+          }
+        });
     }
   };
 
@@ -654,7 +753,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     setCategoryColorsState({});
     setDailyNotes({});
     setDayMoodState({});
-    clearLocalSnapshot();
+    clearLocalSnapshot(userId);
 
     if (!isDemoMode && supabase && userId) {
       void (async () => {
@@ -720,7 +819,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       dailyNotes,
       dayMood,
       loading,
-      loadCloud,
+      reloadFromCloud,
     ],
   );
 

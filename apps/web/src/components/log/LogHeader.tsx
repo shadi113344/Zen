@@ -1,7 +1,9 @@
 import { Link } from "react-router-dom";
 import { DisplayDensityToggle } from "@/components/log/DisplayDensityToggle";
 import { useAppDate } from "@/hooks/useAppDate";
+import { useSession } from "@/hooks/useSession";
 import { useTheme } from "@/hooks/useTheme";
+import { userInitial } from "@/lib/user-display";
 
 interface LogHeaderProps {
   isToday: boolean;
@@ -17,7 +19,9 @@ function formatLogDate(dateKey: string): string {
 
 export function LogHeader({ isToday }: LogHeaderProps) {
   const { selectedDate } = useAppDate();
+  const { user } = useSession();
   const { toggleTheme, resolved } = useTheme();
+  const avatarInitial = userInitial(user);
 
   return (
     <header className="log-header tab-screen-header">
@@ -40,7 +44,7 @@ export function LogHeader({ isToday }: LogHeaderProps) {
             </span>
           </button>
           <Link to="/profile" className="log-header__avatar" aria-label="Profile">
-            D
+            {avatarInitial}
           </Link>
         </div>
       </div>
