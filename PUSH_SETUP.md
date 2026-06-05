@@ -103,7 +103,7 @@ The `send-reminders` function must be called on a schedule.
 - Header: `x-cron-secret: YOUR_CRON_SECRET` (same value as in step 5)
 - Interval: every **5 minutes**
 
-**Option B — GitHub Actions** (included in repo): workflow `.github/workflows/cron-reminders.yml` runs every 5 minutes. Add GitHub secret `CRON_SECRET` (same value as Supabase Edge Function secret).
+**Option B — GitHub Actions** (included in repo): workflow `.github/workflows/cron-reminders.yml` runs every 5 minutes. Requires GitHub secrets `CRON_SECRET` (same as Supabase), `VITE_SUPABASE_URL`, and `VITE_SUPABASE_ANON_KEY`.
 
 **Option C — Supabase cron** (if enabled on your plan): schedule a pg_cron job or Dashboard scheduled function that POSTs to the same URL with the secret header.
 

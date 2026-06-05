@@ -10,7 +10,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Trigger send-reminders Edge Function
+        env:
+          SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
         run: |
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_ANON_KEY" ] || [ -z "$CRON_SECRET" ]; then
+            echo "Missing GitHub secret: need VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY, and CRON_SECRET"
+            exit 1
+          fi
           curl -fsS -X POST \
-            -H "x-cron-secret: ${{ secrets.CRON_SECRET }}" \
-            "${{ secrets.VITE_SUPABASE_URL }}/functions/v1/send-reminders"
+            -H "Authorization: Bearer $SUPABASE_ANON_KEY" \
+            -H "apikey: $SUPABASE_ANON_KEY" \
+            -H "x-cron-secret: $CRON_SECRET" \
+            -H "Content-Type: application/json" \
+            "$SUPABASE_URL/functions/v1/send-reminders"

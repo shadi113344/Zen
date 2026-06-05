@@ -27,6 +27,8 @@ Optional:
 | `VITE_VAPID_PUBLIC_KEY` | Web push public key (skip if not using push) |
 | `CRON_SECRET` | Same random string as Supabase `CRON_SECRET` — powers `.github/workflows/cron-reminders.yml` |
 
+The cron workflow also uses `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` (already required for deploy). If cron returns **401**, re-check that `CRON_SECRET` matches Supabase exactly and that both URL/anon secrets are set.
+
 ### You cannot “view” secrets after saving
 
 GitHub only shows secret **names**, not values. That is normal. To verify:
