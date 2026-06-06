@@ -89,15 +89,16 @@ export function HabitListGrouped({ habits, date, categoryFilter = null }: HabitL
     const value = logValueForHabit(logs, habit.id, date);
     const row = logs.find((l) => l.habitId === habit.id && l.date === date);
     const isRest = row?.isRest === true || value === -1;
-    if (isRest) setLogValue(habit.id, date, 0, false);
-    else setLogValue(habit.id, date, 0);
+    const isSkipped = !isRest && row != null && value === 0;
+    if (isSkipped) setLogValue(habit.id, date, null, false);
+    else setLogValue(habit.id, date, 0, false);
   };
 
   const makeRest = (habit: Habit) => () => {
     const value = logValueForHabit(logs, habit.id, date);
     const row = logs.find((l) => l.habitId === habit.id && l.date === date);
     const isRest = row?.isRest === true || value === -1;
-    if (isRest) setLogValue(habit.id, date, 0, false);
+    if (isRest) setLogValue(habit.id, date, null, false);
     else setLogValue(habit.id, date, -1, true);
   };
 

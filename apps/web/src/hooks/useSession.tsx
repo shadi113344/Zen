@@ -10,6 +10,8 @@ interface SessionContextValue {
   session: Session | null;
   profile: UserProfile | null;
   loading: boolean;
+  /** True after the user arrives via a password-recovery email link. */
+  passwordRecovery: boolean;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
   signUp: (email: string, password: string) => Promise<{ error: string | null }>;
   signInWithGoogle: () => Promise<{ error: string | null }>;
@@ -17,6 +19,7 @@ interface SessionContextValue {
   updateDisplayName: (displayName: string) => Promise<{ error: string | null }>;
   updateEmail: (email: string) => Promise<{ error: string | null }>;
   updatePassword: (password: string) => Promise<{ error: string | null }>;
+  sendPasswordReset: (email: string) => Promise<{ error: string | null }>;
 }
 
 const SessionContext = createContext<SessionContextValue | null>(null);
@@ -25,6 +28,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(supabaseConfigured);
+  const [passwordRecovery, setPasswordRecovery] = useState(false);
 
   useEffect(() => {
     if (!supabaseConfigured || !supabase) {
@@ -37,7 +41,9 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       setLoading(false);
     });
 
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, next) => {
+    const { data: sub } = supabase.auth.onAuthStateChange((event, next) => {
+      if (event === "PASSWORD_RECOVERY") setPasswordRecovery(true);
+      if (event === "SIGNED_OUT") setPasswordRecovery(false);
       setSession(next);
       setLoading(false);
     });
@@ -127,6 +133,17 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const updatePassword = async (password: string) => {
     if (!supabase) return { error: "Supabase not configured" };
     const { error } = await supabase.auth.updateUser({ password });
+    if (!error) setPasswordRecovery(false);
+    return { error: error?.message ?? null };
+  };
+
+  const sendPasswordReset = async (email: string) => {
+    if (!supabase) return { error: "Supabase not configured" };
+    const trimmed = email.trim();
+    if (!trimmed) return { error: "Enter your email address" };
+    const { error } = await supabase.auth.resetPasswordForEmail(trimmed, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
     return { error: error?.message ?? null };
   };
 
@@ -137,6 +154,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         session,
         profile,
         loading,
+        passwordRecovery,
         signIn,
         signUp,
         signInWithGoogle,
@@ -144,6 +162,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         updateDisplayName,
         updateEmail,
         updatePassword,
+        sendPasswordReset,
       }}
     >
       {children}

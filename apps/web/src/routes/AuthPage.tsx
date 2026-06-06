@@ -6,12 +6,13 @@ import { supabaseConfigured } from "@/lib/supabase";
 import { useSession } from "@/hooks/useSession";
 
 export function AuthPage() {
-  const { session, loading, signIn, signUp, signInWithGoogle } = useSession();
+  const { session, loading, signIn, signUp, signInWithGoogle, sendPasswordReset } = useSession();
   const navigate = useNavigate();
-  const [mode, setMode] = useState<"signin" | "signup">("signin");
+  const [mode, setMode] = useState<"signin" | "signup" | "reset">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
   if (!supabaseConfigured || isDemoMode) {
@@ -39,6 +40,19 @@ export function AuthPage() {
     e.preventDefault();
     setBusy(true);
     setError(null);
+    setNotice(null);
+
+    if (mode === "reset") {
+      const result = await sendPasswordReset(email);
+      setBusy(false);
+      if (result.error) {
+        setError(result.error);
+        return;
+      }
+      setNotice("If an account exists for that email, a reset link is on its way. Check your inbox.");
+      return;
+    }
+
     const result = mode === "signin" ? await signIn(email, password) : await signUp(email, password);
     setBusy(false);
     if (result.error) {
@@ -46,7 +60,7 @@ export function AuthPage() {
       return;
     }
     if (mode === "signup") {
-      setError("Check your email to confirm signup, then sign in.");
+      setNotice("Check your email to confirm signup, then sign in.");
       setMode("signin");
       return;
     }
@@ -59,37 +73,72 @@ export function AuthPage() {
     if (result.error) setError(result.error);
   };
 
+  const switchMode = (next: "signin" | "signup" | "reset") => {
+    setMode(next);
+    setError(null);
+    setNotice(null);
+  };
+
   return (
     <div className="auth-page">
       <div className="auth-page__card card">
         <AppLogo size="lg" className="auth-page__logo" />
         <h1 className="sr-only">Zen</h1>
-        <p className="muted-text">Sign in to sync habits across devices.</p>
+        <p className="muted-text">
+          {mode === "reset"
+            ? "Enter your email and we'll send you a link to reset your password."
+            : "Sign in to sync habits across devices."}
+        </p>
 
         <form className="auth-form" onSubmit={submit}>
           <label className="field">
             <span>Email</span>
-            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" />
-          </label>
-          <label className="field">
-            <span>Password</span>
             <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              type="email"
+              name="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               required
-              minLength={6}
-              autoComplete={mode === "signin" ? "current-password" : "new-password"}
+              autoComplete="username"
+              inputMode="email"
             />
           </label>
+          {mode !== "reset" && (
+            <label className="field">
+              <span>Password</span>
+              <input
+                type="password"
+                name="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                minLength={6}
+                autoComplete={mode === "signin" ? "current-password" : "new-password"}
+              />
+            </label>
+          )}
+          {mode === "signin" && (
+            <button type="button" className="link-btn auth-page__forgot" onClick={() => switchMode("reset")}>
+              Forgot password?
+            </button>
+          )}
           {error && <p className="auth-form__error">{error}</p>}
+          {notice && <p className="auth-form__notice">{notice}</p>}
           <div className="auth-page__actions">
             <button type="submit" className="btn btn--primary btn--block" disabled={busy}>
-              {busy ? "…" : mode === "signin" ? "Sign in" : "Create account"}
+              {busy
+                ? "…"
+                : mode === "signin"
+                  ? "Sign in"
+                  : mode === "signup"
+                    ? "Create account"
+                    : "Send reset link"}
             </button>
-            <button type="button" className="btn btn--ghost btn--block" onClick={google}>
-              Continue with Google
-            </button>
+            {mode !== "reset" && (
+              <button type="button" className="btn btn--ghost btn--block" onClick={google}>
+                Continue with Google
+              </button>
+            )}
           </div>
         </form>
 
@@ -97,15 +146,22 @@ export function AuthPage() {
           {mode === "signin" ? (
             <>
               New here?{" "}
-              <button type="button" className="link-btn" onClick={() => setMode("signup")}>
+              <button type="button" className="link-btn" onClick={() => switchMode("signup")}>
                 Create account
+              </button>
+            </>
+          ) : mode === "signup" ? (
+            <>
+              Have an account?{" "}
+              <button type="button" className="link-btn" onClick={() => switchMode("signin")}>
+                Sign in
               </button>
             </>
           ) : (
             <>
-              Have an account?{" "}
-              <button type="button" className="link-btn" onClick={() => setMode("signin")}>
-                Sign in
+              Remembered it?{" "}
+              <button type="button" className="link-btn" onClick={() => switchMode("signin")}>
+                Back to sign in
               </button>
             </>
           )}

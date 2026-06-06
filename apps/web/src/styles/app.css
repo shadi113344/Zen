@@ -5841,6 +5841,16 @@ body.reorder-active .insights-reorder-card {
   font-size: 13px;
   margin: 0;
 }
+.auth-form__notice {
+  color: var(--accent);
+  font-size: 13px;
+  margin: 0;
+}
+.auth-page__forgot {
+  align-self: flex-end;
+  font-size: 13px;
+  padding: 0;
+}
 .auth-page__actions {
   display: flex;
   flex-direction: column;

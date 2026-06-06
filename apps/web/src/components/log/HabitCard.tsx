@@ -39,7 +39,7 @@ export function HabitCard({ habit, date, onSkip, onRest }: HabitCardProps) {
   const isSkipped = !isRest && row != null && value === 0;
 
   const toggleRest = () => {
-    if (isRest) setLogValue(habit.id, date, 0, false);
+    if (isRest) setLogValue(habit.id, date, null, false);
     else setLogValue(habit.id, date, -1, true);
   };
 
@@ -192,7 +192,7 @@ export function HabitCard({ habit, date, onSkip, onRest }: HabitCardProps) {
                   disabled={isRest}
                   onChange={(e) => {
                     if (isRest) return;
-                    setLogValue(habit.id, date, e.target.checked ? 1 : 0);
+                    setLogValue(habit.id, date, e.target.checked ? 1 : null);
                   }}
                 />
                 <span className="habit-card__check-ui" aria-hidden />

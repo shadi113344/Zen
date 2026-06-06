@@ -5,16 +5,15 @@ import { useToast } from "@/components/Toast";
 import { isPasswordAuthUser, userAuthProvider, userDisplayName } from "@/lib/user-display";
 
 export function ProfileAccountPage() {
-  const { user, profile, updateDisplayName, updateEmail, updatePassword } = useSession();
+  const { user, profile, updateDisplayName, updateEmail, sendPasswordReset } = useSession();
   const { showToast } = useToast();
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
   const [nameBusy, setNameBusy] = useState(false);
   const [emailBusy, setEmailBusy] = useState(false);
-  const [passwordBusy, setPasswordBusy] = useState(false);
+  const [resetBusy, setResetBusy] = useState(false);
+  const [resetSent, setResetSent] = useState(false);
   const [nameError, setNameError] = useState<string | null>(null);
   const [emailError, setEmailError] = useState<string | null>(null);
   const [passwordError, setPasswordError] = useState<string | null>(null);
@@ -51,26 +50,18 @@ export function ProfileAccountPage() {
     showToast("Check your inbox to confirm the new email");
   };
 
-  const savePassword = async () => {
+  const sendReset = async () => {
+    if (!user?.email) return;
     setPasswordError(null);
-    if (password.length < 6) {
-      setPasswordError("Password must be at least 6 characters");
-      return;
-    }
-    if (password !== confirmPassword) {
-      setPasswordError("Passwords do not match");
-      return;
-    }
-    setPasswordBusy(true);
-    const result = await updatePassword(password);
-    setPasswordBusy(false);
+    setResetBusy(true);
+    const result = await sendPasswordReset(user.email);
+    setResetBusy(false);
     if (result.error) {
       setPasswordError(result.error);
       return;
     }
-    setPassword("");
-    setConfirmPassword("");
-    showToast("Password updated");
+    setResetSent(true);
+    showToast("Password reset link sent");
   };
 
   if (!user) {
@@ -142,34 +133,24 @@ export function ProfileAccountPage() {
         <SettingsSection title="Password">
           {passwordAuth ? (
             <div className="settings-field">
-              <label className="field">
-                <span className="settings-field__label">New password</span>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  autoComplete="new-password"
-                  minLength={6}
-                />
-              </label>
-              <label className="field">
-                <span className="settings-field__label">Confirm password</span>
-                <input
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  autoComplete="new-password"
-                  minLength={6}
-                />
-              </label>
+              <span className="settings-field__hint settings-field__hint--block">
+                For your security, passwords are changed via a reset link. We will email{" "}
+                <strong>{user.email}</strong> a secure link to set a new password.
+              </span>
               {passwordError ? <p className="auth-form__error">{passwordError}</p> : null}
+              {resetSent ? (
+                <p className="settings-field__hint settings-field__hint--block">
+                  Link sent. Check your inbox (and spam) for the reset email — it expires after a while, so
+                  use it soon.
+                </p>
+              ) : null}
               <button
                 type="button"
                 className="btn btn--primary btn--block settings-account__save"
-                onClick={savePassword}
-                disabled={passwordBusy || !password}
+                onClick={sendReset}
+                disabled={resetBusy || !user.email}
               >
-                {passwordBusy ? "Saving…" : "Update password"}
+                {resetBusy ? "Sending…" : resetSent ? "Resend reset link" : "Send password reset link"}
               </button>
             </div>
           ) : (

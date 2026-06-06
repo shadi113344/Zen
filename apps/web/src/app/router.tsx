@@ -16,6 +16,7 @@ import {
 import { GoalDetailPage } from "@/routes/GoalDetailPage";
 import { GoalsPage } from "@/routes/GoalsPage";
 import { ProfileAccountPage } from "@/routes/ProfileAccountPage";
+import { ResetPasswordPage } from "@/routes/ResetPasswordPage";
 import { ProfileHapticsPage } from "@/routes/ProfileHapticsPage";
 import { ProfileThemePage } from "@/routes/ProfileThemePage";
 import { isDemoMode } from "@/lib/demo-data";
@@ -43,6 +44,7 @@ function ProtectedLayout() {
 
 export const router = createBrowserRouter([
   { path: "/auth", element: <AuthPage /> },
+  { path: "/reset-password", element: <ResetPasswordPage /> },
   {
     element: <ProtectedLayout />,
     children: [
