@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import type { HabitConsistencyRow } from "@mottazen/core";
+import { hasVisibleStreak } from "@mottazen/core";
 
 interface HabitInsightsListProps {
   rows: HabitConsistencyRow[];
@@ -18,7 +19,7 @@ export function HabitInsightsList({ rows }: HabitInsightsListProps) {
             <span className="insights-habit-row__name">{habit.name}</span>
             <span className="insights-habit-row__meta">{habit.category}</span>
             <span className="insights-habit-row__pct">{consistency}%</span>
-            {str >= 2 && <span className="insights-habit-row__streak">{str}d</span>}
+            {hasVisibleStreak(str) && <span className="insights-habit-row__streak">{str}d</span>}
           </Link>
         ))}
     </div>

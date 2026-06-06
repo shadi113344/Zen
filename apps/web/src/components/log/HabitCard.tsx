@@ -1,7 +1,7 @@
 import { useMemo, useState, type MouseEvent, type PointerEvent } from "react";
 import { formatCompactNumber } from "@/lib/format-number";
 import { Link } from "react-router-dom";
-import { bumpNumericLogValue, goalsForHabit, logValueForHabit, streak } from "@mottazen/core";
+import { bumpNumericLogValue, goalsForHabit, hasHabitReminder, hasVisibleStreak, logValueForHabit, streak, visibleStreak } from "@mottazen/core";
 import type { Habit } from "@mottazen/core";
 import { HabitGoalIndicators } from "@/components/goals/HabitGoalIndicators";
 import { EditHabitModal } from "@/components/habit/EditHabitModal";
@@ -29,7 +29,7 @@ export function HabitCard({ habit, date, onSkip, onRest }: HabitCardProps) {
   const normalLayout = displayDensity === "normal";
   const compactLayout = displayDensity === "compact";
   const inlineRow = activityOnly || compactView;
-  const hasReminder = !!(habit.remindAt || habit.notify?.remindAt);
+  const hasReminder = hasHabitReminder(habit);
   const [editOpen, setEditOpen] = useState(false);
   const [reminderOpen, setReminderOpen] = useState(false);
 
@@ -79,13 +79,14 @@ export function HabitCard({ habit, date, onSkip, onRest }: HabitCardProps) {
     .join(" ");
 
   const streakDays = streak(habit.id, habit, logs, date).current;
+  const streakDisplay = visibleStreak(streakDays);
   const linkedGoals = useMemo(
     () => goalsForHabit(goals, goalHabits, habit.id, date),
     [goals, goalHabits, habit.id, date],
   );
   const showGoalDots = !activityOnly && linkedGoals.length > 0;
-  const metaLine = inlineRow ? null : buildMetaLine(habit, value, isRest, streakDays);
-  const showStreakEmoji = streakDays >= 1;
+  const metaLine = inlineRow ? null : buildMetaLine(habit, value, isRest, streakDisplay);
+  const showStreakEmoji = hasVisibleStreak(streakDays);
   const maxTarget = isNumericLike ? Number(habit.max ?? 100) : null;
 
   const cardClass = [
@@ -135,8 +136,8 @@ export function HabitCard({ habit, date, onSkip, onRest }: HabitCardProps) {
                   </span>
                   <span className="habit-card__activity-meta">
                     {showStreakEmoji ? (
-                      <span className="habit-card__streak" aria-label={`${streakDays} day streak`}>
-                        <span className="habit-card__streak-days">{streakDays}</span>
+                      <span className="habit-card__streak" aria-label={`${streakDisplay} day streak`}>
+                        <span className="habit-card__streak-days">{streakDisplay}</span>
                         <span className="habit-card__streak-emoji" aria-hidden>
                           🔥
                         </span>
@@ -319,10 +320,10 @@ function StepButton({
   );
 }
 
-function buildMetaLine(habit: Habit, value: number | null, isRest: boolean, streakDays: number): string | null {
+function buildMetaLine(habit: Habit, value: number | null, isRest: boolean, streakDisplay: number): string | null {
   const parts: string[] = [];
-  if (streakDays >= 2) {
-    parts.push(`${streakDays} days 🔥`);
+  if (streakDisplay > 0) {
+    parts.push(`${streakDisplay} days 🔥`);
   }
   if (isRest) {
     parts.push("Rest");

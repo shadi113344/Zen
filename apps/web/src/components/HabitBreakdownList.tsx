@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { currentStreak, habitConsistencyInRange } from "@mottazen/core";
+import { currentStreak, habitConsistencyInRange, hasVisibleStreak } from "@mottazen/core";
 import type { DayLog, Habit } from "@mottazen/core";
 import { SegmentedControl } from "./SegmentedControl";
 
@@ -56,7 +56,9 @@ export function HabitBreakdownList({
             <div className="habit-row__bar" style={{ width: `${consistency}%` }} />
           </div>
           <span className="habit-row__pct">{consistency}%</span>
-          <span className="habit-row__meta">{str >= 4 ? `streak ${str}` : str === 0 ? "at risk" : `streak ${str}`}</span>
+          <span className="habit-row__meta">
+            {hasVisibleStreak(str) ? `streak ${str}` : str === 0 ? "at risk" : ""}
+          </span>
         </Link>
       ))}
     </section>

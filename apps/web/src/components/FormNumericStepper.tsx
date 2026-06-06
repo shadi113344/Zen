@@ -28,7 +28,7 @@ export function FormNumericStepper({
     <div className="form-numeric-stepper">
       <button
         type="button"
-        className="habit-card__step"
+        className="form-numeric-stepper__btn"
         onClick={() => bump(-1)}
         disabled={value <= min}
         aria-label="Decrease"
@@ -48,7 +48,7 @@ export function FormNumericStepper({
       />
       <button
         type="button"
-        className="habit-card__step"
+        className="form-numeric-stepper__btn"
         onClick={() => bump(1)}
         disabled={value >= max}
         aria-label="Increase"

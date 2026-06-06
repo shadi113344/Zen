@@ -1,4 +1,4 @@
-import type { DayLog, Habit, LogValue } from "./types";
+import type { DayLog, Habit, LogValue, ProgressScoring } from "./types";
 
 /** Rest is stored as value -1 or isRest flag. */
 export function isRestLog(value: LogValue, isRest?: boolean): boolean {
@@ -8,6 +8,24 @@ export function isRestLog(value: LogValue, isRest?: boolean): boolean {
 /** Not logged — excluded from category/day averages. */
 export function isNotLogged(value: LogValue, isRest?: boolean): boolean {
   return value === null && !isRest;
+}
+
+export function habitProgressScoring(habit: Habit): ProgressScoring {
+  return habit.progressScoring === "any" ? "any" : "scale";
+}
+
+export function isNumericLikeHabit(habit: Habit): boolean {
+  return habit.type === "numeric" || habit.type === "milestone";
+}
+
+/**
+ * Whether a numeric/milestone day counts toward streaks.
+ * - scale ("Increase with value"): only when value reaches max
+ * - any ("Any value counts as complete"): any logged value > 0
+ */
+export function isNumericStreakDay(habit: Habit, value: number): boolean {
+  if (habitProgressScoring(habit) === "any") return value > 0;
+  return habitScore(habit, value) === 100;
 }
 
 /**
@@ -24,6 +42,10 @@ export function habitScore(habit: Habit, value: LogValue, isRest?: boolean): num
 
   const v = Number(value ?? 0);
   if (v <= 0) return 0;
+
+  if (isNumericLikeHabit(habit) && habitProgressScoring(habit) === "any") {
+    return 100;
+  }
 
   const min = Number(habit.min ?? 0);
   const max = Number(habit.max ?? 1);

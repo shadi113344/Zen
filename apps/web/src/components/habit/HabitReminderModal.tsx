@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { mergeHabitNotify } from "@mottazen/core";
+import { mergeHabitNotify, hasHabitReminder } from "@mottazen/core";
 import type { Habit, HabitNotifySettings } from "@mottazen/core";
 import { Modal } from "@/components/Modal";
 import { useData } from "@/hooks/useData";
@@ -17,7 +17,7 @@ export function HabitReminderModal({ habit, open, onClose }: HabitReminderModalP
   const { updateHabit } = useData();
   const notify = habit.notify ?? {};
   const initialTime = habit.remindAt ?? notify.remindAt ?? DEFAULT_TIME;
-  const initialOn = !!(habit.remindAt || notify.remindAt) && notify.enabled !== false;
+  const initialOn = hasHabitReminder(habit);
 
   const [reminderOn, setReminderOn] = useState(initialOn);
   const [remindAt, setRemindAt] = useState(initialTime);
@@ -26,7 +26,7 @@ export function HabitReminderModal({ habit, open, onClose }: HabitReminderModalP
     if (!open) return;
     const n = habit.notify ?? {};
     const time = habit.remindAt ?? n.remindAt ?? DEFAULT_TIME;
-    setReminderOn(!!(habit.remindAt || n.remindAt) && n.enabled !== false);
+    setReminderOn(hasHabitReminder(habit));
     setRemindAt(time);
   }, [open, habit]);
 

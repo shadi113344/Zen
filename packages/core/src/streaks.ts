@@ -1,12 +1,30 @@
-import { habitScore, isRestLog, logValueForHabit } from "./scoring";
+import { habitScore, isNumericLikeHabit, isNumericStreakDay, isRestLog, logValueForHabit } from "./scoring";
 import type { DayLog, Habit, StreakResult } from "./types";
 
-/** Habit counts as done for streak: check/one-time any progress; numeric/milestone at max; rest preserves streak. */
+/**
+ * Whether a habit counts as done for streak purposes.
+ * Numeric/milestone follows progressScoring:
+ * - scale: max reached that day
+ * - any: any value > 0 that day
+ */
 export function isHabitDone(habit: Habit, value: number | null, isRest?: boolean): boolean {
   if (isRestLog(value, isRest)) return true;
   if (value === null) return false;
   if (habit.type === "check" || habit.type === "onetime") return value > 0;
-  return habitScore(habit, value, isRest) === 100;
+  if (isNumericLikeHabit(habit)) return isNumericStreakDay(habit, value);
+  return false;
+}
+
+/** Streak count and 🔥 UI appear from this many consecutive days onward. */
+export const STREAK_VISIBLE_MIN = 2;
+
+export function hasVisibleStreak(days: number): boolean {
+  return days >= STREAK_VISIBLE_MIN;
+}
+
+/** Streak value for display; 0 until {@link STREAK_VISIBLE_MIN} days. */
+export function visibleStreak(days: number): number {
+  return hasVisibleStreak(days) ? days : 0;
 }
 
 export function streak(habitId: string, habit: Habit, logs: DayLog[], today: string): StreakResult {

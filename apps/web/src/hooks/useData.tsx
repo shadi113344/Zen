@@ -93,7 +93,7 @@ const DataContext = createContext<DataContextValue | null>(null);
 function mapHabitRow(h: Record<string, unknown>): Habit {
   const remindRaw = h.remind_at as string | null | undefined;
   const notifyRaw = h.notify as Habit["notify"] | null | undefined;
-  const meta = h.meta as { why?: string } | null | undefined;
+  const meta = h.meta as { why?: string; progressScoring?: string } | null | undefined;
   return {
     id: h.id as string,
     name: h.name as string,
@@ -107,6 +107,7 @@ function mapHabitRow(h: Record<string, unknown>): Habit {
     color: (h.color as string) ?? undefined,
     remindAt: remindRaw ? String(remindRaw).slice(0, 5) : undefined,
     why: meta?.why,
+    progressScoring: meta?.progressScoring === "any" ? "any" : undefined,
     notify: notifyRaw && typeof notifyRaw === "object" ? notifyRaw : undefined,
   };
 }

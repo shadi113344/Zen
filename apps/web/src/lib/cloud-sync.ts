@@ -13,6 +13,9 @@ function normalizeRemindAt(remind: string | undefined): string | null {
 
 export function habitToDb(habit: Habit) {
   const remind = habit.remindAt ?? habit.notify?.remindAt;
+  const meta: Record<string, unknown> = {};
+  if (habit.why) meta.why = habit.why;
+  if (habit.progressScoring === "any") meta.progressScoring = "any";
   return {
     name: habit.name,
     category: habit.category,
@@ -24,7 +27,7 @@ export function habitToDb(habit: Habit) {
     paused: habit.paused ?? false,
     remind_at: normalizeRemindAt(remind),
     notify: habit.notify ?? {},
-    meta: habit.why ? { why: habit.why } : {},
+    meta,
   };
 }
 

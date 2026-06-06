@@ -1,5 +1,7 @@
 export type HabitType = "check" | "numeric" | "milestone" | "onetime";
 export type LogValue = number | null;
+/** Numeric/milestone: linear 0–100 by value, or any logged value > 0 counts as complete. */
+export type ProgressScoring = "scale" | "any";
 
 export interface Habit {
   id: string;
@@ -14,6 +16,7 @@ export interface Habit {
   color?: string;
   remindAt?: string;
   why?: string;
+  progressScoring?: ProgressScoring;
   notify?: HabitNotifySettings;
 }
 

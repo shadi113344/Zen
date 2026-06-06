@@ -10,6 +10,7 @@ import {
   rankHabitsByConsistency,
   currentStreak,
   todayKey,
+  visibleStreak,
 } from "@mottazen/core";
 import type { DayLog, Habit } from "@mottazen/core";
 import { HeatmapGrid } from "@/components/insights/HeatmapGrid";
@@ -72,7 +73,7 @@ export function ActivitiesInsights({
     [habitRows],
   );
   const streakRows = useMemo(
-    () => habitRows.map(({ habit, currentStreak: str }) => ({ habit, value: str })),
+    () => habitRows.map(({ habit, currentStreak: str }) => ({ habit, value: visibleStreak(str) })),
     [habitRows],
   );
   const best = useMemo(() => bestHabitByConsistency(habits, logs, dates), [habits, logs, dates]);

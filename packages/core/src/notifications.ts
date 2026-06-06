@@ -191,6 +191,14 @@ export function habitReminderTimes(habit: Habit): string[] {
   return [...times];
 }
 
+/** True when the habit has an active daily reminder time configured. */
+export function hasHabitReminder(habit: Habit): boolean {
+  const notify = habit.notify ?? {};
+  if (notify.enabled === false) return false;
+  const time = habit.remindAt ?? notify.remindAt;
+  return Boolean(time?.trim());
+}
+
 export function isNotifyDayActive(weekday: number, days?: number[]): boolean {
   if (!days?.length) return true;
   return days.includes(weekday);

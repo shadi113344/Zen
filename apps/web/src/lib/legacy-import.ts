@@ -31,6 +31,9 @@ export function legacyExportToBundle(raw: Record<string, unknown>): ExportBundle
       remindAt: (h.remindAt ?? h.remind_at) as string | undefined,
       notify: h.notify as Habit["notify"],
       why: (h.why ?? (h.meta as { why?: string })?.why) as string | undefined,
+      progressScoring:
+        (h.progressScoring as Habit["progressScoring"]) ??
+        ((h.meta as { progressScoring?: string })?.progressScoring === "any" ? "any" : undefined),
     };
   });
 

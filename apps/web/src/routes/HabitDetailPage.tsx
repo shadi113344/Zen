@@ -11,6 +11,7 @@ import {
   logValueForHabit,
   streak,
   todayKey,
+  visibleStreak,
 } from "@mottazen/core";
 import { EditHabitModal } from "@/components/habit/EditHabitModal";
 import { HabitActivityCalendar } from "@/components/habit/HabitActivityCalendar";
@@ -90,7 +91,7 @@ export function HabitDetailPage() {
         <span className="habit-detail__type">{habitTypeLabel(habit.type)}</span>
       </div>
 
-      <StreakPills current={current} best={best} consistency30={consistency} />
+      <StreakPills current={visibleStreak(current)} best={visibleStreak(best)} consistency30={consistency} />
 
       <section className="card page-section habit-detail__trend">
         <h3 className="page-section__title">Score trend · 30 days</h3>

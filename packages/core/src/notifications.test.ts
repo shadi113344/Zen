@@ -3,6 +3,7 @@ import {
   checkMotivationOnLog,
   checkNotificationReminders,
   defaultNotificationSettings,
+  hasHabitReminder,
   isInQuietHours,
   parseNotificationSettings,
 } from "./notifications";
@@ -33,6 +34,15 @@ describe("parseNotificationSettings", () => {
     const settings = parseNotificationSettings({ enabled: true, dailyTime: "19:30" });
     expect(settings.enabled).toBe(true);
     expect(settings.dailyCheckIn.time).toBe("19:30");
+  });
+});
+
+describe("hasHabitReminder", () => {
+  it("requires a time and enabled notify", () => {
+    expect(hasHabitReminder({ ...habit, remindAt: "08:00" })).toBe(true);
+    expect(hasHabitReminder({ ...habit, remindAt: undefined, notify: { remindAt: "09:00" } })).toBe(true);
+    expect(hasHabitReminder({ ...habit, remindAt: "08:00", notify: { enabled: false } })).toBe(false);
+    expect(hasHabitReminder({ ...habit, remindAt: undefined })).toBe(false);
   });
 });
 

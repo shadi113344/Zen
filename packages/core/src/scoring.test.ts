@@ -49,6 +49,13 @@ describe("habitScore", () => {
     expect(habitScore(numericHabit, 5000)).toBe(50);
   });
 
+  it("returns 100 for any-value numeric when any progress is logged", () => {
+    const anyHabit: Habit = { ...numericHabit, progressScoring: "any" };
+    expect(habitScore(anyHabit, 1)).toBe(100);
+    expect(habitScore(anyHabit, 5000)).toBe(100);
+    expect(habitScore(anyHabit, 0)).toBe(0);
+  });
+
   it("excludes rest days", () => {
     expect(habitScore(healthCheck, -1)).toBeNull();
     expect(habitScore(healthCheck, null, true)).toBeNull();

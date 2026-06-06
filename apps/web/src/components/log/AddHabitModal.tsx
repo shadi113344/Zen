@@ -9,6 +9,7 @@ import { GlassSelect } from "@/components/GlassSelect";
 import { FormNumericStepper } from "@/components/FormNumericStepper";
 
 import { categorySelectOptions } from "@/lib/all-categories";
+import { PROGRESS_SCORING_STREAK_HINT } from "@/lib/progress-scoring";
 import { useCategoryColors, useData } from "@/hooks/useData";
 
 import { FabButton } from "@/components/FabButton";
@@ -137,7 +138,9 @@ export function AddHabitModal({ open, onClose, defaultCategory = "Health" }: Add
 
       notify: time ? { enabled: true, remindAt: time } : undefined,
 
-      ...(type === "numeric" || type === "milestone" ? { min, max, step } : {}),
+      ...(type === "numeric" || type === "milestone"
+        ? { min, max, step, progressScoring: scoring === "any" ? "any" : undefined }
+        : {}),
 
     };
 
@@ -256,6 +259,8 @@ export function AddHabitModal({ open, onClose, defaultCategory = "Health" }: Add
                   ]}
 
                 />
+
+                <p className="habit-form__hint">{PROGRESS_SCORING_STREAK_HINT[scoring]}</p>
 
               </div>
 
