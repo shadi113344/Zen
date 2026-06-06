@@ -4,6 +4,8 @@ export interface PressMenuOption {
   id: string;
   label: string;
   icon: string;
+  /** Noto Emoji Animation codepoint for Lottie menus. */
+  lottieCodepoint?: string;
   onSelect: () => void;
 }
 

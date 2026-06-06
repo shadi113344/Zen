@@ -46,6 +46,13 @@
   --shadow-drag: 0 6px 18px rgba(26, 26, 26, 0.14);
   --shadow-inset: inset 0 1px 0 rgba(255, 255, 255, 0.85);
   --check-inset: inset 0 2px 4px rgba(26, 26, 26, 0.07);
+  /* Border-drawn check tick (≈30% bolder than 2.5px baseline) */
+  --check-tick-w: 12px;
+  --check-tick-h: 7px;
+  --check-tick-stroke: 3.25px;
+  --check-tick-sm-w: 9px;
+  --check-tick-sm-h: 5px;
+  --check-tick-sm-stroke: 2.6px;
 
   --radius: 24px;
   --radius-sm: 16px;

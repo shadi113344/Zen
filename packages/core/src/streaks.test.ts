@@ -1,5 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { currentStreak, hasVisibleStreak, isHabitDone, longestStreak, visibleStreak } from "./streaks";
+import {
+  currentStreak,
+  hasVisibleStreak,
+  isHabitDone,
+  longestStreak,
+  streakEmojiChar,
+  streakEmojiTier,
+  visibleStreak,
+} from "./streaks";
 import { isNumericStreakDay } from "./scoring";
 import type { DayLog, Habit } from "./types";
 
@@ -108,5 +116,24 @@ describe("visibleStreak", () => {
     expect(hasVisibleStreak(2)).toBe(true);
     expect(visibleStreak(1)).toBe(0);
     expect(visibleStreak(2)).toBe(2);
+  });
+});
+
+describe("streakEmojiTier", () => {
+  it("returns null before streak is visible", () => {
+    expect(streakEmojiTier(0)).toBeNull();
+    expect(streakEmojiTier(1)).toBeNull();
+    expect(streakEmojiChar(1)).toBe("");
+  });
+
+  it("upgrades emoji by streak length", () => {
+    expect(streakEmojiTier(2)?.codepoint).toBe("1f44f");
+    expect(streakEmojiTier(3)?.emoji).toBe("👏");
+    expect(streakEmojiTier(4)?.codepoint).toBe("1f525");
+    expect(streakEmojiTier(9)?.emoji).toBe("🔥");
+    expect(streakEmojiTier(10)?.codepoint).toBe("1f4aa");
+    expect(streakEmojiTier(29)?.emoji).toBe("💪");
+    expect(streakEmojiTier(30)?.codepoint).toBe("1f3c6");
+    expect(streakEmojiChar(42)).toBe("🏆");
   });
 });

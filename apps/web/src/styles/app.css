@@ -1212,7 +1212,8 @@
 }
 
 .log-page .habit-groups,
-.log-page .habit-list-activity {
+.log-page .habit-list-activity,
+.log-page .habit-grid {
   gap: 8px;
 }
 
@@ -1443,6 +1444,7 @@
 .log-page__content > .chips-row,
 .log-page__content > .habit-groups,
 .log-page__content > .habit-list-activity,
+.log-page__content > .habit-grid,
 .log-page__content > .empty-state,
 .log-page__content > .day-notes,
 .log-page__scroll > .offline-banner,
@@ -1712,6 +1714,365 @@
   font-weight: 800;
   font-size: 14px;
   color: var(--green-strong);
+}
+
+/* ——— Grid view (category cards + mini habits) ——— */
+
+.habit-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.category-grid-card {
+  padding: 0;
+  overflow: hidden;
+  min-width: 0;
+}
+
+.category-grid-card__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px 2px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: inherit;
+  text-align: left;
+}
+
+.category-grid-card__name {
+  flex: 1;
+  min-width: 0;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.category-grid-card__score {
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--green-strong);
+}
+
+.category-grid-card__chev {
+  flex-shrink: 0;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.category-grid-card__habits {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid color-mix(in srgb, var(--line-strong) 35%, transparent);
+}
+
+.habit-grid-tile {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 4px 2px;
+}
+
+.habit-grid-tile + .habit-grid-tile {
+  border-top: 1px solid color-mix(in srgb, var(--line-strong) 22%, transparent);
+}
+
+.habit-grid-tile__name {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.25;
+  color: inherit;
+  text-decoration: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.habit-grid-tile__name--skipped {
+  text-decoration: line-through;
+  opacity: 0.55;
+}
+
+.habit-grid-tile__name--progress,
+.habit-grid-tile--done .habit-grid-tile__name,
+.habit-grid-tile--progress .habit-grid-tile__name {
+  color: var(--green-strong);
+}
+
+.habit-grid-tile--rest .habit-grid-tile__name {
+  color: #8b5e3c;
+}
+
+.habit-grid-tile__control {
+  flex-shrink: 0;
+}
+
+.habit-grid-tile__check {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.habit-grid-tile__check input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  cursor: pointer;
+  z-index: 1;
+}
+
+.habit-grid-tile__check-ui {
+  position: relative;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid var(--line-strong);
+  background: color-mix(in srgb, var(--grey-cloud) 35%, var(--card-solid));
+  box-shadow: var(--check-inset);
+  transition:
+    background var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out),
+    transform var(--dur-fast) var(--ease-spring);
+}
+
+.habit-grid-tile__check-ui::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: var(--check-tick-sm-w);
+  height: var(--check-tick-sm-h);
+  border-left: var(--check-tick-sm-stroke) solid var(--active-fg);
+  border-bottom: var(--check-tick-sm-stroke) solid var(--active-fg);
+  transform: translate(-50%, -54%) rotate(-45deg) scale(0.4);
+  opacity: 0;
+  transition:
+    transform var(--dur-fast) var(--ease-spring),
+    opacity var(--dur-fast) var(--ease-out);
+}
+
+.habit-grid-tile__check input:checked + .habit-grid-tile__check-ui {
+  background: var(--active);
+  border-color: var(--active);
+}
+
+.habit-grid-tile__check input:checked + .habit-grid-tile__check-ui::after {
+  opacity: 1;
+  transform: translate(-50%, -54%) rotate(-45deg) scale(1);
+}
+
+.habit-grid-tile__check input:disabled + .habit-grid-tile__check-ui {
+  opacity: 0.38;
+}
+
+.habit-grid-tile__value-btn {
+  min-width: 28px;
+  height: 28px;
+  padding: 0 8px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--grey-cloud) 35%, var(--card-solid));
+  font-size: 12px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out);
+}
+
+.habit-grid-tile__value-btn:active:not(:disabled) {
+  transform: scale(0.96);
+}
+
+.habit-grid-tile__value-btn:disabled {
+  opacity: 0.38;
+  cursor: default;
+}
+
+.habit-grid-tile--progress .habit-grid-tile__value-btn {
+  color: var(--green-strong);
+  border-color: color-mix(in srgb, var(--green-strong) 35%, var(--line-strong));
+  background: color-mix(in srgb, var(--green-strong) 10%, var(--card-solid));
+}
+
+.habit-grid-tile__numeric-check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.habit-grid-tile__numeric-check:disabled {
+  opacity: 0.38;
+  cursor: default;
+}
+
+.habit-grid-tile__check-ui--on {
+  background: var(--active);
+  border-color: var(--active);
+}
+
+.habit-grid-tile__check-ui--on::after {
+  opacity: 1;
+  transform: translate(-50%, -54%) rotate(-45deg) scale(1);
+}
+
+/* Grid numeric counter bottom sheet */
+.numeric-counter-sheet__backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 210;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.45);
+  padding: 0;
+}
+
+.numeric-counter-sheet {
+  width: 100%;
+  max-width: 480px;
+  padding: 8px 20px calc(20px + env(safe-area-inset-bottom, 0px));
+  border-radius: 20px 20px 0 0;
+  text-align: center;
+}
+
+.numeric-counter-sheet__handle {
+  width: 36px;
+  height: 4px;
+  margin: 0 auto 14px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--text) 18%, transparent);
+}
+
+.numeric-counter-sheet__title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 800;
+  line-height: 1.3;
+}
+
+.numeric-counter-sheet__range {
+  margin: 4px 0 20px;
+  font-size: 12px;
+  font-weight: 650;
+  color: var(--muted);
+}
+
+.numeric-counter-sheet__counter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.numeric-counter-sheet__value {
+  min-width: 3ch;
+  font-size: 44px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  color: var(--text);
+}
+
+.numeric-counter-sheet__value--complete {
+  color: var(--green-strong);
+}
+
+.numeric-counter-sheet__step {
+  position: relative;
+  width: 56px;
+  height: 56px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1px solid var(--line-strong);
+  background: color-mix(in srgb, var(--grey-cloud) 35%, var(--card-solid));
+  cursor: pointer;
+}
+
+.numeric-counter-sheet__step-haptic {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  cursor: pointer;
+  z-index: 1;
+}
+
+.numeric-counter-sheet__step--disabled {
+  opacity: 0.38;
+  pointer-events: none;
+}
+
+.numeric-counter-sheet__step-glyph {
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.numeric-counter-sheet__step-glyph--check {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+}
+
+.numeric-counter-sheet__step-glyph--check::after {
+  content: "";
+  width: var(--check-tick-w);
+  height: var(--check-tick-h);
+  border-left: var(--check-tick-stroke) solid var(--active-fg);
+  border-bottom: var(--check-tick-stroke) solid var(--active-fg);
+  transform: rotate(-45deg);
+}
+
+.numeric-counter-sheet__step--complete {
+  background: var(--active);
+  border-color: var(--active);
+}
+
+.numeric-counter-sheet__step--complete .numeric-counter-sheet__step-glyph--base {
+  opacity: 0;
+}
+
+.numeric-counter-sheet__step--complete .numeric-counter-sheet__step-glyph--check {
+  opacity: 1;
+}
+
+.numeric-counter-sheet__done {
+  width: 100%;
 }
 
 .habit-groups {
@@ -2086,26 +2447,18 @@ body.reorder-active .habit-group:not(.habit-group--dragging) {
   gap: 6px;
   flex-shrink: 0;
   margin-left: auto;
+  overflow: visible;
 }
 
-.habit-card--activity-only .habit-card__streak {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
+.habit-card--activity-only .habit-card__streak,
+.habit-card--compact .habit-card__streak {
   margin-left: 0;
-  padding: 0;
-  border: none;
-  border-radius: 0;
-  background: none;
-  box-shadow: none;
   font-size: 12px;
-  font-weight: 700;
-  color: var(--muted);
-  font-variant-numeric: tabular-nums;
 }
 
 .habit-card--activity-only .habit-card__streak-days,
-.habit-card--compact .habit-card__streak-days {
+.habit-card--compact .habit-card__streak-days,
+.habit-card--normal .habit-card__streak-days {
   color: var(--orange);
 }
 
@@ -2127,14 +2480,120 @@ body.reorder-active .habit-group:not(.habit-group--dragging) {
   box-sizing: border-box;
 }
 
+.habit-card__streak {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: auto;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  font-size: 11px;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
 .habit-card__streak-days {
+  display: block;
   line-height: 1;
   color: var(--orange);
 }
 
+.habit-card__streak-flame-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  line-height: 0;
+  overflow: visible;
+}
+
 .habit-card__streak-emoji {
-  font-size: 13px;
-  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  line-height: 0;
+}
+
+.habit-card__streak-emoji-core {
+  display: block;
+}
+
+/* Noto Lottie streak emoji. */
+.streak-flame-lottie {
+  display: block;
+  width: 14px !important;
+  height: 14px !important;
+  pointer-events: none;
+  user-select: none;
+}
+
+.streak-flame-lottie--celebrate {
+  animation: streak-flame-enter 0.35s var(--ease-spring) both;
+}
+
+.habit-card__streak-confetti {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.habit-card__streak-confetti-piece {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 3px;
+  height: 5px;
+  border-radius: 1px;
+  opacity: 0;
+  animation: streak-confetti-burst 1.5s var(--ease-out) both;
+  animation-delay: var(--burst-delay, 0ms);
+}
+
+@keyframes streak-flame-enter {
+  0% {
+    transform: scale(0.7);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes streak-confetti-burst {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.2) rotate(0deg);
+  }
+  18% {
+    opacity: 0.95;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(calc(-50% + var(--burst-x)), calc(-50% + var(--burst-y))) scale(0.55)
+      rotate(var(--burst-r));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .streak-flame-lottie--celebrate {
+    animation: none !important;
+  }
+
+  .habit-card__streak-confetti-piece {
+    animation: none;
+    display: none;
+  }
 }
 
 .habit-card__reminder-icon {
@@ -2167,26 +2626,6 @@ body.reorder-active .habit-group:not(.habit-group--dragging) {
   min-width: 0;
 }
 
-.habit-card--compact .habit-card__streak {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  margin-left: 0;
-  padding: 0;
-  border: none;
-  border-radius: 0;
-  background: none;
-  box-shadow: none;
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--muted);
-  font-variant-numeric: tabular-nums;
-}
-
-.habit-card--compact .habit-card__streak-days {
-  color: var(--orange);
-}
-
 .habit-card--normal .habit-card__main {
   align-self: stretch;
 }
@@ -2217,6 +2656,21 @@ body.reorder-active .habit-group:not(.habit-group--dragging) {
   color: var(--muted);
   font-weight: 650;
   line-height: 1.3;
+}
+
+.habit-card__line2--meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0;
+}
+
+.habit-card__line2--meta .habit-card__streak {
+  margin-left: 0;
+}
+
+.habit-card__meta-sep {
+  color: var(--muted);
 }
 
 .habit-card__menu-btn {
@@ -2338,6 +2792,11 @@ body.reorder-active .habit-group:not(.habit-group--dragging) {
   z-index: 1;
 }
 
+.habit-row-menu__btn--delete.habit-row-menu__btn--highlight {
+  border-color: var(--orange);
+  color: var(--orange);
+}
+
 .habit-row-menu__btn--highlight .habit-row-menu__icon {
   font-size: 25px;
 }
@@ -2395,6 +2854,28 @@ body.habit-menu-active .log-page__scroll {
   height: 22px;
 }
 
+.habit-row-menu__icon--trash {
+  display: block;
+  width: 18px;
+  height: 18px;
+  font-size: 0;
+  background: currentColor;
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M9 3h6l1 2h4v2H4V5h4l1-2Zm1 6h2v9h-2V9Zm4 0h2v9h-2V9ZM7 9h2v9H7V9Z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M9 3h6l1 2h4v2H4V5h4l1-2Zm1 6h2v9h-2V9Zm4 0h2v9h-2V9ZM7 9h2v9H7V9Z'/%3E%3C/svg%3E");
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  transition: width 0.22s var(--ease-spring), height 0.22s var(--ease-spring);
+}
+
+.habit-row-menu__icon--trash-lg {
+  width: 22px;
+  height: 22px;
+}
+
 .log-header__icon-btn--density {
   padding: 0;
 }
@@ -2441,6 +2922,22 @@ body.habit-menu-active .log-page__scroll {
 
 .log-header__icon-btn--density.is-activity-only .density-icon::before,
 .log-header__icon-btn--density.is-activity-only .density-icon::after {
+  display: none;
+}
+
+.log-header__icon-btn--density.is-grid .density-icon {
+  gap: 0;
+  width: 14px;
+  height: 14px;
+  background:
+    linear-gradient(currentColor, currentColor) 0 0 / 6px 6px no-repeat,
+    linear-gradient(currentColor, currentColor) 8px 0 / 6px 6px no-repeat,
+    linear-gradient(currentColor, currentColor) 0 8px / 6px 6px no-repeat,
+    linear-gradient(currentColor, currentColor) 8px 8px / 6px 6px no-repeat;
+}
+
+.log-header__icon-btn--density.is-grid .density-icon::before,
+.log-header__icon-btn--density.is-grid .density-icon::after {
   display: none;
 }
 
@@ -2537,17 +3034,6 @@ body.habit-menu-active .log-page__scroll {
   margin-top: 2px;
 }
 
-.habit-card__streak {
-  margin-left: auto;
-  font-size: 11px;
-  font-weight: 800;
-  background: color-mix(in srgb, var(--orange) 20%, var(--card));
-  color: var(--orange);
-  padding: 2px 8px;
-  border-radius: 999px;
-  flex-shrink: 0;
-}
-
 .habit-card__actions {
   display: flex;
   align-items: center;
@@ -2627,14 +3113,14 @@ body.habit-menu-active .log-page__scroll {
   content: "";
   position: absolute;
   left: 50%;
-  top: 48%;
-  width: 11px;
-  height: 6px;
-  margin-left: -6px;
-  margin-top: -5px;
-  border-left: 2.5px solid var(--active-fg);
-  border-bottom: 2.5px solid var(--active-fg);
-  transform: rotate(-45deg) scale(0.4);
+  top: 50%;
+  width: var(--check-tick-w);
+  height: var(--check-tick-h);
+  margin: 0;
+  border-left: var(--check-tick-stroke) solid var(--active-fg);
+  border-bottom: var(--check-tick-stroke) solid var(--active-fg);
+  box-sizing: border-box;
+  transform: translate(-50%, -54%) rotate(-45deg) scale(0.4);
   opacity: 0;
   transition:
     transform var(--dur-fast) var(--ease-spring),
@@ -2655,7 +3141,7 @@ body.habit-menu-active .log-page__scroll {
 
 .habit-card__check input:checked + .habit-card__check-ui::after {
   opacity: 1;
-  transform: rotate(-45deg) scale(1);
+  transform: translate(-50%, -54%) rotate(-45deg) scale(1);
 }
 
 .habit-card__check input:disabled + .habit-card__check-ui {
@@ -2716,6 +3202,75 @@ body.habit-menu-active .log-page__scroll {
 
 .habit-card__step--disabled {
   pointer-events: none;
+}
+
+/* Completed numeric habit: + becomes a highlighted check circle that matches
+   the done checkbox (filled with --active, check drawn in --active-fg). The
+   compound selectors keep it winning over the base + disabled step rules. */
+.habit-card__step.habit-card__step--complete {
+  background: var(--active);
+  border-color: var(--active);
+  color: var(--active-fg);
+  box-shadow: var(--shadow-elevated);
+  opacity: 1;
+}
+
+/* Stay fully highlighted even when capped at max (button becomes disabled). */
+.habit-card__step.habit-card__step--complete.habit-card__step--disabled {
+  opacity: 1;
+}
+
+/* Layered glyphs so the + can rotate out while the ✓ rotates in. */
+.habit-card__step-glyph {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1;
+  transition:
+    transform 0.34s var(--ease-spring),
+    opacity 0.2s var(--ease-out);
+}
+
+.habit-card__step-glyph--check {
+  opacity: 0;
+  transform: rotate(-90deg) scale(0.35);
+}
+
+/* Same border-drawn tick as habit-card__check-ui — matches checkbox habits, not a text ✓. */
+.habit-card__step-glyph--check::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: var(--check-tick-w);
+  height: var(--check-tick-h);
+  margin: 0;
+  border-left: var(--check-tick-stroke) solid currentColor;
+  border-bottom: var(--check-tick-stroke) solid currentColor;
+  box-sizing: border-box;
+  transform: translate(-50%, -54%) rotate(-45deg);
+}
+
+.habit-card__step--complete .habit-card__step-glyph--base {
+  opacity: 0;
+  transform: rotate(90deg) scale(0.35);
+}
+
+.habit-card__step--complete .habit-card__step-glyph--check {
+  opacity: 1;
+  transform: rotate(0) scale(1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .habit-card__step-glyph {
+    transition: opacity 0.15s linear;
+    transform: none !important;
+  }
 }
 
 .habit-card__value {
@@ -2813,8 +3368,9 @@ body.habit-menu-active .log-page__scroll {
 }
 
 .day-mood-btn__emoji {
-  font-size: 20px;
-  line-height: 1;
+  display: block;
+  width: 20px;
+  height: 20px;
 }
 
 .day-mood-btn--selected {
@@ -2878,12 +3434,14 @@ body.habit-menu-active .log-page__scroll {
 }
 
 .mood-linear-menu__emoji {
-  font-size: 20px;
-  line-height: 1;
+  display: block;
+  width: 20px;
+  height: 20px;
 }
 
 .mood-linear-menu__btn--highlight .mood-linear-menu__emoji {
-  font-size: 22px;
+  width: 22px;
+  height: 22px;
 }
 
 @keyframes mood-menu-row-pop {
@@ -3443,7 +4001,7 @@ body.habit-menu-active .log-page__scroll {
   border: 1px solid color-mix(in srgb, var(--orange) 50%, var(--line));
 }
 
-.btn--danger-confirm {
+.btn--danger.btn--danger-confirm {
   background: var(--orange);
   color: #fff;
   border-color: var(--orange);
@@ -5069,6 +5627,13 @@ body.reorder-active .insights-reorder-card {
   outline: none;
 }
 
+.habit-delete-confirm__text {
+  margin: 0 0 16px;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
 .habit-form__hint {
   font-size: 12px;
   color: var(--muted);
@@ -5119,6 +5684,7 @@ body.reorder-active .insights-reorder-card {
 }
 
 .habit-form__reminder-check-ui {
+  position: relative;
   width: 28px;
   height: 28px;
   border-radius: 50%;
@@ -5139,13 +5705,16 @@ body.reorder-active .insights-reorder-card {
 
 .habit-form__reminder-toggle input:checked + .habit-form__reminder-check-ui::after {
   content: "";
-  display: block;
-  width: 8px;
-  height: 4px;
-  margin: 9px auto 0;
-  border-left: 2px solid var(--active-fg);
-  border-bottom: 2px solid var(--active-fg);
-  transform: rotate(-45deg);
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: var(--check-tick-sm-w);
+  height: var(--check-tick-sm-h);
+  margin: 0;
+  border-left: var(--check-tick-sm-stroke) solid var(--active-fg);
+  border-bottom: var(--check-tick-sm-stroke) solid var(--active-fg);
+  box-sizing: border-box;
+  transform: translate(-50%, -54%) rotate(-45deg);
 }
 
 .habit-form__reminder-time {
@@ -5495,6 +6064,7 @@ body.reorder-active .insights-reorder-card {
 }
 
 .theme-glass-toggle__ui {
+  position: relative;
   width: 28px;
   height: 28px;
   flex-shrink: 0;
@@ -5512,13 +6082,16 @@ body.reorder-active .insights-reorder-card {
 
 .theme-glass-toggle input:checked + .theme-glass-toggle__ui::after {
   content: "";
-  display: block;
-  width: 8px;
-  height: 4px;
-  margin: 9px auto 0;
-  border-left: 2px solid var(--active-fg);
-  border-bottom: 2px solid var(--active-fg);
-  transform: rotate(-45deg);
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: var(--check-tick-sm-w);
+  height: var(--check-tick-sm-h);
+  margin: 0;
+  border-left: var(--check-tick-sm-stroke) solid var(--active-fg);
+  border-bottom: var(--check-tick-sm-stroke) solid var(--active-fg);
+  box-sizing: border-box;
+  transform: translate(-50%, -54%) rotate(-45deg);
 }
 
 .theme-glass-slider {
@@ -5876,7 +6449,7 @@ body.reorder-active .insights-reorder-card {
   text-decoration: underline;
 }
 .btn--block { width: 100%; }
-.btn--danger { color: var(--orange); }
+.btn--danger:not(.btn--danger-confirm) { color: var(--orange); }
 
 /* Toast */
 .toast-bar {

@@ -2,11 +2,11 @@
 export const DAY_MOOD_STORAGE_PREFIX = "__mood__:";
 
 export const DAY_MOOD_OPTIONS = [
-  { id: "happy", emoji: "😊", label: "Happy" },
-  { id: "neutral", emoji: "😐", label: "Neutral" },
-  { id: "sad", emoji: "😢", label: "Sad" },
-  { id: "angry", emoji: "😠", label: "Angry" },
-  { id: "strong", emoji: "💪", label: "Strong" },
+  { id: "happy", emoji: "😊", codepoint: "1f60a", label: "Happy" },
+  { id: "neutral", emoji: "😐", codepoint: "1f610", label: "Neutral" },
+  { id: "sad", emoji: "😢", codepoint: "1f622", label: "Sad" },
+  { id: "angry", emoji: "😠", codepoint: "1f620", label: "Angry" },
+  { id: "strong", emoji: "💪", codepoint: "1f4aa", label: "Strong" },
 ] as const;
 
 export type DayMoodId = (typeof DAY_MOOD_OPTIONS)[number]["id"];
@@ -23,6 +23,10 @@ export function resolveDayMoodId(stored: string): DayMoodId | "" {
 
 export function dayMoodEmoji(id: string): string {
   return MOOD_BY_ID.get(id as DayMoodId)?.emoji ?? "";
+}
+
+export function dayMoodCodepoint(id: string): string {
+  return MOOD_BY_ID.get(id as DayMoodId)?.codepoint ?? "";
 }
 
 export function splitDailyNotesBlob(raw: Record<string, string>): {

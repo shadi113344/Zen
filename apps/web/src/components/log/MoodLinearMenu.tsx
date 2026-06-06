@@ -1,5 +1,6 @@
 import { useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { AnimatedEmoji } from "@/components/AnimatedEmoji";
 import type { PressMenuOption } from "@/hooks/usePressRadialMenu";
 
 const BTN_SIZE = 40;
@@ -80,9 +81,20 @@ export function MoodLinearMenu({ anchorRef, open, highlightId, options }: MoodLi
                 } as React.CSSProperties
               }
             >
-              <span className="mood-linear-menu__emoji" aria-hidden>
-                {opt.icon}
-              </span>
+              {opt.lottieCodepoint ? (
+                <AnimatedEmoji
+                  codepoint={opt.lottieCodepoint}
+                  fallback={opt.icon}
+                  size={highlighted ? 22 : 20}
+                  loop
+                  autoplay
+                  className="mood-linear-menu__emoji"
+                />
+              ) : (
+                <span className="mood-linear-menu__emoji" aria-hidden>
+                  {opt.icon}
+                </span>
+              )}
             </button>
           );
         })}

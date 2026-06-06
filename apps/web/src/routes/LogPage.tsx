@@ -43,10 +43,12 @@ export function LogPage() {
   const [addOpen, setAddOpen] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
   const activityOnly = displayDensity === "activity-only";
+  const gridView = displayDensity === "grid";
+  const hideCategoryChips = activityOnly || gridView;
 
   useEffect(() => {
-    if (activityOnly && categoryFilter) setCategoryFilter(null);
-  }, [activityOnly, categoryFilter]);
+    if (hideCategoryChips && categoryFilter) setCategoryFilter(null);
+  }, [hideCategoryChips, categoryFilter]);
 
   const online = useOnline();
   const desktop = useMediaQuery("(min-width: 1024px)");
@@ -138,7 +140,7 @@ export function LogPage() {
 
           <GoalChipsRow date={selectedDate} />
 
-          {!activityOnly ? (
+          {!hideCategoryChips ? (
             <CategoryChipsRow
               habits={habits}
               logs={logs}

@@ -1,6 +1,6 @@
-export type DisplayDensity = "normal" | "compact" | "activity-only";
+export type DisplayDensity = "normal" | "compact" | "activity-only" | "grid";
 
-export const DISPLAY_DENSITY_ORDER: DisplayDensity[] = ["normal", "compact", "activity-only"];
+export const DISPLAY_DENSITY_ORDER: DisplayDensity[] = ["normal", "compact", "activity-only", "grid"];
 
 export function nextDisplayDensity(current: DisplayDensity): DisplayDensity {
   const i = DISPLAY_DENSITY_ORDER.indexOf(current);
@@ -16,9 +16,16 @@ export function displayDensityLabel(density: DisplayDensity): string {
       return "Compact view";
     case "activity-only":
       return "Activity only view";
+    case "grid":
+      return "Grid view";
   }
 }
 
 export function isDisplayDensity(value: string | null): value is DisplayDensity {
-  return value === "normal" || value === "compact" || value === "activity-only";
+  return (
+    value === "normal" ||
+    value === "compact" ||
+    value === "activity-only" ||
+    value === "grid"
+  );
 }

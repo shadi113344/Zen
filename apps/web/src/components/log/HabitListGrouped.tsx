@@ -6,6 +6,7 @@ import { useCategoryOrder } from "@/hooks/useCategoryOrder";
 import { useData, useLogs } from "@/hooks/useData";
 import { useDisplayPrefs } from "@/hooks/useDisplayPrefs";
 import { usePointerReorder } from "@/hooks/usePointerReorder";
+import { CategoryGridCard } from "./CategoryGridCard";
 import { HabitCard } from "./HabitCard";
 
 interface HabitListGroupedProps {
@@ -17,6 +18,7 @@ interface HabitListGroupedProps {
 export function HabitListGrouped({ habits, date, categoryFilter = null }: HabitListGroupedProps) {
   const { displayDensity } = useDisplayPrefs();
   const activityOnly = displayDensity === "activity-only";
+  const gridView = displayDensity === "grid";
   const { reorderHabits } = useData();
   const { logs, setLogValue } = useLogs();
   const { sortCategories, setCategoryOrder } = useCategoryOrder();
@@ -103,6 +105,27 @@ export function HabitListGrouped({ habits, date, categoryFilter = null }: HabitL
   };
 
   if (active.length === 0) return null;
+
+  if (gridView) {
+    if (visibleGroups.length === 0) {
+      return <p className="habit-groups__empty-filter">No activities in this category.</p>;
+    }
+
+    return (
+      <div className="habit-grid">
+        {visibleGroups.map(({ category, items }) => (
+          <CategoryGridCard
+            key={category}
+            category={category}
+            habits={items}
+            date={date}
+            collapsed={collapsed[category] ?? false}
+            onToggleCollapse={() => setCollapsed((c) => ({ ...c, [category]: !c[category] }))}
+          />
+        ))}
+      </div>
+    );
+  }
 
   if (activityOnly) {
     if (visibleGroups.length === 0) {

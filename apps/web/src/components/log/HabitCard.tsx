@@ -1,18 +1,31 @@
-import { useMemo, useState, type MouseEvent, type PointerEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent, type PointerEvent } from "react";
 import { formatCompactNumber } from "@/lib/format-number";
 import { Link } from "react-router-dom";
-import { bumpNumericLogValue, goalsForHabit, hasHabitReminder, hasVisibleStreak, logValueForHabit, streak, visibleStreak } from "@mottazen/core";
+import {
+  bumpNumericLogValue,
+  goalsForHabit,
+  hasHabitReminder,
+  hasVisibleStreak,
+  isHabitDone,
+  isNumericStreakDay,
+  logValueForHabit,
+  streak,
+  visibleStreak,
+} from "@mottazen/core";
 import type { Habit } from "@mottazen/core";
 import { HabitGoalIndicators } from "@/components/goals/HabitGoalIndicators";
 import { EditHabitModal } from "@/components/habit/EditHabitModal";
+import { Modal } from "@/components/Modal";
 import { HabitReminderModal } from "@/components/habit/HabitReminderModal";
 import { HabitRowMenu } from "@/components/log/HabitRowMenu";
 import { HabitSwipeRow } from "@/components/log/HabitSwipeRow";
+import { StreakFlame } from "@/components/log/StreakFlame";
 import { NumericInput } from "@/components/NumericInput";
 import { asHapticSwitch } from "@/lib/haptic";
 import { useDisplayPrefs } from "@/hooks/useDisplayPrefs";
 import { usePressRadialMenu } from "@/hooks/usePressRadialMenu";
-import { useGoals, useLogs } from "@/hooks/useData";
+import { useToast } from "@/components/Toast";
+import { useData, useGoals, useLogs } from "@/hooks/useData";
 
 interface HabitCardProps {
   habit: Habit;
@@ -24,6 +37,8 @@ interface HabitCardProps {
 export function HabitCard({ habit, date, onSkip, onRest }: HabitCardProps) {
   const { logs, setLogValue } = useLogs();
   const { goals, goalHabits } = useGoals();
+  const { deleteHabit, restoreHabit } = useData();
+  const { showToast } = useToast();
   const { compactView, displayDensity } = useDisplayPrefs();
   const activityOnly = displayDensity === "activity-only";
   const normalLayout = displayDensity === "normal";
@@ -32,6 +47,7 @@ export function HabitCard({ habit, date, onSkip, onRest }: HabitCardProps) {
   const hasReminder = hasHabitReminder(habit);
   const [editOpen, setEditOpen] = useState(false);
   const [reminderOpen, setReminderOpen] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
 
   const row = logs.find((l) => l.habitId === habit.id && l.date === date);
   const value = logValueForHabit(logs, habit.id, date);
@@ -42,6 +58,14 @@ export function HabitCard({ habit, date, onSkip, onRest }: HabitCardProps) {
     if (isRest) setLogValue(habit.id, date, null, false);
     else setLogValue(habit.id, date, -1, true);
   };
+
+  const confirmDeleteHabit = useCallback(() => {
+    const snapshot = deleteHabit(habit.id);
+    setDeleteConfirmOpen(false);
+    if (snapshot) {
+      showToast(`Deleted “${habit.name}”`, () => restoreHabit(snapshot.habit, snapshot.logs));
+    }
+  }, [deleteHabit, habit.id, habit.name, restoreHabit, showToast]);
 
   const menuOptions = useMemo(
     () => [
@@ -58,8 +82,14 @@ export function HabitCard({ habit, date, onSkip, onRest }: HabitCardProps) {
         icon: "bell",
         onSelect: () => setReminderOpen(true),
       },
+      {
+        id: "delete",
+        label: "Delete habit",
+        icon: "trash",
+        onSelect: () => setDeleteConfirmOpen(true),
+      },
     ],
-    [habit.id, isRest],
+    [isRest],
   );
 
   const { open: menuOpen, highlightId, btnRef, bindTrigger } = usePressRadialMenu(menuOptions);
@@ -85,8 +115,31 @@ export function HabitCard({ habit, date, onSkip, onRest }: HabitCardProps) {
     [goals, goalHabits, habit.id, date],
   );
   const showGoalDots = !activityOnly && linkedGoals.length > 0;
-  const metaLine = inlineRow ? null : buildMetaLine(habit, value, isRest, streakDisplay);
+  const metaLine = inlineRow ? null : buildMetaLine(habit, value, isRest);
   const showStreakEmoji = hasVisibleStreak(streakDays);
+  const showMetaLine = !inlineRow && (showStreakEmoji || !!metaLine);
+  const todayStreakDone = isHabitDone(habit, value, isRest);
+  const [streakCelebrateTick, setStreakCelebrateTick] = useState(0);
+  const prevStreakDisplay = useRef(streakDisplay);
+  const prevTodayStreakDone = useRef(todayStreakDone);
+
+  useEffect(() => {
+    const prevCount = prevStreakDisplay.current;
+    const prevDone = prevTodayStreakDone.current;
+    let trigger = false;
+
+    if (showStreakEmoji && streakDisplay >= 2 && streakDisplay > prevCount) {
+      trigger = true;
+    } else if (showStreakEmoji && todayStreakDone && !prevDone) {
+      trigger = true;
+    }
+
+    if (trigger) setStreakCelebrateTick((t) => t + 1);
+
+    prevStreakDisplay.current = streakDisplay;
+    prevTodayStreakDone.current = todayStreakDone;
+  }, [streakDisplay, showStreakEmoji, todayStreakDone]);
+
   const maxTarget = isNumericLike ? Number(habit.max ?? 100) : null;
 
   const cardClass = [
@@ -110,7 +163,7 @@ export function HabitCard({ habit, date, onSkip, onRest }: HabitCardProps) {
           <div className="habit-card__main">
             <div
               className={`habit-card__title-block${
-                inlineRow || (!metaLine && !(showGoalDots && normalLayout))
+                inlineRow || (!showMetaLine && !(showGoalDots && normalLayout))
                   ? " habit-card__title-block--solo"
                   : ""
               }`}
@@ -136,12 +189,7 @@ export function HabitCard({ habit, date, onSkip, onRest }: HabitCardProps) {
                   </span>
                   <span className="habit-card__activity-meta">
                     {showStreakEmoji ? (
-                      <span className="habit-card__streak" aria-label={`${streakDisplay} day streak`}>
-                        <span className="habit-card__streak-days">{streakDisplay}</span>
-                        <span className="habit-card__streak-emoji" aria-hidden>
-                          🔥
-                        </span>
-                      </span>
+                      <StreakFlame days={streakDisplay} celebrateTick={streakCelebrateTick} />
                     ) : null}
                     {hasReminder ? (
                       <span className="habit-card__reminder-icon" aria-label="Reminder set" />
@@ -162,7 +210,20 @@ export function HabitCard({ habit, date, onSkip, onRest }: HabitCardProps) {
                   {showGoalDots && normalLayout ? (
                     <HabitGoalIndicators goals={linkedGoals} layout="normal" />
                   ) : null}
-                  {metaLine ? <p className="habit-card__line2">{metaLine}</p> : null}
+                  {showMetaLine ? (
+                    <p className="habit-card__line2 habit-card__line2--meta">
+                      {showStreakEmoji ? (
+                        <StreakFlame days={streakDisplay} celebrateTick={streakCelebrateTick} />
+                      ) : null}
+                      {showStreakEmoji && metaLine ? (
+                        <span className="habit-card__meta-sep" aria-hidden>
+                          {" "}
+                          ·{" "}
+                        </span>
+                      ) : null}
+                      {metaLine ? <span>{metaLine}</span> : null}
+                    </p>
+                  ) : null}
                 </>
               )}
             </div>
@@ -208,6 +269,19 @@ export function HabitCard({ habit, date, onSkip, onRest }: HabitCardProps) {
 
       <EditHabitModal habit={habit} open={editOpen} onClose={() => setEditOpen(false)} onDeleted={() => setEditOpen(false)} />
       <HabitReminderModal habit={habit} open={reminderOpen} onClose={() => setReminderOpen(false)} />
+      <Modal open={deleteConfirmOpen} onClose={() => setDeleteConfirmOpen(false)} title="Delete habit?">
+        <p className="habit-delete-confirm__text">
+          Delete <strong>{habit.name}</strong>? All log history for this habit will be removed.
+        </p>
+        <div className="form-actions">
+          <button type="button" className="btn btn--ghost" onClick={() => setDeleteConfirmOpen(false)}>
+            Cancel
+          </button>
+          <button type="button" className="btn btn--danger btn--danger-confirm" onClick={confirmDeleteHabit}>
+            Delete
+          </button>
+        </div>
+      </Modal>
     </>
   );
 }
@@ -245,6 +319,9 @@ function NumericControls({
     setLogValue(habit.id, date, (prev) => bumpNumericLogValue(prev, direction, habit));
   };
 
+  // "any" scoring → complete at any value > 0; "scale" scoring → complete at max.
+  const isComplete = !isRest && current > 0 && isNumericStreakDay(habit, current);
+
   return (
     <div
       className="habit-card__numeric"
@@ -280,7 +357,13 @@ function NumericControls({
           />
         </>
       )}
-      <StepButton glyph="+" label="Increase" disabled={isRest || current >= max} onStep={() => bump(1)} />
+      <StepButton
+        glyph="+"
+        label="Increase"
+        disabled={isRest || current >= max}
+        onStep={() => bump(1)}
+        completed={isComplete}
+      />
     </div>
   );
 }
@@ -297,34 +380,43 @@ function StepButton({
   label,
   disabled,
   onStep,
+  completed = false,
 }: {
   glyph: string;
   label: string;
   disabled: boolean;
   onStep: () => void;
+  completed?: boolean;
 }) {
+  const className = [
+    "habit-card__step",
+    disabled ? "habit-card__step--disabled" : "",
+    completed ? "habit-card__step--complete" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
   return (
-    <label className={`habit-card__step${disabled ? " habit-card__step--disabled" : ""}`}>
+    <label className={className}>
       <input
         type="checkbox"
         ref={asHapticSwitch}
         className="habit-card__step-haptic"
         disabled={disabled}
-        aria-label={label}
+        aria-label={completed ? `${label} — complete` : label}
         onChange={() => {
           if (!disabled) onStep();
         }}
       />
-      <span aria-hidden>{glyph}</span>
+      <span className="habit-card__step-glyph habit-card__step-glyph--base" aria-hidden>
+        {glyph}
+      </span>
+      <span className="habit-card__step-glyph habit-card__step-glyph--check" aria-hidden />
     </label>
   );
 }
 
-function buildMetaLine(habit: Habit, value: number | null, isRest: boolean, streakDisplay: number): string | null {
+function buildMetaLine(habit: Habit, value: number | null, isRest: boolean): string | null {
   const parts: string[] = [];
-  if (streakDisplay > 0) {
-    parts.push(`${streakDisplay} days 🔥`);
-  }
   if (isRest) {
     parts.push("Rest");
   } else if (habit.type === "onetime") {

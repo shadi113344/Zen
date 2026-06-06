@@ -27,6 +27,40 @@ export function visibleStreak(days: number): number {
   return hasVisibleStreak(days) ? days : 0;
 }
 
+/** Animated streak emoji tier (Noto codepoint + static fallback). */
+export type StreakEmojiTier = {
+  /** Inclusive minimum streak days for this tier. */
+  minDays: number;
+  /** Noto Emoji Animation codepoint (hex, no prefix). */
+  codepoint: string;
+  emoji: string;
+  label: string;
+};
+
+/** Streak emoji upgrades as the habit streak grows. Sorted by {@link minDays}. */
+export const STREAK_EMOJI_TIERS: readonly StreakEmojiTier[] = [
+  { minDays: 2, codepoint: "1f44f", emoji: "👏", label: "Clap" },
+  { minDays: 4, codepoint: "1f525", emoji: "🔥", label: "Fire" },
+  { minDays: 10, codepoint: "1f4aa", emoji: "💪", label: "Strong" },
+  { minDays: 30, codepoint: "1f3c6", emoji: "🏆", label: "Trophy" },
+] as const;
+
+/** Highest streak emoji tier for a day count, or null when streak is hidden. */
+export function streakEmojiTier(days: number): StreakEmojiTier | null {
+  if (!hasVisibleStreak(days)) return null;
+  let tier: StreakEmojiTier = STREAK_EMOJI_TIERS[0]!;
+  for (const candidate of STREAK_EMOJI_TIERS) {
+    if (days >= candidate.minDays) tier = candidate;
+    else break;
+  }
+  return tier;
+}
+
+/** Static emoji character for streak meta text; empty when streak is hidden. */
+export function streakEmojiChar(days: number): string {
+  return streakEmojiTier(days)?.emoji ?? "";
+}
+
 export function streak(habitId: string, habit: Habit, logs: DayLog[], today: string): StreakResult {
   const current = currentStreak(habit, logs, today);
   const best = longestStreak(habit, logs, today);
