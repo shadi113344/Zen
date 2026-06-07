@@ -79,6 +79,7 @@ export async function pushSnapshotToCloud(
     category_colors: snapshot.categoryColors,
     notification_prefs: serializeNotificationSettings(snapshot.notificationSettings),
     timezone: snapshot.timezone,
+    dashboard_layout: snapshot.dashboardLayout,
   });
   if (settingsSaveError) return `settings: ${settingsSaveError.message}`;
 

@@ -211,7 +211,7 @@ export function HabitCard({ habit, date, onSkip, onRest }: HabitCardProps) {
                     <HabitGoalIndicators goals={linkedGoals} layout="normal" />
                   ) : null}
                   {showMetaLine ? (
-                    <p className="habit-card__line2 habit-card__line2--meta">
+                    <div className="habit-card__line2 habit-card__line2--meta">
                       {showStreakEmoji ? (
                         <StreakFlame days={streakDisplay} celebrateTick={streakCelebrateTick} />
                       ) : null}
@@ -222,7 +222,7 @@ export function HabitCard({ habit, date, onSkip, onRest }: HabitCardProps) {
                         </span>
                       ) : null}
                       {metaLine ? <span>{metaLine}</span> : null}
-                    </p>
+                    </div>
                   ) : null}
                 </>
               )}

@@ -35,6 +35,7 @@ import {
   snapshotHasData,
 } from "@/lib/cloud-sync";
 import { clearLocalSnapshot, readLocalSnapshot, writeLocalSnapshot } from "@/lib/local-data-store";
+import { EMPTY_DASHBOARD_LAYOUT, type DashboardLayout } from "@/lib/dashboard-cards";
 import { buildSampleBundle } from "@/lib/sample-data";
 import { goalHabitToDb, goalToDb, mapGoalHabitRow, mapGoalRow } from "@/lib/goal-db";
 import { snapCategoryPastel } from "@/lib/theme-colors";
@@ -54,6 +55,7 @@ interface DataContextValue {
   goalHabits: GoalHabitLink[];
   categoryWeights: Record<string, CategoryWeights>;
   categoryColors: Record<string, string>;
+  dashboardLayout: DashboardLayout;
   notificationSettings: NotificationSettings;
   timezone: string;
   dailyNotes: Record<string, string>;
@@ -78,6 +80,7 @@ interface DataContextValue {
   setCategoryWeights: (category: string, weights: CategoryWeights) => void;
   getCategoryColor: (category: string) => string | undefined;
   setCategoryColor: (category: string, color: string) => void;
+  setDashboardLayout: (next: DashboardLayout) => void;
   saveNotificationSettings: (settings: NotificationSettings, timezone?: string) => void;
   addGoal: (goal: Goal, links: GoalHabitLink[]) => void;
   updateGoal: (goal: Goal, links: GoalHabitLink[]) => void;
@@ -129,6 +132,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [categoryColors, setCategoryColorsState] = useState<Record<string, string>>(() =>
     isDemoMode ? demoCategoryColors : {},
   );
+  const [dashboardLayout, setDashboardLayoutState] = useState<DashboardLayout>(() => ({
+    ...EMPTY_DASHBOARD_LAYOUT,
+  }));
   const [notificationSettings, setNotificationSettings] = useState<NotificationSettings>(() =>
     defaultNotificationSettings(),
   );
@@ -151,6 +157,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
   categoryWeightsRef.current = categoryWeights;
   const categoryColorsRef = useRef(categoryColors);
   categoryColorsRef.current = categoryColors;
+  const dashboardLayoutRef = useRef(dashboardLayout);
+  dashboardLayoutRef.current = dashboardLayout;
   const logsRef = useRef(logs);
   logsRef.current = logs;
   const goalsRef = useRef(goals);
@@ -167,6 +175,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     setGoalHabits(snap.goalHabits);
     setCategoryWeightsState(snap.categoryWeights);
     setCategoryColorsState(snap.categoryColors);
+    setDashboardLayoutState(snap.dashboardLayout);
     setNotificationSettings(snap.notificationSettings);
     setTimezone(snap.timezone);
     const split = splitDailyNotesBlob(snap.dailyNotes);
@@ -186,6 +195,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         timezone: tzRef.current,
         goals: goalsRef.current,
         goalHabits: goalHabitsRef.current,
+        dashboardLayout: dashboardLayoutRef.current,
       },
       userIdRef.current,
     );
@@ -218,7 +228,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
     const { data: settings, error: settingsError } = await supabase
       .from("user_settings")
-      .select("daily_notes, category_weights, category_colors, notification_prefs, timezone")
+      .select("daily_notes, category_weights, category_colors, notification_prefs, timezone, dashboard_layout")
       .eq("id", userId)
       .maybeSingle();
 
@@ -251,6 +261,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       dailyNotes: mergeDailyNotesBlob(dailyNotesRef.current, dayMoodRef.current),
       notificationSettings: settingsRef.current,
       timezone: tzRef.current,
+      dashboardLayout: dashboardLayoutRef.current,
     };
 
     if (cloudEmpty && snapshotHasData(localPayload)) {
@@ -287,6 +298,13 @@ export function DataProvider({ children }: { children: ReactNode }) {
       }
       if (settings.category_colors && typeof settings.category_colors === "object") {
         setCategoryColorsState(settings.category_colors as Record<string, string>);
+      }
+      if (settings.dashboard_layout && typeof settings.dashboard_layout === "object") {
+        const dl = settings.dashboard_layout as Partial<DashboardLayout>;
+        setDashboardLayoutState({
+          order: Array.isArray(dl.order) ? dl.order : [],
+          hidden: Array.isArray(dl.hidden) ? dl.hidden : [],
+        });
       }
       if (settings.notification_prefs) {
         setNotificationSettings(parseNotificationSettings(settings.notification_prefs));
@@ -352,6 +370,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       dailyNotes: mergeDailyNotesBlob(dailyNotesRef.current, dayMoodRef.current),
       notificationSettings: settingsRef.current,
       timezone: tzRef.current,
+      dashboardLayout: dashboardLayoutRef.current,
     };
 
     if (snapshotHasData(localPayload)) {
@@ -386,9 +405,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
         daily_notes: mergeDailyNotesBlob(dailyNotesRef.current, dayMoodRef.current),
         category_weights: categoryWeightsRef.current,
         category_colors: categoryColorsRef.current,
+        dashboard_layout: dashboardLayoutRef.current,
       })
       .then(({ error }) => logDbError("save settings", error));
-  }, [dailyNotes, dayMood, categoryWeights, categoryColors, userId]);
+  }, [dailyNotes, dayMood, categoryWeights, categoryColors, dashboardLayout, userId]);
 
   const setLogValue = (
     habitId: string,
@@ -657,6 +677,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
     });
   };
 
+  const setDashboardLayout = (next: DashboardLayout) => {
+    setDashboardLayoutState(next);
+  };
+
   const saveNotificationSettings = (settings: NotificationSettings, nextTz?: string) => {
     setNotificationSettings(settings);
     if (nextTz) setTimezone(nextTz);
@@ -771,6 +795,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
           category_colors: bundle.categoryColors,
           notification_prefs: serializeNotificationSettings(bundle.notificationSettings),
           timezone: bundle.timezone,
+          dashboard_layout: dashboardLayoutRef.current,
         });
         const importedGoals = (bundle.goals ?? []).map(normalizeGoal);
         const importedGoalIds = new Set(importedGoals.map((g) => g.id));
@@ -805,6 +830,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     setGoalHabits([]);
     setCategoryWeightsState({});
     setCategoryColorsState({});
+    setDashboardLayoutState({ ...EMPTY_DASHBOARD_LAYOUT });
     setDailyNotes({});
     setDayMoodState({});
     clearLocalSnapshot(userId);
@@ -819,6 +845,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
           daily_notes: {},
           category_weights: {},
           category_colors: {},
+          dashboard_layout: { order: [], hidden: [] },
         });
       })();
     }
@@ -832,6 +859,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       goalHabits,
       categoryWeights,
       categoryColors,
+      dashboardLayout,
       notificationSettings,
       timezone,
       dailyNotes,
@@ -852,6 +880,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       setCategoryWeights,
       getCategoryColor,
       setCategoryColor,
+      setDashboardLayout,
       saveNotificationSettings,
       addGoal,
       updateGoal,
@@ -868,6 +897,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       goalHabits,
       categoryWeights,
       categoryColors,
+      dashboardLayout,
       notificationSettings,
       timezone,
       dailyNotes,

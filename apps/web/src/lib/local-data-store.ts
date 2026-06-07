@@ -1,6 +1,7 @@
 import type { CategoryWeights, DayLog, Goal, GoalHabitLink, Habit } from "@mottazen/core";
 import type { NotificationSettings } from "@mottazen/core";
 import { defaultNotificationSettings } from "@mottazen/core";
+import { EMPTY_DASHBOARD_LAYOUT, type DashboardLayout } from "@/lib/dashboard-cards";
 import type { ExportBundle } from "@/lib/export-import";
 
 const LEGACY_STORAGE_KEY = "mottazen-data-snapshot";
@@ -19,6 +20,7 @@ export interface LocalDataSnapshot {
   timezone: string;
   goals: Goal[];
   goalHabits: GoalHabitLink[];
+  dashboardLayout: DashboardLayout;
   savedAt: string;
 }
 
@@ -36,6 +38,7 @@ function parseSnapshot(raw: string): LocalDataSnapshot | null {
       timezone: parsed.timezone ?? "UTC",
       goals: Array.isArray(parsed.goals) ? parsed.goals : [],
       goalHabits: Array.isArray(parsed.goalHabits) ? parsed.goalHabits : [],
+      dashboardLayout: parsed.dashboardLayout ?? { ...EMPTY_DASHBOARD_LAYOUT },
       savedAt: parsed.savedAt ?? "",
     };
   } catch {
@@ -82,6 +85,7 @@ export function snapshotFromBundle(bundle: ExportBundle): Omit<LocalDataSnapshot
     timezone: bundle.timezone,
     goals: bundle.goals ?? [],
     goalHabits: bundle.goalHabits ?? [],
+    dashboardLayout: { ...EMPTY_DASHBOARD_LAYOUT },
   };
 }
 

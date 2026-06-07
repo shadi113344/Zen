@@ -5,7 +5,7 @@ import { CategoriesIndexPage } from "@/routes/CategoriesIndexPage";
 import { CategoriesLayout } from "@/routes/CategoriesLayout";
 import { CategoryDetailPage } from "@/routes/CategoryDetailPage";
 import { HabitDetailPage } from "@/routes/HabitDetailPage";
-import { InsightsPage } from "@/routes/InsightsPage";
+import { DashboardPage } from "@/routes/DashboardPage";
 import { LogPage } from "@/routes/LogPage";
 import {
   NotificationsPage,
@@ -60,8 +60,9 @@ export const router = createBrowserRouter([
           { path: ":slug", element: <CategoryDetailPage /> },
         ],
       },
-      { path: "insights", element: <InsightsPage /> },
-      { path: "insights/heatmap", element: <Navigate to="/insights" replace /> },
+      { path: "dashboard", element: <DashboardPage /> },
+      { path: "insights", element: <Navigate to="/dashboard" replace /> },
+      { path: "insights/heatmap", element: <Navigate to="/dashboard" replace /> },
       { path: "goals/new", element: <GoalsPage openAdd /> },
       { path: "goals/:id", element: <GoalDetailPage /> },
       { path: "goals", element: <GoalsPage /> },
