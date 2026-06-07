@@ -18,10 +18,16 @@ export function CategoryBarChart({ dates, values, scrollable = false, onRemove }
       <div className={scrollable ? "bar-chart-scroll" : undefined}>
         <div className={chartClass} role="img" aria-label="Daily scores">
           {values.map((v, i) => {
-            const height = v === null || v < 0 ? 2 : Math.max(4, (v / max) * 100);
+            const isRest = v !== null && v < 0;
+            const height = isRest ? 10 : v === null ? 2 : Math.max(4, (v / max) * 100);
+            const barClass = isRest ? "bar-chart__bar bar-chart__bar--rest" : "bar-chart__bar";
             return (
               <div key={dates[i]} className="bar-chart__bar-wrap">
-                <div className="bar-chart__bar" style={{ height: `${height}%`, opacity: v === null ? 0.3 : 1 }} />
+                <div
+                  className={barClass}
+                  style={{ height: `${height}%`, opacity: v === null ? 0.3 : 1 }}
+                  title={isRest ? "Rest day" : undefined}
+                />
                 <span className="bar-chart__label">{formatDayLabel(dates[i]!, scrollable)}</span>
               </div>
             );

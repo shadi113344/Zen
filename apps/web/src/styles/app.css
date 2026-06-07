@@ -770,6 +770,11 @@
   min-height: 2px;
 }
 
+/* Rest day: muted marker (matches .heatmap__cell--rest) — distinct from a scored bar and a no-data stub. */
+.bar-chart__bar--rest {
+  background: color-mix(in srgb, var(--muted) 40%, var(--card-raised));
+}
+
 .bar-chart__label {
   font-size: 9px;
   color: var(--muted);
