@@ -1,7 +1,7 @@
 {
   ".claude/settings.json": {
-    "mtime": 1780831218.2933404,
-    "ast_hash": "b6558dea3a6d658d449e70fbe200c3d6",
+    "mtime": 1780833862.8056362,
+    "ast_hash": "f458af34f7641a0c16c2f68bd20b76b8",
     "semantic_hash": ""
   },
   "apps/web/package.json": {
@@ -65,9 +65,9 @@
     "semantic_hash": "f09102bbbb32fa6e76b85d8960219a3f"
   },
   "apps/web/src/app/router.tsx": {
-    "mtime": 1780745498.6373637,
-    "ast_hash": "edaa71b971869096f77a617f57205c94",
-    "semantic_hash": "edaa71b971869096f77a617f57205c94"
+    "mtime": 1780833156.351012,
+    "ast_hash": "55da3264dc546e4cad2514ee1c856b77",
+    "semantic_hash": ""
   },
   "apps/web/src/components/ActivityCalendar.tsx": {
     "mtime": 1780651416.2853398,
@@ -289,16 +289,6 @@
     "ast_hash": "148a9dc825caeab43ef51bd1b2ca7c79",
     "semantic_hash": "148a9dc825caeab43ef51bd1b2ca7c79"
   },
-  "apps/web/src/components/insights/ActivitiesInsights.tsx": {
-    "mtime": 1780702668.3852663,
-    "ast_hash": "ed433dcea74e31fd78df63ca72759c8e",
-    "semantic_hash": "ed433dcea74e31fd78df63ca72759c8e"
-  },
-  "apps/web/src/components/insights/CategoriesInsights.tsx": {
-    "mtime": 1780651416.2853398,
-    "ast_hash": "82c262ddaf8eeff5f32cfdaa9faf795a",
-    "semantic_hash": "82c262ddaf8eeff5f32cfdaa9faf795a"
-  },
   "apps/web/src/components/insights/DayScoreBars.tsx": {
     "mtime": 1780651416.2863276,
     "ast_hash": "2b0f8eb31a3df57d2404fe4c13673dfb",
@@ -440,9 +430,9 @@
     "semantic_hash": "617eaef01c5f740df741f7a8d72a25d9"
   },
   "apps/web/src/hooks/useData.tsx": {
-    "mtime": 1780703038.0471826,
-    "ast_hash": "6ab8e34e31ccda79601f262acaf80de8",
-    "semantic_hash": "6ab8e34e31ccda79601f262acaf80de8"
+    "mtime": 1780833058.3263419,
+    "ast_hash": "d41f4fb03720d9dd047ee41d97229775",
+    "semantic_hash": ""
   },
   "apps/web/src/hooks/useDisplayPrefs.tsx": {
     "mtime": 1780651416.2853398,
@@ -458,11 +448,6 @@
     "mtime": 1780695286.6106646,
     "ast_hash": "ea378f234baa219e8177d535abe80590",
     "semantic_hash": "ea378f234baa219e8177d535abe80590"
-  },
-  "apps/web/src/hooks/useInsightsCardOrder.ts": {
-    "mtime": 1780651416.25149,
-    "ast_hash": "c53ef3f9435551bb0fe6ccc18cd18d12",
-    "semantic_hash": "c53ef3f9435551bb0fe6ccc18cd18d12"
   },
   "apps/web/src/hooks/useMediaQuery.ts": {
     "mtime": 1780651416.2272065,
@@ -535,9 +520,9 @@
     "semantic_hash": "8d48e19b59392cb298280d6964a8f792"
   },
   "apps/web/src/lib/cloud-sync.ts": {
-    "mtime": 1780703035.815334,
-    "ast_hash": "a5c603c7116491f00b45e72d5ce5d232",
-    "semantic_hash": "a5c603c7116491f00b45e72d5ce5d232"
+    "mtime": 1780832920.7632701,
+    "ast_hash": "d47d98ad7f210cf6d7b95aad260af247",
+    "semantic_hash": ""
   },
   "apps/web/src/lib/coach-notify.ts": {
     "mtime": 1780651416.2853398,
@@ -600,14 +585,14 @@
     "semantic_hash": "1a9e2768f0a66a78eb44883230dfd896"
   },
   "apps/web/src/lib/local-data-store.ts": {
-    "mtime": 1780662037.0219042,
-    "ast_hash": "fba494b3e2c81493a544cc07bce9bcc0",
-    "semantic_hash": "fba494b3e2c81493a544cc07bce9bcc0"
+    "mtime": 1780832912.0820851,
+    "ast_hash": "a926d7912e7987845071a7d85bed0e25",
+    "semantic_hash": ""
   },
   "apps/web/src/lib/nav-tabs.ts": {
-    "mtime": 1780651416.2447278,
-    "ast_hash": "26d3c12f63602bb5708e0d0ff2b7eaae",
-    "semantic_hash": "26d3c12f63602bb5708e0d0ff2b7eaae"
+    "mtime": 1780833152.88648,
+    "ast_hash": "54ab045b8313ae91a6dce51205be38c5",
+    "semantic_hash": ""
   },
   "apps/web/src/lib/new-id.ts": {
     "mtime": 1780651416.2833161,
@@ -713,11 +698,6 @@
     "mtime": 1780702668.1868398,
     "ast_hash": "5ace2e627c4e485d0074e8f25465ad2b",
     "semantic_hash": "5ace2e627c4e485d0074e8f25465ad2b"
-  },
-  "apps/web/src/routes/InsightsPage.tsx": {
-    "mtime": 1780651416.3085427,
-    "ast_hash": "921ead0843761a0b70acd98ce361a261",
-    "semantic_hash": "921ead0843761a0b70acd98ce361a261"
   },
   "apps/web/src/routes/LogPage.tsx": {
     "mtime": 1780763190.576388,
@@ -1045,17 +1025,17 @@
     "semantic_hash": "c84ff122b672e01d2225a5ec7dc10702"
   },
   "apps/web/public/icon-192.png": {
-    "mtime": 1780763686.458,
+    "mtime": 1780835393.221,
     "ast_hash": "e6296d0453ff2cdb371d59255b136402",
     "semantic_hash": "e6296d0453ff2cdb371d59255b136402"
   },
   "apps/web/public/icon-512.png": {
-    "mtime": 1780763686.466,
+    "mtime": 1780835393.234,
     "ast_hash": "d76b289572978e62eec7fe1675f0fd89",
     "semantic_hash": "d76b289572978e62eec7fe1675f0fd89"
   },
   "apps/web/public/icon.png": {
-    "mtime": 1780763686.475,
+    "mtime": 1780835393.241,
     "ast_hash": "d76b289572978e62eec7fe1675f0fd89",
     "semantic_hash": "d76b289572978e62eec7fe1675f0fd89"
   },
@@ -1078,5 +1058,25 @@
     "mtime": 1780599529.4640174,
     "ast_hash": "88142555008ec4b7a3ed6864653ecf88",
     "semantic_hash": "88142555008ec4b7a3ed6864653ecf88"
+  },
+  "apps/web/src/hooks/useDashboardCardOrder.ts": {
+    "mtime": 1780833071.7496297,
+    "ast_hash": "0de8d991218af2141bb3b74216c4f315",
+    "semantic_hash": ""
+  },
+  "apps/web/src/lib/dashboard-cards.ts": {
+    "mtime": 1780832883.9215925,
+    "ast_hash": "524c963cfe51d4ba492bbc514898093a",
+    "semantic_hash": ""
+  },
+  "apps/web/src/routes/DashboardPage.tsx": {
+    "mtime": 1780833111.8992052,
+    "ast_hash": "a8b52eee82ba928e1449096082c9276c",
+    "semantic_hash": ""
+  },
+  "supabase/migrations/0008_dashboard_layout.sql": {
+    "mtime": 1780833167.8957565,
+    "ast_hash": "cd01c3ad92e5993bc7a1aaae1431642d",
+    "semantic_hash": ""
   }
 }
