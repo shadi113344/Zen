@@ -77,14 +77,39 @@ export function categoryScore(
   date: string,
   weights?: CategoryWeights,
 ): CategoryScoreResult {
+  const breakdown = categoryScoreBreakdown(category, habits, logs, date, weights);
+  if (breakdown.kind === "score") {
+    return { kind: "score", value: reconstructCategoryScore(breakdown.components) };
+  }
+  return breakdown;
+}
+
+export interface CategoryScoreComponent {
+  habitId: string;
+  weight: number;
+  score: number;
+}
+
+export type CategoryScoreBreakdown =
+  | { kind: "score"; components: CategoryScoreComponent[] }
+  | { kind: "rest" }
+  | { kind: "empty" };
+
+/** Per-activity weighted parts that compose a Life-Area score for one day. */
+export function categoryScoreBreakdown(
+  category: string,
+  habits: Habit[],
+  logs: DayLog[],
+  date: string,
+  weights?: CategoryWeights,
+): CategoryScoreBreakdown {
   const scoped = habitsInCategory(habits, category);
   if (scoped.length === 0) return { kind: "empty" };
 
   if (isAllRestDay(habits, logs, date, category)) return { kind: "rest" };
 
   const w = weights ?? equalCategoryWeights(habits, category);
-  let weightedSum = 0;
-  let weightTotal = 0;
+  const components: CategoryScoreComponent[] = [];
 
   for (const habit of scoped) {
     const value = logValueForHabit(logs, habit.id, date);
@@ -95,13 +120,32 @@ export function categoryScore(
     if (weight <= 0) continue;
 
     const score = habitScore(habit, value, row?.isRest) ?? 0;
-    weightedSum += weight * score;
-    weightTotal += weight;
+    components.push({ habitId: habit.id, weight, score });
   }
 
-  if (weightTotal === 0) return { kind: "empty" };
+  if (components.length === 0) return { kind: "empty" };
+  return { kind: "score", components };
+}
 
-  return { kind: "score", value: Math.round(weightedSum / weightTotal) };
+function reconstructCategoryScoreFromParts(weightedSum: number, weightTotal: number): number {
+  if (weightTotal === 0) return 0;
+  return Math.round(weightedSum / weightTotal);
+}
+
+/** Reconstruct a Life-Area score from weighted activity components (M6 guard). */
+export function reconstructCategoryScore(components: CategoryScoreComponent[]): number {
+  let weightedSum = 0;
+  let weightTotal = 0;
+  for (const c of components) {
+    weightedSum += c.weight * c.score;
+    weightTotal += c.weight;
+  }
+  return reconstructCategoryScoreFromParts(weightedSum, weightTotal);
+}
+
+/** Display points contributed by one weighted activity score (0–100 weight, 0–100 score). */
+export function weightedScoreContribution(weight: number, score: number): number {
+  return Math.round((weight * score) / 100);
 }
 
 export function categorySeries(

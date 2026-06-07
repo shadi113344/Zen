@@ -348,15 +348,15 @@ export function ProfileThemePage() {
 
 
 
-      <h2 className="profile-section-label">Category colors</h2>
+      <h2 className="profile-section-label">Life area colors</h2>
 
       <section className="settings-group">
 
         <p className="theme-field__hint theme-field__hint--block">
 
-          Pastels tint category chips and habit groups on Today. Defaults match Health, Mind, and
+          Pastels tint life area chips and activity groups on Today. Defaults match Health, Mind, and
 
-          Movement — pick a swatch per category below.
+          Movement — pick a swatch per life area below.
 
         </p>
 
@@ -454,7 +454,7 @@ function CategoryColorList() {
 
   if (categories.length === 0) {
 
-    return <p className="muted-text">Add habits to assign category colors.</p>;
+    return <p className="muted-text">Add activities to assign life area colors.</p>;
 
   }
 

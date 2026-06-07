@@ -91,6 +91,56 @@ export function currentStreak(habit: Habit, logs: DayLog[], today: string): numb
   return count;
 }
 
+/** Result of {@link detectComeback}: a fresh check-in restarting a broken streak. */
+export interface ComebackResult {
+  isComeback: boolean;
+  /** Consecutive missed (not-done, non-rest) days immediately before today. */
+  gapDays: number;
+  /** Length of the streak that ended right before the gap. */
+  priorBest: number;
+}
+
+/** Minimum break length (days) that turns today's check-in into a "comeback". */
+export const COMEBACK_MIN_GAP = 2;
+
+/**
+ * Detect a "welcome back": today is done, it follows a gap of missed days
+ * (≥ {@link COMEBACK_MIN_GAP}), and there was a real streak before the gap.
+ * Pure and local — shared by abstinence framing (T3) and celebration (G1).
+ */
+export function detectComeback(habit: Habit, logs: DayLog[], today: string): ComebackResult {
+  const none: ComebackResult = { isComeback: false, gapDays: 0, priorBest: 0 };
+  const isDoneOn = (date: string): boolean => {
+    const value = logValueForHabit(logs, habit.id, date);
+    const row = logs.find((l) => l.habitId === habit.id && l.date === date);
+    return isHabitDone(habit, value, row?.isRest);
+  };
+
+  if (!isDoneOn(today)) return none;
+
+  let cursor = addDays(today, -1);
+  if (isDoneOn(cursor)) return none; // streak is ongoing, not a comeback
+
+  const habitDates = logs.filter((l) => l.habitId === habit.id).map((l) => l.date);
+  if (habitDates.length === 0) return none;
+  const earliest = habitDates.reduce((a, b) => (a < b ? a : b));
+
+  let gapDays = 0;
+  while (cursor >= earliest && !isDoneOn(cursor)) {
+    gapDays++;
+    cursor = addDays(cursor, -1);
+  }
+  if (cursor < earliest) return none; // nothing before the gap → first start, not a return
+
+  let priorBest = 0;
+  while (cursor >= earliest && isDoneOn(cursor)) {
+    priorBest++;
+    cursor = addDays(cursor, -1);
+  }
+
+  return { isComeback: gapDays >= COMEBACK_MIN_GAP && priorBest >= 1, gapDays, priorBest };
+}
+
 export function longestStreak(habit: Habit, logs: DayLog[], today: string): number {
   const dates = [...new Set(logs.filter((l) => l.habitId === habit.id).map((l) => l.date))].sort();
   if (dates.length === 0) return 0;
@@ -229,4 +279,46 @@ export function insightsDayScoreTitle(period: InsightsPeriod, dayCount: number):
     case "all":
       return `Daily score · ${span} (${dayCount}d)`;
   }
+}
+
+/** Weekday index with Monday = 0 … Sunday = 6 for a date key. */
+export function mondayIndex(dateKey: string): number {
+  const [y, m, d] = dateKey.split("-").map(Number);
+  const dow = new Date(Date.UTC(y!, m! - 1, d!)).getUTCDay(); // 0=Sun … 6=Sat
+  return (dow + 6) % 7;
+}
+
+/** First day (YYYY-MM-DD) of the month `delta` months from the month containing `anchor`. */
+export function addMonths(anchor: string, delta: number): string {
+  const [y, m] = anchor.split("-").map(Number);
+  return new Date(Date.UTC(y!, m! - 1 + delta, 1)).toISOString().slice(0, 10);
+}
+
+export interface MonthGridDay {
+  date: string;
+  /** False for leading/trailing padding days from adjacent months. */
+  inMonth: boolean;
+}
+
+/**
+ * Monday-start calendar grid covering the whole month that contains `anchor`,
+ * padded with adjacent-month days so every row is a full week.
+ */
+export function monthGridDates(anchor: string): MonthGridDay[] {
+  const [y, m] = anchor.split("-").map(Number);
+  const mm = String(m).padStart(2, "0");
+  const first = `${y}-${mm}-01`;
+  const lastDayNum = new Date(Date.UTC(y!, m!, 0)).getUTCDate(); // day 0 of next month
+  const last = `${y}-${mm}-${String(lastDayNum).padStart(2, "0")}`;
+
+  const start = addDays(first, -mondayIndex(first));
+  const end = addDays(last, 6 - mondayIndex(last));
+
+  const out: MonthGridDay[] = [];
+  let cursor = start;
+  while (cursor <= end) {
+    out.push({ date: cursor, inMonth: cursor >= first && cursor <= last });
+    cursor = addDays(cursor, 1);
+  }
+  return out;
 }

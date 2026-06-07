@@ -6,6 +6,8 @@ import type {
   CategoryWeights,
   DayLog,
   Goal,
+  GoalCadence,
+  GoalCadencePeriod,
   GoalConsistencyMeta,
   GoalCumulativeMeta,
   GoalHabitLink,
@@ -16,6 +18,12 @@ import type {
   GoalProgressMeta,
   Habit,
 } from "./types";
+
+/** Effective consistency cadence; falls back to legacy `daysPerWeek` (weekly). */
+export function resolveGoalCadence(goal: Goal): GoalCadence {
+  if (goal.cadence && goal.cadence.count > 0) return goal.cadence;
+  return { count: goal.daysPerWeek ?? 5, period: "week" };
+}
 
 /** Dates included in one goal evaluation period ending on `endDate`. */
 export function goalPeriodDates(period: GoalPeriod, endDate: string): string[] {
@@ -62,6 +70,24 @@ export function weekRangeContaining(dateKey: string): { start: string; end: stri
   return { start, end };
 }
 
+/** First–last calendar day of the month containing `dateKey`. */
+export function monthRangeContaining(dateKey: string): { start: string; end: string } {
+  const [y, m] = dateKey.split("-").map(Number);
+  const mm = String(m).padStart(2, "0");
+  const start = `${y}-${mm}-01`;
+  const lastDay = new Date(Date.UTC(y!, m!, 0)).getUTCDate();
+  const end = `${y}-${mm}-${String(lastDay).padStart(2, "0")}`;
+  return { start, end };
+}
+
+/** Range (week or month) of the cadence period containing `dateKey`. */
+export function periodRangeContaining(
+  period: GoalCadencePeriod,
+  dateKey: string,
+): { start: string; end: string } {
+  return period === "month" ? monthRangeContaining(dateKey) : weekRangeContaining(dateKey);
+}
+
 export function datesFromTo(start: string, end: string): string[] {
   if (end < start) return [];
   const out: string[] = [];
@@ -81,20 +107,46 @@ export function habitCountsForGoal(habit: Habit, logs: DayLog[], date: string): 
   return Number(value) > Number(habit.min ?? 0);
 }
 
+/** Qualifying days for the cadence period (week/month) containing `periodEndDate`. */
+export function countHabitDaysInPeriod(
+  habitId: string,
+  habits: Habit[],
+  logs: DayLog[],
+  periodEndDate: string,
+  period: GoalCadencePeriod,
+): number {
+  const habit = habits.find((h) => h.id === habitId);
+  if (!habit) return 0;
+  const { start, end } = periodRangeContaining(period, periodEndDate);
+  let count = 0;
+  for (const date of datesFromTo(start, end)) {
+    if (habitCountsForGoal(habit, logs, date)) count += 1;
+  }
+  return count;
+}
+
+/** Back-compat: qualifying days in the Mon–Sun week containing `weekEndDate`. */
 export function countHabitDaysInWeek(
   habitId: string,
   habits: Habit[],
   logs: DayLog[],
   weekEndDate: string,
 ): number {
-  const habit = habits.find((h) => h.id === habitId);
-  if (!habit) return 0;
-  const { start, end } = weekRangeContaining(weekEndDate);
-  let count = 0;
-  for (const date of datesFromTo(start, end)) {
-    if (habitCountsForGoal(habit, logs, date)) count += 1;
-  }
-  return count;
+  return countHabitDaysInPeriod(habitId, habits, logs, weekEndDate, "week");
+}
+
+/** Current-period progress ({done, target}) for a habit at `asOfDate`. */
+export function habitPeriodMeta(
+  habitId: string,
+  habits: Habit[],
+  logs: DayLog[],
+  asOfDate: string,
+  count: number,
+  period: GoalCadencePeriod,
+): GoalHabitWeekMeta {
+  const { end } = periodRangeContaining(period, asOfDate);
+  const done = countHabitDaysInPeriod(habitId, habits, logs, end, period);
+  return { done, target: count };
 }
 
 export function habitWeekMeta(
@@ -104,19 +156,27 @@ export function habitWeekMeta(
   asOfDate: string,
   daysPerWeek: number,
 ): GoalHabitWeekMeta {
-  const { end } = weekRangeContaining(asOfDate);
-  const done = countHabitDaysInWeek(habitId, habits, logs, end);
-  return { done, target: daysPerWeek };
+  return habitPeriodMeta(habitId, habits, logs, asOfDate, daysPerWeek, "week");
 }
 
-export function weekEndingDatesInRange(startDate: string, endDate: string, asOfDate: string): string[] {
+/** Distinct period-ending dates (week/month) covered by [startDate, min(asOf,end)]. */
+export function periodEndingDatesInRange(
+  startDate: string,
+  endDate: string,
+  asOfDate: string,
+  period: GoalCadencePeriod,
+): string[] {
   const cap = asOfDate < endDate ? asOfDate : endDate;
   if (cap < startDate) return [];
   const seen = new Set<string>();
   for (const date of datesFromTo(startDate, cap)) {
-    seen.add(weekRangeContaining(date).end);
+    seen.add(periodRangeContaining(period, date).end);
   }
   return [...seen].sort();
+}
+
+export function weekEndingDatesInRange(startDate: string, endDate: string, asOfDate: string): string[] {
+  return periodEndingDatesInRange(startDate, endDate, asOfDate, "week");
 }
 
 export function goalIsActive(goal: Goal, date: string): boolean {
@@ -165,37 +225,34 @@ export function goalConsistencyMeta(
   logs: DayLog[],
   asOfDate: string,
 ): GoalConsistencyMeta {
-  const daysPerWeek = goal.daysPerWeek ?? 5;
-  const weekEnds = weekEndingDatesInRange(goal.startDate, goal.endDate, asOfDate);
+  const { count, period } = resolveGoalCadence(goal);
+  const periodEnds = periodEndingDatesInRange(goal.startDate, goal.endDate, asOfDate, period);
   let weeksMet = 0;
   const scoped = linksForGoal(goal.id, links);
-  for (const weekEnd of weekEnds) {
-    let weekOk = true;
+  for (const periodEnd of periodEnds) {
+    let met = scoped.length > 0;
     for (const link of scoped) {
-      const done = countHabitDaysInWeek(link.habitId, habits, logs, weekEnd);
-      if (link.required && done < daysPerWeek) {
-        weekOk = false;
-        break;
-      }
-      if (!link.required && done < daysPerWeek) {
-        weekOk = false;
+      const done = countHabitDaysInPeriod(link.habitId, habits, logs, periodEnd, period);
+      if (done < count) {
+        met = false;
+        if (link.required) break;
       }
     }
-    if (scoped.length === 0) weekOk = false;
-    if (weekOk) weeksMet += 1;
+    if (met) weeksMet += 1;
   }
-  const allWeekEnds = weekEndingDatesInRange(goal.startDate, goal.endDate, goal.endDate);
-  const weeksTotal = allWeekEnds.length;
-  const weeksRemaining = Math.max(0, weeksTotal - weekEnds.length);
+  const allEnds = periodEndingDatesInRange(goal.startDate, goal.endDate, goal.endDate, period);
+  const weeksTotal = allEnds.length;
+  const weeksRemaining = Math.max(0, weeksTotal - periodEnds.length);
   const progressPct = weeksTotal > 0 ? Math.round((weeksMet / weeksTotal) * 100) : 0;
   const primary = scoped[0];
   const week =
     primary != null
-      ? habitWeekMeta(primary.habitId, habits, logs, asOfDate, daysPerWeek)
-      : { done: 0, target: daysPerWeek };
+      ? habitPeriodMeta(primary.habitId, habits, logs, asOfDate, count, period)
+      : { done: 0, target: count };
 
   return {
     kind: "consistency",
+    period,
     week,
     weeksMet,
     weeksTotal,
@@ -246,14 +303,27 @@ export function goalHeaderMeta(
     };
   }
   const m = goalConsistencyMeta(goal, links, habits, logs, asOfDate);
+  const periodWord = m.period === "month" ? "months" : "weeks";
   return {
     goalId: goal.id,
     name: goal.name,
     kind: goal.kind,
     progressPct: m.progressPct,
     daysRemaining,
-    summary: `${m.weeksMet}/${m.weeksTotal} weeks on plan${daysRemaining > 0 ? ` · ${daysRemaining}d left` : ""}`,
+    summary: `${m.weeksMet}/${m.weeksTotal} ${periodWord} on plan${daysRemaining > 0 ? ` · ${daysRemaining}d left` : ""}`,
   };
+}
+
+/** Activity progress toward a target — use this instead of inline % math in UI (M6). */
+export function habitGoalProgressPct(
+  goal: Goal,
+  habitId: string,
+  habits: Habit[],
+  logs: DayLog[],
+  asOfDate: string,
+): number {
+  const meta = habitGoalProgressMeta(goal, habitId, habits, logs, asOfDate);
+  return meta?.progressPct ?? 0;
 }
 
 export function habitGoalProgressMeta(
@@ -273,20 +343,20 @@ export function habitGoalProgressMeta(
     return { kind: "cumulative", logged, target, unit, progressPct };
   }
   if (goal.kind === "consistency") {
-    const daysPerWeek = goal.daysPerWeek ?? 5;
-    const week = habitWeekMeta(habitId, habits, logs, asOfDate, daysPerWeek);
-    const weekEnds = weekEndingDatesInRange(goal.startDate, goal.endDate, asOfDate);
+    const { count, period } = resolveGoalCadence(goal);
+    const week = habitPeriodMeta(habitId, habits, logs, asOfDate, count, period);
+    const periodEnds = periodEndingDatesInRange(goal.startDate, goal.endDate, asOfDate, period);
     let weeksMet = 0;
-    for (const weekEnd of weekEnds) {
-      const done = countHabitDaysInWeek(habitId, habits, logs, weekEnd);
-      if (done >= daysPerWeek) weeksMet += 1;
+    for (const periodEnd of periodEnds) {
+      const done = countHabitDaysInPeriod(habitId, habits, logs, periodEnd, period);
+      if (done >= count) weeksMet += 1;
     }
-  const allWeekEnds = weekEndingDatesInRange(goal.startDate, goal.endDate, goal.endDate);
-  const weeksTotal = allWeekEnds.length;
-  const weeksRemaining = Math.max(0, weeksTotal - weekEnds.length);
-  const progressPct = weeksTotal > 0 ? Math.round((weeksMet / weeksTotal) * 100) : 0;
-  return { kind: "consistency", week, weeksMet, weeksTotal, weeksRemaining, progressPct };
-}
+    const allEnds = periodEndingDatesInRange(goal.startDate, goal.endDate, goal.endDate, period);
+    const weeksTotal = allEnds.length;
+    const weeksRemaining = Math.max(0, weeksTotal - periodEnds.length);
+    const progressPct = weeksTotal > 0 ? Math.round((weeksMet / weeksTotal) * 100) : 0;
+    return { kind: "consistency", period, week, weeksMet, weeksTotal, weeksRemaining, progressPct };
+  }
   return null;
 }
 
@@ -298,7 +368,8 @@ function formatAmount(n: number, unit: string): string {
 /** Short line for habit row under Today (e.g. "3/5 this week", "4/10 h"). */
 export function formatHabitGoalLine(meta: GoalProgressMeta): string {
   if (meta.kind === "consistency") {
-    return `${meta.week.done}/${meta.week.target} this week`;
+    const when = meta.period === "month" ? "this month" : "this week";
+    return `${meta.week.done}/${meta.week.target} ${when}`;
   }
   const unit = meta.unit ? ` ${meta.unit}` : "";
   return `${formatAmount(meta.logged, "")}/${formatAmount(meta.target, "")}${unit}`;
@@ -481,5 +552,8 @@ export function normalizeGoal(raw: Goal): Goal {
         period: raw.period ?? "weekly",
         targetPercent: raw.targetPercent ?? 80,
       };
+  if (base.kind === "consistency" && !base.cadence) {
+    return { ...base, cadence: { count: base.daysPerWeek ?? 5, period: "week" } };
+  }
   return base;
 }

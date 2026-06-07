@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type FormEvent } from "react";
-import { addDays, inferGoalCategory, linksForGoal, todayKey } from "@mottazen/core";
-import type { Goal, GoalHabitLink, GoalKind, Habit } from "@mottazen/core";
+import { addDays, inferGoalCategory, linksForGoal, resolveGoalCadence, todayKey } from "@mottazen/core";
+import type { Goal, GoalCadencePeriod, GoalHabitLink, GoalKind, Habit } from "@mottazen/core";
 import { Modal } from "@/components/Modal";
 import { GlassSelect } from "@/components/GlassSelect";
 import { FormNumericStepper } from "@/components/FormNumericStepper";
@@ -16,8 +16,13 @@ export interface GoalFormModalProps {
 }
 
 const KIND_OPTIONS: { value: GoalKind; label: string; hint: string }[] = [
-  { value: "consistency", label: "Consistency", hint: "e.g. Gym 5 days per week for 3 months" },
-  { value: "cumulative", label: "Cumulative total", hint: "e.g. 10 hours of course study by a deadline" },
+  { value: "consistency", label: "Consistency rhythm", hint: "Keep a cadence — e.g. Gym 5×/week, or run 2×/month." },
+  { value: "cumulative", label: "Outcome by a date", hint: "Reach a total before a deadline — e.g. finish a course: 40 h of study by Aug 1." },
+];
+
+const CADENCE_OPTIONS: { value: GoalCadencePeriod; label: string }[] = [
+  { value: "week", label: "Per week" },
+  { value: "month", label: "Per month" },
 ];
 
 function habitLabel(h: Habit): string {
@@ -46,7 +51,8 @@ export function GoalFormModal({ open, onClose, goalToEdit = null, defaultCategor
   const [kind, setKind] = useState<GoalKind>("consistency");
   const [startDate, setStartDate] = useState(today);
   const [endDate, setEndDate] = useState(addDays(today, 90));
-  const [daysPerWeek, setDaysPerWeek] = useState(5);
+  const [cadenceCount, setCadenceCount] = useState(5);
+  const [cadencePeriod, setCadencePeriod] = useState<GoalCadencePeriod>("week");
   const [targetTotal, setTargetTotal] = useState(10);
   const [unit, setUnit] = useState("h");
   const [color, setColor] = useState(GOAL_COLOR_PRESETS[0]!.color);
@@ -86,7 +92,9 @@ export function GoalFormModal({ open, onClose, goalToEdit = null, defaultCategor
       setKind(goalToFormKind(goalToEdit));
       setStartDate(goalToEdit.startDate);
       setEndDate(goalToEdit.endDate);
-      setDaysPerWeek(goalToEdit.daysPerWeek ?? 5);
+      const editCadence = resolveGoalCadence(goalToEdit);
+      setCadenceCount(editCadence.count);
+      setCadencePeriod(editCadence.period);
       setTargetTotal(goalToEdit.targetTotal ?? 10);
       setUnit(goalToEdit.unit ?? "h");
       setColor(goalToEdit.color ?? defaultGoalColor(goalToEdit.id));
@@ -99,7 +107,8 @@ export function GoalFormModal({ open, onClose, goalToEdit = null, defaultCategor
     setKind("consistency");
     setStartDate(today);
     setEndDate(addDays(today, 14));
-    setDaysPerWeek(5);
+    setCadenceCount(5);
+    setCadencePeriod("week");
     setTargetTotal(10);
     setUnit("h");
     setColor(GOAL_COLOR_PRESETS[0]!.color);
@@ -139,7 +148,13 @@ export function GoalFormModal({ open, onClose, goalToEdit = null, defaultCategor
     });
   };
 
+  const changeCadencePeriod = (period: GoalCadencePeriod) => {
+    setCadencePeriod(period);
+    if (period === "week") setCadenceCount((c) => Math.min(c, 7));
+  };
+
   const selectedCount = selectedIds.size;
+  const periodNoun = cadencePeriod === "month" ? "month" : "week";
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
@@ -163,7 +178,12 @@ export function GoalFormModal({ open, onClose, goalToEdit = null, defaultCategor
     const goal: Goal =
       kind === "cumulative"
         ? { ...base, kind: "cumulative", targetTotal, unit: unit.trim() || undefined }
-        : { ...base, kind: "consistency", daysPerWeek };
+        : {
+            ...base,
+            kind: "consistency",
+            cadence: { count: cadenceCount, period: cadencePeriod },
+            daysPerWeek: cadencePeriod === "week" ? cadenceCount : undefined,
+          };
 
     const links = linksForHabits(goalId, habitIds);
     if (isEdit) updateGoal(goal, links);
@@ -173,19 +193,19 @@ export function GoalFormModal({ open, onClose, goalToEdit = null, defaultCategor
 
   const activityHint =
     kind === "consistency"
-      ? `Each selected activity must reach ${daysPerWeek} day${daysPerWeek === 1 ? "" : "s"} per week (Mon–Sun). A week counts only when every linked activity hits that target.`
-      : "Logged values from every selected activity add toward the target. Numeric activities work best.";
+      ? `Each selected activity must reach ${cadenceCount} day${cadenceCount === 1 ? "" : "s"} per ${periodNoun}. A ${periodNoun} counts only when every linked activity hits that target.`
+      : "Logged values from every selected activity add toward the target by your end date. Numeric activities work best.";
 
   return (
-    <Modal open={open} onClose={onClose} title={isEdit ? "Edit goal" : "Add goal"}>
+    <Modal open={open} onClose={onClose} title={isEdit ? "Edit target" : "Add target"}>
       <form className="habit-form habit-form--modal" onSubmit={submit}>
         <div className="habit-form__scroll">
           {goalToEdit?.kind === "legacy" ? (
-            <p className="habit-form__hint">This is a legacy blended goal; saving will convert it to the type selected below.</p>
+            <p className="habit-form__hint">This is a legacy blended target; saving will convert it to the type selected below.</p>
           ) : null}
 
           <label className="habit-form__field">
-            <span className="habit-form__label">Goal name</span>
+            <span className="habit-form__label">Target name</span>
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -196,8 +216,8 @@ export function GoalFormModal({ open, onClose, goalToEdit = null, defaultCategor
           </label>
 
           <div className="habit-form__field">
-            <span className="habit-form__label">Goal color</span>
-            <div className="add-category-form__swatches" role="radiogroup" aria-label="Goal color">
+            <span className="habit-form__label">Target color</span>
+            <div className="add-category-form__swatches" role="radiogroup" aria-label="Target color">
               {GOAL_COLOR_PRESETS.map((preset) => (
                 <button
                   key={preset.id}
@@ -212,26 +232,26 @@ export function GoalFormModal({ open, onClose, goalToEdit = null, defaultCategor
                 />
               ))}
             </div>
-            <span className="habit-form__hint">Shown on Today and in goal lists.</span>
+            <span className="habit-form__hint">Shown on Today and in target lists.</span>
           </div>
 
           <div className="habit-form__field">
-            <span className="habit-form__label">Category group</span>
+            <span className="habit-form__label">Life area</span>
             <GlassSelect
               value={categoryOptions.includes(category) ? category : (categoryOptions[0] ?? category)}
               onChange={setCategory}
-              aria-label="Category group"
+              aria-label="Life area"
               options={categoryOptions.map((c) => ({ value: c, label: c }))}
             />
-            <span className="habit-form__hint">Counts toward this category&apos;s group score.</span>
+            <span className="habit-form__hint">Counts toward this life area&apos;s group score.</span>
           </div>
 
           <div className="habit-form__field">
-            <span className="habit-form__label">Goal type</span>
+            <span className="habit-form__label">Target type</span>
             <GlassSelect<GoalKind>
               value={kind}
               onChange={setKind}
-              aria-label="Goal type"
+              aria-label="Target type"
               options={KIND_OPTIONS.map((o) => ({ value: o.value, label: o.label }))}
             />
             <span className="habit-form__hint">{KIND_OPTIONS.find((o) => o.value === kind)?.hint}</span>
@@ -245,14 +265,32 @@ export function GoalFormModal({ open, onClose, goalToEdit = null, defaultCategor
           <label className="habit-form__field">
             <span className="habit-form__label">End date</span>
             <input type="date" value={endDate} min={startDate} onChange={(e) => setEndDate(e.target.value)} required />
-            <span className="habit-form__hint">Goal is inactive after this date.</span>
+            <span className="habit-form__hint">Target is inactive after this date.</span>
           </label>
 
           {kind === "consistency" ? (
-            <div className="habit-form__field">
-              <span className="habit-form__label">Days per week (each activity)</span>
-              <FormNumericStepper value={daysPerWeek} onChange={setDaysPerWeek} min={1} max={7} step={1} />
-            </div>
+            <>
+              <div className="habit-form__field">
+                <span className="habit-form__label">Cadence</span>
+                <GlassSelect<GoalCadencePeriod>
+                  value={cadencePeriod}
+                  onChange={changeCadencePeriod}
+                  aria-label="Cadence period"
+                  options={CADENCE_OPTIONS}
+                />
+                <span className="habit-form__hint">How often the target resets — calendar {periodNoun}.</span>
+              </div>
+              <div className="habit-form__field">
+                <span className="habit-form__label">Days per {periodNoun} (each activity)</span>
+                <FormNumericStepper
+                  value={cadenceCount}
+                  onChange={setCadenceCount}
+                  min={1}
+                  max={cadencePeriod === "month" ? 31 : 7}
+                  step={1}
+                />
+              </div>
+            </>
           ) : (
             <>
               <div className="habit-form__field">

@@ -1,0 +1,238 @@
+/* Shareable artefacts (G2 milestone cards, G3 recap) + recap story overlay. */
+
+.share-card {
+  width: 320px;
+  box-sizing: border-box;
+  padding: 30px 26px 18px;
+  border-radius: 26px;
+  background:
+    radial-gradient(130% 90% at 50% 0%, color-mix(in srgb, var(--share-accent, #2d8a56) 42%, #141414) 0%, #101010 72%);
+  color: #fff;
+  font-family: var(--font);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+  box-shadow: var(--shadow-elevated);
+}
+
+.share-card__brand {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+.share-card__hero {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.share-card__num {
+  font-size: 76px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: color-mix(in srgb, var(--share-accent, #3dbf72) 55%, #ffffff);
+}
+
+.share-card__unit {
+  font-size: 20px;
+  font-weight: 600;
+  opacity: 0.85;
+}
+
+.share-card__caption {
+  font-size: 16px;
+  font-weight: 600;
+  opacity: 0.95;
+}
+
+.share-card__dots {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 5px;
+  max-width: 240px;
+  margin: 12px 0 4px;
+}
+
+.share-card__dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--share-accent, #3dbf72) 70%, #ffffff);
+  opacity: 0.92;
+}
+
+.share-card__subtitle {
+  margin-top: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  opacity: 0.8;
+}
+
+.share-card__foot {
+  margin-top: 14px;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  opacity: 0.55;
+}
+
+/* ---- milestone share modal ---- */
+.share-modal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+.share-modal__stage {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.share-modal__toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  align-self: flex-start;
+}
+
+.share-modal__privacy {
+  font-size: 12px;
+  line-height: 1.4;
+  text-align: center;
+}
+
+/* ---- recap story overlay ---- */
+.recap {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: radial-gradient(120% 80% at 50% 0%, #1b1b1b 0%, #0c0c0c 75%);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  font-family: var(--font);
+  padding: max(24px, env(safe-area-inset-top, 0px)) 20px 28px;
+}
+
+.recap__close {
+  position: absolute;
+  top: max(16px, env(safe-area-inset-top, 0px));
+  right: 18px;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.recap__progress {
+  display: flex;
+  gap: 6px;
+  margin: 4px 0 0;
+}
+
+.recap__tick {
+  flex: 1;
+  height: 3px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.18);
+  transition: background var(--dur-fast) ease;
+}
+
+.recap__tick--on {
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.recap__stage {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.recap__slide {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 10px;
+  animation: recap-in var(--dur-med) ease both;
+}
+
+.recap__kicker {
+  font-size: 15px;
+  font-weight: 600;
+  opacity: 0.7;
+  letter-spacing: 0.02em;
+}
+
+.recap__big {
+  font-size: clamp(56px, 18vw, 104px);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--green-bright);
+}
+
+.recap__caption {
+  font-size: 18px;
+  font-weight: 600;
+  opacity: 0.92;
+}
+
+.recap__hint {
+  margin-top: 28px;
+  font-size: 12px;
+  opacity: 0.5;
+}
+
+.recap__share-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  max-width: 340px;
+  animation: recap-in var(--dur-med) ease both;
+}
+
+.recap__privacy {
+  text-align: center;
+  font-size: 12px;
+  opacity: 0.6;
+}
+
+@keyframes recap-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .recap__slide,
+  .recap__share-wrap {
+    animation: none;
+  }
+}

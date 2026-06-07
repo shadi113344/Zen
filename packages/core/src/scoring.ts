@@ -92,12 +92,29 @@ function scorableHabitsForDay(habits: Habit[], logs: DayLog[], date: string): Ar
   return items;
 }
 
+export interface DayScoreComponent {
+  habitId: string;
+  score: number;
+}
+
+/** Per-activity scores that compose {@link dayScore} for one day. */
+export function dayScoreBreakdown(habits: Habit[], logs: DayLog[], date: string): DayScoreComponent[] {
+  return scorableHabitsForDay(habits, logs, date).map(({ habit, score }) => ({
+    habitId: habit.id,
+    score,
+  }));
+}
+
+/** Reconstruct {@link dayScore} from its component metas (M6 guard). */
+export function reconstructDayScore(components: DayScoreComponent[]): number {
+  if (components.length === 0) return 0;
+  const sum = components.reduce((acc, c) => acc + c.score, 0);
+  return Math.round(sum / components.length);
+}
+
 /** Average habit scores for one day; 0 if no scorable habits. */
 export function dayScore(habits: Habit[], logs: DayLog[], date: string): number {
-  const items = scorableHabitsForDay(habits, logs, date);
-  if (items.length === 0) return 0;
-  const sum = items.reduce((acc, i) => acc + i.score, 0);
-  return Math.round(sum / items.length);
+  return reconstructDayScore(dayScoreBreakdown(habits, logs, date));
 }
 
 /** Whether every active habit in scope is on rest for the date. */

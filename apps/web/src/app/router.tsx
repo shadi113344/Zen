@@ -7,6 +7,7 @@ import { CategoryDetailPage } from "@/routes/CategoryDetailPage";
 import { HabitDetailPage } from "@/routes/HabitDetailPage";
 import { DashboardPage } from "@/routes/DashboardPage";
 import { LogPage } from "@/routes/LogPage";
+import { RecapPage } from "@/routes/RecapPage";
 import {
   NotificationsPage,
   ProfileDataPage,
@@ -61,6 +62,8 @@ export const router = createBrowserRouter([
         ],
       },
       { path: "dashboard", element: <DashboardPage /> },
+      { path: "recap", element: <RecapPage /> },
+      { path: "recap/:period", element: <RecapPage /> },
       { path: "insights", element: <Navigate to="/dashboard" replace /> },
       { path: "insights/heatmap", element: <Navigate to="/dashboard" replace /> },
       { path: "goals/new", element: <GoalsPage openAdd /> },

@@ -15,6 +15,8 @@ import { HeroScore } from "@/components/log/HeroScore";
 
 import { HabitListGrouped } from "@/components/log/HabitListGrouped";
 
+import { TaskLane } from "@/components/log/TaskLane";
+
 import { LogHeader } from "@/components/log/LogHeader";
 
 import { useAppDate } from "@/hooks/useAppDate";
@@ -156,7 +158,7 @@ export function LogPage() {
 
             <EmptyState
 
-              title="Add your first habit"
+              title="Add your first activity"
 
               message="Start with one small action you can log every day."
 
@@ -164,7 +166,7 @@ export function LogPage() {
 
                 <button type="button" className="btn btn--primary" onClick={() => setAddOpen(true)}>
 
-                  Add habit
+                  Add activity
 
                 </button>
 
@@ -178,7 +180,7 @@ export function LogPage() {
 
           )}
 
-
+          <TaskLane date={selectedDate} />
 
           <DayNotes date={selectedDate} />
 

@@ -12,7 +12,7 @@ export function CategoriesLayout() {
 
     <div className="categories-layout screen-page">
 
-      <ScreenPageTop title="Categories" />
+      <ScreenPageTop title="Life areas" />
 
       <ScreenPageBody>
 

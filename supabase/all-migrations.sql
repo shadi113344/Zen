@@ -1,7 +1,4 @@
-﻿-- Zen: all migrations in order. Safe to re-run.
--- Quick security fix only: supabase/migrations/0007_security_linter_fixes.sql
-
--- ========== 0001_base.sql ==========
+﻿-- ========== 0001_base.sql ==========
 -- Base schema v1
 
 create extension if not exists "pgcrypto";
@@ -256,6 +253,30 @@ begin
   end if;
 end;
 $$;
+
+
+-- ========== 0008_dashboard_layout.sql ==========
+-- Per-user Dashboard layout: draggable card order + hidden cards ({ order, hidden })
+ALTER TABLE user_settings
+  ADD COLUMN IF NOT EXISTS dashboard_layout jsonb NOT NULL DEFAULT '{}'::jsonb;
+
+
+-- ========== 0009_goal_cadence.sql ==========
+-- Goal cadence: generalize consistency from days/week to {count, period}.
+-- `days_per_week` is kept for back-compat (mirrors count when period = 'week').
+
+alter table public.goals
+  add column if not exists cadence_count int,
+  add column if not exists cadence_period text
+    check (cadence_period in ('week', 'month'));
+
+
+-- ========== 0010_tasks.sql ==========
+-- Task lane: one-off to-dos stored as a JSON blob on user_settings.
+-- Mirrors how daily_notes / dashboard_layout ride on the settings row.
+
+alter table public.user_settings
+  add column if not exists tasks jsonb not null default '[]'::jsonb;
 
 
 -- ========== 20260527000000_push_subscriptions.sql ==========

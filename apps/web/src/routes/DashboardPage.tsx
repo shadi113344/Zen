@@ -13,6 +13,7 @@ import {
   radarCategoryScores,
   radarHabitScores,
   rankHabitsByConsistency,
+  taskCountsForPeriod,
   todayKey,
   visibleStreak,
 } from "@mottazen/core";
@@ -26,13 +27,15 @@ import { RadarChart } from "@/components/insights/RadarChart";
 import { ScreenPageBody, ScreenPageTop } from "@/components/ScreenPageTop";
 import { SegmentedControl } from "@/components/SegmentedControl";
 import { useAppDate } from "@/hooks/useAppDate";
-import { useCategoryWeights, useHabits, useLogs } from "@/hooks/useData";
+import { useCategoryWeights, useHabits, useLogs, useTasks } from "@/hooks/useData";
 import { useDashboardCardOrder } from "@/hooks/useDashboardCardOrder";
+import { TaskStatsCard } from "@/components/dashboard/TaskStatsCard";
 import { DASHBOARD_CARD_LABELS, type DashboardCardId } from "@/lib/dashboard-cards";
 
 export function DashboardPage() {
   const { habits } = useHabits();
   const { logs } = useLogs();
+  const { tasks } = useTasks();
   const { allWeights } = useCategoryWeights();
   const { selectedDate } = useAppDate();
   const navigate = useNavigate();
@@ -77,11 +80,20 @@ export function DashboardPage() {
   );
   const best = useMemo(() => bestHabitByConsistency(habits, logs, rangeDates), [habits, logs, rangeDates]);
   const activeCount = habits.filter((h) => !h.paused).length;
+  const taskStats = useMemo(() => taskCountsForPeriod(tasks, rangeDates), [tasks, rangeDates]);
 
   const { order, hiddenIds, swap, hide, show } = useDashboardCardOrder();
 
   const cards = useMemo(
     () => ({
+      taskStats: (
+        <TaskStatsCard
+          periodTitle={periodTitle}
+          pending={taskStats.pending}
+          completed={taskStats.completed}
+          onRemove={() => hide("taskStats")}
+        />
+      ),
       activityRadar: (
         <section className="card page-section">
           <h3 className="page-section__title">Activity balance · {periodTitle}</h3>
@@ -168,6 +180,7 @@ export function DashboardPage() {
       periodTitle,
       rangeDates,
       streakRows,
+      taskStats,
       today,
     ],
   );

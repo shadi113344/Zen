@@ -1,6 +1,8 @@
 import { useRef, useState, type CSSProperties } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
+import { habitMilestones, todayKey } from "@mottazen/core";
 import { NotificationsPage } from "@/routes/NotificationsPage";
+import { MilestoneShareModal } from "@/components/share/MilestoneShareModal";
 import {
   SettingsActionRow,
   SettingsLinkRow,
@@ -58,6 +60,30 @@ export function ProfilePage() {
   const [devUnlocked, setDevUnlocked] = useDevUnlock();
   const [installOpen, setInstallOpen] = useState(false);
   const tapCount = useRef(0);
+  const navigate = useNavigate();
+  const [milestonePreview, setMilestonePreview] = useState<
+    { streakDays: number; caption: string; habitName?: string; accent?: string } | null
+  >(null);
+
+  const openMilestonePreview = () => {
+    const top = habitMilestones(data.habits, data.logs, todayKey())[0];
+    if (top) {
+      const habit = data.habits.find((h) => h.id === top.habitId);
+      setMilestonePreview({
+        streakDays: top.streakDays,
+        caption: top.tier.caption,
+        habitName: top.habitName,
+        accent: habit?.color,
+      });
+    } else {
+      setMilestonePreview({
+        streakDays: 100,
+        caption: "100 days of showing up",
+        habitName: "Read",
+        accent: "#22c55e",
+      });
+    }
+  };
 
   const displayName = userDisplayName(user, demoMode ? "Demo User" : "Account", profile);
   const email = user?.email ?? (demoMode ? "demo@mottazen.app" : "Stored on this device");
@@ -184,8 +210,18 @@ export function ProfilePage() {
             <SettingsValueRow label="Timezone" value={data.timezone} mono />
             <SettingsActionRow
               title="Load sample data"
-              hint="90 days across Health, Mind, Movement & Life"
+              hint="~400 days across Health, Mind, Movement & Life (perfect-streak Read)"
               onClick={loadSampleData}
+            />
+            <SettingsActionRow
+              title="Preview milestone card"
+              hint="Open the shareable card for your best streak (G2)"
+              onClick={openMilestonePreview}
+            />
+            <SettingsActionRow
+              title="Open year recap"
+              hint="Animated Wrapped-style recap from your logs (G3)"
+              onClick={() => navigate("/recap/year")}
             />
             <SettingsActionRow
               title="Reset today's sent log"
@@ -226,6 +262,17 @@ export function ProfilePage() {
           </SettingsSection>
         ) : null}
       </div>
+
+      {milestonePreview ? (
+        <MilestoneShareModal
+          open
+          onClose={() => setMilestonePreview(null)}
+          streakDays={milestonePreview.streakDays}
+          caption={milestonePreview.caption}
+          habitName={milestonePreview.habitName}
+          accent={milestonePreview.accent}
+        />
+      ) : null}
 
       {user ? (
         <div className="settings-sign-out">
@@ -268,6 +315,7 @@ export function ProfileDataPage() {
       timezone: data.timezone,
       goals: data.goals,
       goalHabits: data.goalHabits,
+      tasks: data.tasks,
     });
     downloadJson(`mottazen-export-${new Date().toISOString().slice(0, 10)}.json`, bundle);
   };

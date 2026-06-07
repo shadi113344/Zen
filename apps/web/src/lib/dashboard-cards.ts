@@ -1,4 +1,5 @@
 export type DashboardCardId =
+  | "taskStats"
   | "activityRadar"
   | "categoryRadar"
   | "metrics"
@@ -10,6 +11,7 @@ export type DashboardCardId =
 
 /** Canonical card set + default order for the Dashboard. */
 export const DASHBOARD_CARDS: readonly DashboardCardId[] = [
+  "taskStats",
   "activityRadar",
   "categoryRadar",
   "metrics",
@@ -22,14 +24,15 @@ export const DASHBOARD_CARDS: readonly DashboardCardId[] = [
 
 /** Labels for the "add chart" menu when a card is hidden. */
 export const DASHBOARD_CARD_LABELS: Record<DashboardCardId, string> = {
+  taskStats: "Tasks",
   activityRadar: "Activity balance",
-  categoryRadar: "Balance by category",
+  categoryRadar: "Balance by life area",
   metrics: "Metrics",
   heatmap: "Activity heatmap",
   dayScores: "Day scores",
-  bestHabit: "Best habit",
+  bestHabit: "Best activity",
   activityList: "All activities",
-  browse: "Browse by category",
+  browse: "Browse by life area",
 };
 
 /** Per-user dashboard layout, synced via user_settings.dashboard_layout. */
@@ -52,5 +55,7 @@ export function mergeCardOrder(
     defaults.includes(id as DashboardCardId),
   );
   const missing = defaults.filter((id) => !valid.includes(id));
-  return [...valid, ...missing];
+  const prepend = missing.filter((id) => id === "taskStats");
+  const append = missing.filter((id) => id !== "taskStats");
+  return [...prepend, ...valid, ...append];
 }

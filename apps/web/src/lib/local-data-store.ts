@@ -1,6 +1,6 @@
-import type { CategoryWeights, DayLog, Goal, GoalHabitLink, Habit } from "@mottazen/core";
+import type { CategoryWeights, DayLog, Goal, GoalHabitLink, Habit, Task } from "@mottazen/core";
 import type { NotificationSettings } from "@mottazen/core";
-import { defaultNotificationSettings } from "@mottazen/core";
+import { defaultNotificationSettings, runSchemaMigrations, type SchemaMigrations } from "@mottazen/core";
 import { EMPTY_DASHBOARD_LAYOUT, type DashboardLayout } from "@/lib/dashboard-cards";
 import type { ExportBundle } from "@/lib/export-import";
 
@@ -9,6 +9,9 @@ const LEGACY_STORAGE_KEY = "mottazen-data-snapshot";
 export function snapshotStorageKey(userId: string): string {
   return `${LEGACY_STORAGE_KEY}:${userId}`;
 }
+
+/** Bump when the on-disk snapshot shape changes; add a step to SNAPSHOT_MIGRATIONS. */
+export const CURRENT_SCHEMA_VERSION = 1;
 
 export interface LocalDataSnapshot {
   habits: Habit[];
@@ -20,17 +23,35 @@ export interface LocalDataSnapshot {
   timezone: string;
   goals: Goal[];
   goalHabits: GoalHabitLink[];
+  tasks: Task[];
   dashboardLayout: DashboardLayout;
   savedAt: string;
+  /** On-disk schema version; stamped on write, migrated forward on read. */
+  schemaVersion: number;
 }
+
+/** The logical snapshot the app builds; the store stamps version + savedAt. */
+export type SnapshotData = Omit<LocalDataSnapshot, "savedAt" | "schemaVersion">;
+
+/** Forward migrations for old local snapshots. `[n]` upgrades v(n-1) → v(n). */
+const SNAPSHOT_MIGRATIONS: SchemaMigrations<Record<string, unknown> & { schemaVersion?: number }> = {
+  // v1 is the baseline. Future reshape example:
+  // 2: (raw) => ({ ...raw, tasks: Array.isArray(raw.tasks) ? raw.tasks : [] }),
+};
 
 function parseSnapshot(raw: string): LocalDataSnapshot | null {
   try {
-    const parsed = JSON.parse(raw) as Partial<LocalDataSnapshot>;
-    if (!Array.isArray(parsed.habits) || !Array.isArray(parsed.logs)) return null;
+    const rawObj = JSON.parse(raw) as Record<string, unknown> & { schemaVersion?: number };
+    if (!Array.isArray(rawObj.habits) || !Array.isArray(rawObj.logs)) return null;
+    const parsed = runSchemaMigrations(
+      rawObj,
+      CURRENT_SCHEMA_VERSION,
+      SNAPSHOT_MIGRATIONS,
+    ) as Partial<LocalDataSnapshot>;
     return {
-      habits: parsed.habits,
-      logs: parsed.logs,
+      schemaVersion: CURRENT_SCHEMA_VERSION,
+      habits: parsed.habits ?? [],
+      logs: parsed.logs ?? [],
       categoryWeights: parsed.categoryWeights ?? {},
       categoryColors: parsed.categoryColors ?? {},
       dailyNotes: parsed.dailyNotes ?? {},
@@ -38,6 +59,7 @@ function parseSnapshot(raw: string): LocalDataSnapshot | null {
       timezone: parsed.timezone ?? "UTC",
       goals: Array.isArray(parsed.goals) ? parsed.goals : [],
       goalHabits: Array.isArray(parsed.goalHabits) ? parsed.goalHabits : [],
+      tasks: Array.isArray(parsed.tasks) ? parsed.tasks : [],
       dashboardLayout: parsed.dashboardLayout ?? { ...EMPTY_DASHBOARD_LAYOUT },
       savedAt: parsed.savedAt ?? "",
     };
@@ -60,9 +82,13 @@ export function readLocalSnapshot(userId?: string | null): LocalDataSnapshot | n
   }
 }
 
-export function writeLocalSnapshot(snapshot: Omit<LocalDataSnapshot, "savedAt">, userId?: string | null) {
+export function writeLocalSnapshot(snapshot: SnapshotData, userId?: string | null) {
   try {
-    const payload = JSON.stringify({ ...snapshot, savedAt: new Date().toISOString() } satisfies LocalDataSnapshot);
+    const payload = JSON.stringify({
+      ...snapshot,
+      schemaVersion: CURRENT_SCHEMA_VERSION,
+      savedAt: new Date().toISOString(),
+    } satisfies LocalDataSnapshot);
     if (userId) {
       localStorage.setItem(snapshotStorageKey(userId), payload);
       localStorage.removeItem(LEGACY_STORAGE_KEY);
@@ -74,7 +100,7 @@ export function writeLocalSnapshot(snapshot: Omit<LocalDataSnapshot, "savedAt">,
   }
 }
 
-export function snapshotFromBundle(bundle: ExportBundle): Omit<LocalDataSnapshot, "savedAt"> {
+export function snapshotFromBundle(bundle: ExportBundle): SnapshotData {
   return {
     habits: bundle.habits,
     logs: bundle.logs,
@@ -85,6 +111,7 @@ export function snapshotFromBundle(bundle: ExportBundle): Omit<LocalDataSnapshot
     timezone: bundle.timezone,
     goals: bundle.goals ?? [],
     goalHabits: bundle.goalHabits ?? [],
+    tasks: bundle.tasks ?? [],
     dashboardLayout: { ...EMPTY_DASHBOARD_LAYOUT },
   };
 }

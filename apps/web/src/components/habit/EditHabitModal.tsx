@@ -27,6 +27,7 @@ export function EditHabitModal({ habit, open, onClose, onDeleted }: EditHabitMod
   const [max, setMax] = useState(100);
   const [step, setStep] = useState(1);
   const [scoring, setScoring] = useState<ProgressScoring>("scale");
+  const [avoid, setAvoid] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
   const categoryOptions = useMemo(
@@ -47,6 +48,7 @@ export function EditHabitModal({ habit, open, onClose, onDeleted }: EditHabitMod
     setMax(habit.max ?? 100);
     setStep(habit.step ?? 1);
     setScoring(habit.progressScoring === "any" ? "any" : "scale");
+    setAvoid(habit.goalDirection === "avoid");
     setConfirmDelete(false);
   }, [habit, open]);
 
@@ -61,6 +63,7 @@ export function EditHabitModal({ habit, open, onClose, onDeleted }: EditHabitMod
       name: name.trim(),
       category: categoryValue.trim() || "Other",
       type,
+      goalDirection: type === "check" && avoid ? "avoid" : undefined,
       ...(type === "numeric" || type === "milestone"
         ? {
             min,
@@ -87,18 +90,18 @@ export function EditHabitModal({ habit, open, onClose, onDeleted }: EditHabitMod
   };
 
   return (
-    <Modal open={open} onClose={onClose} title="Edit habit">
+    <Modal open={open} onClose={onClose} title="Edit activity">
       <form className="add-habit-form" onSubmit={submit}>
         <label className="field">
           <span>Name</span>
           <input value={name} onChange={(e) => setName(e.target.value)} required />
         </label>
         <div className="field">
-          <span>Category</span>
+          <span>Life area</span>
           <GlassSelect
             value={categoryValue}
             onChange={setCategory}
-            aria-label="Category"
+            aria-label="Life area"
             options={categoryOptions.map((c) => ({ value: c, label: c }))}
           />
         </div>
@@ -107,7 +110,7 @@ export function EditHabitModal({ habit, open, onClose, onDeleted }: EditHabitMod
           <GlassSelect<HabitType>
             value={type}
             onChange={setType}
-            aria-label="Habit type"
+            aria-label="Activity type"
             options={[
               { value: "check", label: "Checkbox" },
               { value: "numeric", label: "Numeric" },
@@ -116,6 +119,12 @@ export function EditHabitModal({ habit, open, onClose, onDeleted }: EditHabitMod
             ]}
           />
         </div>
+        {type === "check" && (
+          <label className="habit-form__check">
+            <input type="checkbox" checked={avoid} onChange={(e) => setAvoid(e.target.checked)} />
+            <span>I&apos;m quitting or avoiding this</span>
+          </label>
+        )}
         {(type === "numeric" || type === "milestone") && (
           <>
             <div className="field-row field-row--numeric">

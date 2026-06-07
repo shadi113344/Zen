@@ -29,11 +29,11 @@ export function AddCategoryModal({ open, onClose }: AddCategoryModalProps) {
     e.preventDefault();
     const trimmed = name.trim();
     if (!trimmed) {
-      setError("Enter a category name.");
+      setError("Enter a life area name.");
       return;
     }
     if (hasCategoryName(trimmed, habits, categoryColors)) {
-      setError("That category already exists.");
+      setError("That life area already exists.");
       return;
     }
     setCategoryColor(trimmed, snapCategoryPastel(color));
@@ -41,7 +41,7 @@ export function AddCategoryModal({ open, onClose }: AddCategoryModalProps) {
   };
 
   return (
-    <Modal open={open} onClose={onClose} title="Add category">
+    <Modal open={open} onClose={onClose} title="Add life area">
       <form className="add-category-form" onSubmit={submit}>
         <label className="field">
           <span>Name</span>
@@ -59,7 +59,7 @@ export function AddCategoryModal({ open, onClose }: AddCategoryModalProps) {
 
         <div className="field">
           <span>Color</span>
-          <div className="add-category-form__swatches" role="radiogroup" aria-label="Category color">
+          <div className="add-category-form__swatches" role="radiogroup" aria-label="Life area color">
             {CATEGORY_PASTEL_PRESETS.map((preset) => (
               <button
                 key={preset.id}
@@ -90,7 +90,7 @@ export function AddCategoryModal({ open, onClose }: AddCategoryModalProps) {
             Cancel
           </button>
           <button type="submit" className="btn btn--primary">
-            Save category
+            Save life area
           </button>
         </div>
       </form>

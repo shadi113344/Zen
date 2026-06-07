@@ -33,7 +33,7 @@ export function HabitGoalIndicators({ goals, layout }: HabitGoalIndicatorsProps)
     <span
       ref={rootRef}
       className={`habit-goal-dots habit-goal-dots--${layout}`}
-      aria-label={`${goals.length} linked goal${goals.length === 1 ? "" : "s"}`}
+      aria-label={`${goals.length} linked target${goals.length === 1 ? "" : "s"}`}
     >
       {goals.map((goal) => {
         const color = resolveGoalColor(goal);

@@ -17,6 +17,8 @@ export interface Habit {
   remindAt?: string;
   why?: string;
   progressScoring?: ProgressScoring;
+  /** "avoid" = a quit/abstinence activity; a logged day means "stayed clean". Default "do". */
+  goalDirection?: "do" | "avoid";
   notify?: HabitNotifySettings;
 }
 
@@ -51,6 +53,42 @@ export interface DayLog {
   isRest?: boolean;
 }
 
+/**
+ * One-off to-do. Lives alongside the daily ledger — never inside {@link DayLog}
+ * — and is intentionally excluded from all scoring (it has no `value`/streak).
+ */
+export interface Task {
+  id: string;
+  title: string;
+  /** Optional Life Area tag (reuses existing category strings). */
+  category?: string;
+  done: boolean;
+  /** Optional deadline (YYYY-MM-DD). */
+  dueDate?: string;
+  note?: string;
+  createdAt: string;
+  /** Calendar day the task was added (YYYY-MM-DD). */
+  createdDate?: string;
+  /** Calendar day the task was marked done (YYYY-MM-DD). */
+  completedDate?: string;
+  completedAt?: string;
+  /** User sort order (lower = higher in the open list). */
+  orderIndex?: number;
+  /** Optional daily reminder time (HH:MM). */
+  remindAt?: string;
+}
+
+/**
+ * Identity-based grouping — "who you're becoming" (G5). Private, owner-only;
+ * groups Activities by an identity ("a runner", "a calm person"). Default-off mode.
+ */
+export interface Identity {
+  id: string;
+  label: string;
+  color?: string;
+  habitIds: string[];
+}
+
 export type ScoreResult = number | null;
 
 export interface StreakResult {
@@ -72,6 +110,15 @@ export type GoalPeriod = "daily" | "weekly";
 
 export type GoalKind = "consistency" | "cumulative" | "legacy";
 
+/** Consistency cadence window: a calendar week (Mon–Sun) or calendar month. */
+export type GoalCadencePeriod = "week" | "month";
+
+/** Consistency target: `count` qualifying days per `period`. */
+export interface GoalCadence {
+  count: number;
+  period: GoalCadencePeriod;
+}
+
 export interface Goal {
   id: string;
   name: string;
@@ -80,7 +127,9 @@ export interface Goal {
   category?: string;
   startDate: string;
   endDate: string;
-  /** Consistency: gym days required per calendar week (Mon–Sun). */
+  /** Consistency cadence ({@link GoalCadence}). Supersedes `daysPerWeek`. */
+  cadence?: GoalCadence;
+  /** @deprecated Consistency: days/week. Back-compat input for `cadence` ({period:"week"}). */
   daysPerWeek?: number;
   /** Cumulative: target units (e.g. 10 hours). */
   targetTotal?: number;
@@ -109,7 +158,11 @@ export interface GoalHabitWeekMeta {
 
 export interface GoalConsistencyMeta {
   kind: "consistency";
+  /** Cadence window these counts are measured over. */
+  period: GoalCadencePeriod;
+  /** Current-period progress (named `week` for back-compat; means current period). */
   week: GoalHabitWeekMeta;
+  /** Periods (weeks or months) met / total / remaining for the cadence period. */
   weeksMet: number;
   weeksTotal: number;
   weeksRemaining: number;

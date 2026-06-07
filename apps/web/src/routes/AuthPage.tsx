@@ -87,7 +87,7 @@ export function AuthPage() {
         <p className="muted-text">
           {mode === "reset"
             ? "Enter your email and we'll send you a link to reset your password."
-            : "Sign in to sync habits across devices."}
+            : "Sign in to sync activities across devices."}
         </p>
 
         <form className="auth-form" onSubmit={submit}>

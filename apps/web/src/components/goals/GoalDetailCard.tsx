@@ -4,8 +4,10 @@ import {
   goalHeaderMeta,
   habitCountsForGoal,
   habitGoalProgressMeta,
+  habitGoalProgressPct,
   linksForGoal,
   logValueForHabit,
+  resolveGoalCadence,
   todayKey,
 } from "@mottazen/core";
 import type { DayLog, Goal, GoalHabitLink, GoalKind, Habit } from "@mottazen/core";
@@ -29,16 +31,11 @@ function todayLogLabel(habit: Habit, logs: DayLog[], date: string): string {
   return `Logged today: ${value}`;
 }
 
-function activityProgressPct(goal: Goal, habitId: string, habits: Habit[], logs: DayLog[], date: string): number {
-  const meta = habitGoalProgressMeta(goal, habitId, habits, logs, date);
-  if (!meta) return 0;
-  if (meta.kind === "cumulative") return meta.progressPct;
-  if (meta.week.target <= 0) return 0;
-  return Math.min(100, Math.round((meta.week.done / meta.week.target) * 100));
-}
-
 function typeDetail(goal: Goal): string {
-  if (goal.kind === "consistency") return `${goal.daysPerWeek ?? 5} days / week per activity`;
+  if (goal.kind === "consistency") {
+    const { count, period } = resolveGoalCadence(goal);
+    return `${count} day${count === 1 ? "" : "s"} / ${period} per activity`;
+  }
   if (goal.kind === "cumulative") {
     const unit = goal.unit ? ` ${goal.unit}` : "";
     return `${goal.targetTotal ?? 0}${unit} total`;
@@ -108,7 +105,7 @@ export function GoalDetailCard({
             {linked.map((h) => {
               const meta = habitGoalProgressMeta(goal, h.id, habits, logs, date);
               const progressLine = meta ? formatHabitGoalLine(meta) : null;
-              const barPct = activityProgressPct(goal, h.id, habits, logs, date);
+              const barPct = habitGoalProgressPct(goal, h.id, habits, logs, date);
               const countsToday = habitCountsForGoal(h, logs, date);
               return (
                 <li key={h.id} className="goal-detail-card__habit-item">
@@ -120,7 +117,7 @@ export function GoalDetailCard({
                       ) : null}
                       <span className="goal-detail-card__habit-today">
                         {todayLogLabel(h, logs, date)}
-                        {countsToday ? " · counts for goal" : ""}
+                        {countsToday ? " · counts for target" : ""}
                       </span>
                     </span>
                     <span className="goal-detail-card__habit-pct">{barPct}%</span>

@@ -62,11 +62,11 @@ export function CategoryDetailPage() {
     return (
       <>
         <EmptyState
-          title={`No habits in ${categoryName} yet`}
-          message="Add a habit in this category to track progress."
+          title={`No activities in ${categoryName} yet`}
+          message="Add an activity in this life area to track progress."
           action={
             <button type="button" className="btn btn--primary" onClick={() => setAddOpen(true)}>
-              Add habit
+              Add activity
             </button>
           }
         />
@@ -83,10 +83,10 @@ export function CategoryDetailPage() {
       ? "Rest day"
       : dayResult.kind === "empty"
         ? goalsPct != null
-          ? "Goals only"
+          ? "Targets only"
           : "No logs"
         : goalsPct != null
-          ? "Habits + goals"
+          ? "Activities + targets"
           : undefined;
   const avg7 = weekAverage(categoryName, habits, logs, last7, weights);
   const delta = dayScore !== null ? dayScore - avg7 : null;
@@ -119,9 +119,9 @@ export function CategoryDetailPage() {
           delta={delta}
           stats={[
             { label: "7-day avg", value: `${avg7}%` },
-            ...(goalsPct != null ? [{ label: "Goals avg", value: `${goalsPct}%` }] : []),
+            ...(goalsPct != null ? [{ label: "Targets avg", value: `${goalsPct}%` }] : []),
             { label: "Best day", value: best ? `${best.score}%` : "—" },
-            { label: "Active habits", value: `${active} of ${total}` },
+            { label: "Active activities", value: `${active} of ${total}` },
             { label: "Total logs", value: logCount },
           ]}
         />
@@ -129,7 +129,7 @@ export function CategoryDetailPage() {
 
       <div className="category-detail__actions">
         <button type="button" className="btn btn--primary btn--sm" onClick={() => setAddOpen(true)}>
-          Add habit in {categoryName}
+          Add activity in {categoryName}
         </button>
       </div>
 

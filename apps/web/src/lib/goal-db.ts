@@ -1,5 +1,5 @@
-import { normalizeGoal } from "@mottazen/core";
-import type { Goal, GoalHabitLink, GoalKind, GoalPeriod } from "@mottazen/core";
+import { normalizeGoal, resolveGoalCadence } from "@mottazen/core";
+import type { Goal, GoalCadencePeriod, GoalHabitLink, GoalKind, GoalPeriod } from "@mottazen/core";
 
 function dateOnly(value: unknown): string {
   if (value == null) return "2020-01-01";
@@ -15,6 +15,13 @@ export function mapGoalRow(row: Record<string, unknown>): Goal {
     startDate: dateOnly(row.start_date),
     endDate: dateOnly(row.end_date ?? "2099-12-31"),
     daysPerWeek: row.days_per_week != null ? Number(row.days_per_week) : undefined,
+    cadence:
+      row.cadence_period === "week" || row.cadence_period === "month"
+        ? {
+            count: Number(row.cadence_count ?? row.days_per_week ?? 5),
+            period: row.cadence_period as GoalCadencePeriod,
+          }
+        : undefined,
     targetTotal: row.target_total != null ? Number(row.target_total) : undefined,
     unit: (row.unit as string) ?? undefined,
     planIntervalDays: row.plan_interval_days != null ? Number(row.plan_interval_days) : undefined,
@@ -28,6 +35,7 @@ export function mapGoalRow(row: Record<string, unknown>): Goal {
 
 export function goalToDb(goal: Goal, userId: string) {
   const g = normalizeGoal(goal);
+  const cadence = g.kind === "consistency" ? resolveGoalCadence(g) : null;
   return {
     id: g.id,
     user_id: userId,
@@ -36,7 +44,9 @@ export function goalToDb(goal: Goal, userId: string) {
     category: g.category ?? null,
     start_date: g.startDate,
     end_date: g.endDate,
-    days_per_week: g.daysPerWeek ?? null,
+    days_per_week: cadence ? (cadence.period === "week" ? cadence.count : null) : (g.daysPerWeek ?? null),
+    cadence_count: cadence?.count ?? null,
+    cadence_period: cadence?.period ?? null,
     target_total: g.targetTotal ?? null,
     unit: g.unit ?? null,
     plan_interval_days: g.planIntervalDays ?? null,

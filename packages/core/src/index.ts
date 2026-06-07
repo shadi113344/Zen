@@ -5,3 +5,7 @@ export * from "./streaks";
 export * from "./insights";
 export * from "./notifications";
 export * from "./goals";
+export * from "./tasks";
+export * from "./milestones";
+export * from "./recap";
+export * from "./snapshot-migrate";

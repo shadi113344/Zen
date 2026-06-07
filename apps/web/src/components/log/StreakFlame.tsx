@@ -17,10 +17,12 @@ interface StreakFlameProps {
   days: number;
   /** Incremented by the parent when the streak is earned / extended today. */
   celebrateTick: number;
+  /** "avoid" reads the streak as "days clean" (abstinence framing). */
+  goalDirection?: "do" | "avoid";
 }
 
 /** Streak count + tiered emoji; celebrates for 2s with Lottie + confetti. */
-export function StreakFlame({ days, celebrateTick }: StreakFlameProps) {
+export function StreakFlame({ days, celebrateTick, goalDirection }: StreakFlameProps) {
   const [celebrate, setCelebrate] = useState(false);
   const tier = useMemo(() => streakEmojiTier(days), [days]);
 
@@ -36,7 +38,7 @@ export function StreakFlame({ days, celebrateTick }: StreakFlameProps) {
   return (
     <span
       className={`habit-card__streak${celebrate ? " habit-card__streak--celebrate" : ""}`}
-      aria-label={`${days} day streak`}
+      aria-label={goalDirection === "avoid" ? `${days} days clean` : `${days} day streak`}
     >
       <span className="habit-card__streak-days">{days}</span>
       <span className="habit-card__streak-flame-wrap">

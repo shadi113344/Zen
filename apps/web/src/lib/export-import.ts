@@ -1,4 +1,4 @@
-import type { CategoryWeights, DayLog, Goal, GoalHabitLink, Habit, NotificationSettings } from "@mottazen/core";
+import type { CategoryWeights, DayLog, Goal, GoalHabitLink, Habit, NotificationSettings, Task } from "@mottazen/core";
 import { parseImportFile } from "@/lib/legacy-import";
 
 export interface ExportBundle {
@@ -13,6 +13,7 @@ export interface ExportBundle {
   timezone: string;
   goals?: Goal[];
   goalHabits?: GoalHabitLink[];
+  tasks?: Task[];
 }
 
 export function buildExportBundle(data: Omit<ExportBundle, "version" | "exportedAt">): ExportBundle {

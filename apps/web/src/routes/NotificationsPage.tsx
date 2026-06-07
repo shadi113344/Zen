@@ -217,10 +217,10 @@ export function NotificationsPage() {
           </FieldRow>
         </SettingsSection>
 
-        <SettingsSection title="Habit reminders">
+        <SettingsSection title="Activity reminders">
           <p className="coach-section__intro">Set a reminder time per habit. Expand a row for days, custom message, and missed alerts.</p>
           {habits.filter((h) => !h.paused).length === 0 ? (
-            <p className="coach-section__empty">Add habits on Today to configure reminders.</p>
+            <p className="coach-section__empty">Add activities on Today to configure reminders.</p>
           ) : (
             <ul className="coach-habit-list">
               {habits
@@ -297,7 +297,7 @@ export function NotificationsPage() {
 
           {draft.categoryRules.length > 0 && (
             <>
-              <h3 className="coach-section__subtitle">Category rules</h3>
+              <h3 className="coach-section__subtitle">Life area rules</h3>
               {draft.categoryRules.map((rule, index) => (
                 <div key={rule.category} className="coach-category-rule">
                   <SettingsToggleRow

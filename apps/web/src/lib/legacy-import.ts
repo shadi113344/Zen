@@ -34,6 +34,9 @@ export function legacyExportToBundle(raw: Record<string, unknown>): ExportBundle
       progressScoring:
         (h.progressScoring as Habit["progressScoring"]) ??
         ((h.meta as { progressScoring?: string })?.progressScoring === "any" ? "any" : undefined),
+      goalDirection:
+        (h.goalDirection as Habit["goalDirection"]) ??
+        ((h.meta as { goalDirection?: string })?.goalDirection === "avoid" ? "avoid" : undefined),
     };
   });
 

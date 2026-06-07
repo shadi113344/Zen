@@ -23,9 +23,9 @@ export function CategoryGoalsSection({ category }: CategoryGoalsSectionProps) {
 
   return (
     <section className="card page-section category-goals">
-      <h3 className="page-section__title">Goals in {category}</h3>
+      <h3 className="page-section__title">Targets in {category}</h3>
       <p className="category-goals__intro">
-        These goals count toward this category&apos;s group score (averaged with today&apos;s habit score).
+        These targets count toward this life area&apos;s group score (averaged with today&apos;s activity score).
       </p>
       <ul className="linked-goals">
         {items.map(({ goal, header }) => (

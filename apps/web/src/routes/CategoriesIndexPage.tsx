@@ -29,15 +29,15 @@ export function CategoriesIndexPage() {
     return (
       <>
         <EmptyState
-          title="No categories yet"
-          message="Add a category to organize activities and set its color."
+          title="No life areas yet"
+          message="Add a life area to organize activities and set its color."
           action={
             <button type="button" className="btn btn--primary" onClick={() => setAddOpen(true)}>
-              Add category
+              Add life area
             </button>
           }
         />
-        <FabButton label="Add category" onClick={() => setAddOpen(true)} />
+        <FabButton label="Add life area" onClick={() => setAddOpen(true)} />
         <AddCategoryModal open={addOpen} onClose={() => setAddOpen(false)} />
       </>
     );
@@ -68,7 +68,7 @@ export function CategoriesIndexPage() {
   return (
     <>
       <p className="categories-layout__sub">
-        {formatCategoriesSubtitle(selectedDate, isToday)} · avg {weekAvgAll}% · tap a category
+        {formatCategoriesSubtitle(selectedDate, isToday)} · avg {weekAvgAll}% · tap a life area
       </p>
       <div className="categories-grid">
         {rows.map((row) => (

@@ -16,8 +16,8 @@ export function GoalChipsRow({ date }: GoalChipsRowProps) {
 
   return (
     <div className="chips-row goals-chips-row">
-      <span className="chips-row__label">Today&apos;s goals</span>
-      <div className="chips-row__scroll" role="list" aria-label="Active goals today">
+      <span className="chips-row__label">Today&apos;s targets</span>
+      <div className="chips-row__scroll" role="list" aria-label="Active targets today">
         {active.map((goal) => {
           const header = goalHeaderMeta(goal, goalHabits, habits, logs, date);
           return (

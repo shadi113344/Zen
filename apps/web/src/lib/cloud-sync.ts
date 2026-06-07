@@ -16,6 +16,7 @@ export function habitToDb(habit: Habit) {
   const meta: Record<string, unknown> = {};
   if (habit.why) meta.why = habit.why;
   if (habit.progressScoring === "any") meta.progressScoring = "any";
+  if (habit.goalDirection === "avoid") meta.goalDirection = "avoid";
   return {
     name: habit.name,
     category: habit.category,
@@ -39,7 +40,7 @@ export async function ensureUserSettingsRow(supabase: SupabaseClient, userId: st
 export async function pushSnapshotToCloud(
   supabase: SupabaseClient,
   userId: string,
-  snapshot: Omit<LocalDataSnapshot, "savedAt">,
+  snapshot: Omit<LocalDataSnapshot, "savedAt" | "schemaVersion">,
 ): Promise<string | null> {
   const settingsError = await ensureUserSettingsRow(supabase, userId);
   if (settingsError) return `user_settings: ${settingsError}`;
@@ -56,6 +57,20 @@ export async function pushSnapshotToCloud(
       { onConflict: "id" },
     );
     if (error) return `habit ${h.name}: ${error.message}`;
+  }
+
+  const localHabitIds = new Set(snapshot.habits.map((h) => h.id));
+  const { data: remoteHabits, error: listHabitsError } = await supabase
+    .from("habits")
+    .select("id")
+    .eq("user_id", userId);
+  if (listHabitsError) return `habits list: ${listHabitsError.message}`;
+  for (const row of remoteHabits ?? []) {
+    const id = row.id as string;
+    if (!localHabitIds.has(id)) {
+      const { error } = await supabase.from("habits").delete().eq("id", id).eq("user_id", userId);
+      if (error) return `delete habit ${id}: ${error.message}`;
+    }
   }
 
   for (const l of snapshot.logs) {
@@ -80,6 +95,7 @@ export async function pushSnapshotToCloud(
     notification_prefs: serializeNotificationSettings(snapshot.notificationSettings),
     timezone: snapshot.timezone,
     dashboard_layout: snapshot.dashboardLayout,
+    tasks: snapshot.tasks,
   });
   if (settingsSaveError) return `settings: ${settingsSaveError.message}`;
 

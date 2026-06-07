@@ -3,6 +3,7 @@ import { formatCompactNumber } from "@/lib/format-number";
 import { Link } from "react-router-dom";
 import {
   bumpNumericLogValue,
+  detectComeback,
   goalsForHabit,
   hasHabitReminder,
   hasVisibleStreak,
@@ -10,6 +11,7 @@ import {
   isNumericStreakDay,
   logValueForHabit,
   streak,
+  todayKey,
   visibleStreak,
 } from "@mottazen/core";
 import type { Habit } from "@mottazen/core";
@@ -22,6 +24,7 @@ import { HabitSwipeRow } from "@/components/log/HabitSwipeRow";
 import { StreakFlame } from "@/components/log/StreakFlame";
 import { NumericInput } from "@/components/NumericInput";
 import { asHapticSwitch } from "@/lib/haptic";
+import { celebrateConfetti } from "@/lib/confetti";
 import { useDisplayPrefs } from "@/hooks/useDisplayPrefs";
 import { usePressRadialMenu } from "@/hooks/usePressRadialMenu";
 import { useToast } from "@/components/Toast";
@@ -69,7 +72,7 @@ export function HabitCard({ habit, date, onSkip, onRest }: HabitCardProps) {
 
   const menuOptions = useMemo(
     () => [
-      { id: "edit", label: "Edit habit", icon: "✎", onSelect: () => setEditOpen(true) },
+      { id: "edit", label: "Edit activity", icon: "✎", onSelect: () => setEditOpen(true) },
       {
         id: "rest",
         label: isRest ? "Clear rest day" : "Rest day",
@@ -84,7 +87,7 @@ export function HabitCard({ habit, date, onSkip, onRest }: HabitCardProps) {
       },
       {
         id: "delete",
-        label: "Delete habit",
+        label: "Delete activity",
         icon: "trash",
         onSelect: () => setDeleteConfirmOpen(true),
       },
@@ -117,13 +120,27 @@ export function HabitCard({ habit, date, onSkip, onRest }: HabitCardProps) {
   const showGoalDots = !activityOnly && linkedGoals.length > 0;
   const metaLine = inlineRow ? null : buildMetaLine(habit, value, isRest);
   const showStreakEmoji = hasVisibleStreak(streakDays);
-  const showMetaLine = !inlineRow && (showStreakEmoji || !!metaLine);
   const todayStreakDone = isHabitDone(habit, value, isRest);
+  const comeback = useMemo(() => detectComeback(habit, logs, date), [habit, logs, date]);
   const [streakCelebrateTick, setStreakCelebrateTick] = useState(0);
+  const [comebackTick, setComebackTick] = useState(0);
+  const [comebackCelebrate, setComebackCelebrate] = useState(false);
+  const articleRef = useRef<HTMLElement>(null);
+  const prevDate = useRef(date);
   const prevStreakDisplay = useRef(streakDisplay);
   const prevTodayStreakDone = useRef(todayStreakDone);
+  const isLogToday = date === todayKey();
+  const showMetaLine = !inlineRow && (showStreakEmoji || !!metaLine || comebackCelebrate);
 
   useEffect(() => {
+    // Browsing another log day is not a check-in — sync refs and skip celebrations.
+    if (prevDate.current !== date) {
+      prevDate.current = date;
+      prevStreakDisplay.current = streakDisplay;
+      prevTodayStreakDone.current = todayStreakDone;
+      return;
+    }
+
     const prevCount = prevStreakDisplay.current;
     const prevDone = prevTodayStreakDone.current;
     let trigger = false;
@@ -135,10 +152,29 @@ export function HabitCard({ habit, date, onSkip, onRest }: HabitCardProps) {
     }
 
     if (trigger) setStreakCelebrateTick((t) => t + 1);
+    // Comeback confetti only when the user logs on Today — not when viewing history.
+    if (isLogToday && todayStreakDone && !prevDone && comeback.isComeback) {
+      setComebackTick((t) => t + 1);
+    }
 
     prevStreakDisplay.current = streakDisplay;
     prevTodayStreakDone.current = todayStreakDone;
-  }, [streakDisplay, showStreakEmoji, todayStreakDone]);
+  }, [date, isLogToday, streakDisplay, showStreakEmoji, todayStreakDone, comeback.isComeback]);
+
+  useEffect(() => {
+    if (comebackTick <= 0) return;
+    setComebackCelebrate(true);
+    celebrateConfetti(articleRef.current);
+    showToast(
+      habit.goalDirection === "avoid"
+        ? "Fresh start 🌱 A slip isn't a failure — you're back."
+        : "Welcome back 🌱 You showed up again.",
+    );
+    const t = window.setTimeout(() => setComebackCelebrate(false), 4000);
+    return () => window.clearTimeout(t);
+    // Fire exactly once per comeback; showToast/celebrateConfetti are stable.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [comebackTick]);
 
   const maxTarget = isNumericLike ? Number(habit.max ?? 100) : null;
 
@@ -159,7 +195,7 @@ export function HabitCard({ habit, date, onSkip, onRest }: HabitCardProps) {
   return (
     <>
       <HabitSwipeRow onSkip={onSkip} onRest={onRest} enabled={!swipeLocked}>
-        <article className={cardClass}>
+        <article ref={articleRef} className={cardClass}>
           <div className="habit-card__main">
             <div
               className={`habit-card__title-block${
@@ -188,8 +224,13 @@ export function HabitCard({ habit, date, onSkip, onRest }: HabitCardProps) {
                     )}
                   </span>
                   <span className="habit-card__activity-meta">
+                    {comebackCelebrate ? <ComebackPill /> : null}
                     {showStreakEmoji ? (
-                      <StreakFlame days={streakDisplay} celebrateTick={streakCelebrateTick} />
+                      <StreakFlame
+                        days={streakDisplay}
+                        celebrateTick={streakCelebrateTick}
+                        goalDirection={habit.goalDirection}
+                      />
                     ) : null}
                     {hasReminder ? (
                       <span className="habit-card__reminder-icon" aria-label="Reminder set" />
@@ -212,8 +253,13 @@ export function HabitCard({ habit, date, onSkip, onRest }: HabitCardProps) {
                   ) : null}
                   {showMetaLine ? (
                     <div className="habit-card__line2 habit-card__line2--meta">
+                      {comebackCelebrate ? <ComebackPill /> : null}
                       {showStreakEmoji ? (
-                        <StreakFlame days={streakDisplay} celebrateTick={streakCelebrateTick} />
+                        <StreakFlame
+                          days={streakDisplay}
+                          celebrateTick={streakCelebrateTick}
+                          goalDirection={habit.goalDirection}
+                        />
                       ) : null}
                       {showStreakEmoji && metaLine ? (
                         <span className="habit-card__meta-sep" aria-hidden>
@@ -234,7 +280,7 @@ export function HabitCard({ habit, date, onSkip, onRest }: HabitCardProps) {
               ref={btnRef}
               type="button"
               className={`habit-card__menu-btn${menuOpen ? " habit-card__menu-btn--open" : ""}`}
-              aria-label="Habit actions"
+              aria-label="Activity actions"
               aria-haspopup="menu"
               aria-expanded={menuOpen}
               {...bindTrigger}
@@ -269,9 +315,9 @@ export function HabitCard({ habit, date, onSkip, onRest }: HabitCardProps) {
 
       <EditHabitModal habit={habit} open={editOpen} onClose={() => setEditOpen(false)} onDeleted={() => setEditOpen(false)} />
       <HabitReminderModal habit={habit} open={reminderOpen} onClose={() => setReminderOpen(false)} />
-      <Modal open={deleteConfirmOpen} onClose={() => setDeleteConfirmOpen(false)} title="Delete habit?">
+      <Modal open={deleteConfirmOpen} onClose={() => setDeleteConfirmOpen(false)} title="Delete activity?">
         <p className="habit-delete-confirm__text">
-          Delete <strong>{habit.name}</strong>? All log history for this habit will be removed.
+          Delete <strong>{habit.name}</strong>? All log history for this activity will be removed.
         </p>
         <div className="form-actions">
           <button type="button" className="btn btn--ghost" onClick={() => setDeleteConfirmOpen(false)}>
@@ -412,6 +458,18 @@ function StepButton({
       </span>
       <span className="habit-card__step-glyph habit-card__step-glyph--check" aria-hidden />
     </label>
+  );
+}
+
+/** Transient "welcome back 🌱" treatment shown when a check-in restarts a broken streak. */
+function ComebackPill() {
+  return (
+    <span className="habit-card__comeback" role="status" aria-label="Welcome back">
+      <span className="habit-card__comeback-emoji" aria-hidden>
+        🌱
+      </span>
+      <span className="habit-card__comeback-text">Back!</span>
+    </span>
   );
 }
 

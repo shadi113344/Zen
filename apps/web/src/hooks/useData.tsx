@@ -12,7 +12,7 @@ import {
   serializeNotificationSettings,
   todayKey,
 } from "@mottazen/core";
-import type { CategoryWeights, DayLog, Goal, GoalHabitLink, Habit, NotificationSettings } from "@mottazen/core";
+import type { CategoryWeights, DayLog, Goal, GoalHabitLink, Habit, NotificationSettings, Task } from "@mottazen/core";
 import { normalizeGoal } from "@mottazen/core";
 import { coachNotify, defaultTimezone } from "@/lib/coach-notify";
 import { hapticGoalComplete, hapticProgressBump } from "@/lib/haptic";
@@ -53,6 +53,7 @@ interface DataContextValue {
   logs: DayLog[];
   goals: Goal[];
   goalHabits: GoalHabitLink[];
+  tasks: Task[];
   categoryWeights: Record<string, CategoryWeights>;
   categoryColors: Record<string, string>;
   dashboardLayout: DashboardLayout;
@@ -85,6 +86,11 @@ interface DataContextValue {
   addGoal: (goal: Goal, links: GoalHabitLink[]) => void;
   updateGoal: (goal: Goal, links: GoalHabitLink[]) => void;
   deleteGoal: (goalId: string) => void;
+  addTask: (task: Task) => void;
+  updateTask: (task: Task) => void;
+  toggleTask: (taskId: string, date: string) => void;
+  deleteTask: (taskId: string) => void;
+  reorderTasks: (orderedIds: string[]) => void;
   importBundle: (bundle: ExportBundle) => void;
   loadSampleData: () => void;
   clearAllData: () => void;
@@ -96,7 +102,7 @@ const DataContext = createContext<DataContextValue | null>(null);
 function mapHabitRow(h: Record<string, unknown>): Habit {
   const remindRaw = h.remind_at as string | null | undefined;
   const notifyRaw = h.notify as Habit["notify"] | null | undefined;
-  const meta = h.meta as { why?: string; progressScoring?: string } | null | undefined;
+  const meta = h.meta as { why?: string; progressScoring?: string; goalDirection?: string } | null | undefined;
   return {
     id: h.id as string,
     name: h.name as string,
@@ -111,6 +117,7 @@ function mapHabitRow(h: Record<string, unknown>): Habit {
     remindAt: remindRaw ? String(remindRaw).slice(0, 5) : undefined,
     why: meta?.why,
     progressScoring: meta?.progressScoring === "any" ? "any" : undefined,
+    goalDirection: meta?.goalDirection === "avoid" ? "avoid" : undefined,
     notify: notifyRaw && typeof notifyRaw === "object" ? notifyRaw : undefined,
   };
 }
@@ -126,6 +133,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [logs, setLogs] = useState<DayLog[]>(() => (isDemoMode ? demoLogs : []));
   const [goals, setGoals] = useState<Goal[]>(() => (isDemoMode ? demoGoals : []).map(normalizeGoal));
   const [goalHabits, setGoalHabits] = useState<GoalHabitLink[]>(() => (isDemoMode ? demoGoalHabits : []));
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [categoryWeights, setCategoryWeightsState] = useState<Record<string, CategoryWeights>>(() =>
     isDemoMode ? demoCategoryWeights : {},
   );
@@ -165,6 +173,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
   goalsRef.current = goals;
   const goalHabitsRef = useRef(goalHabits);
   goalHabitsRef.current = goalHabits;
+  const tasksRef = useRef(tasks);
+  tasksRef.current = tasks;
   const userIdRef = useRef(userId);
   userIdRef.current = userId;
 
@@ -173,6 +183,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     setLogs(snap.logs);
     setGoals(snap.goals.map(normalizeGoal));
     setGoalHabits(snap.goalHabits);
+    setTasks(snap.tasks);
     setCategoryWeightsState(snap.categoryWeights);
     setCategoryColorsState(snap.categoryColors);
     setDashboardLayoutState(snap.dashboardLayout);
@@ -195,6 +206,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         timezone: tzRef.current,
         goals: goalsRef.current,
         goalHabits: goalHabitsRef.current,
+        tasks: tasksRef.current,
         dashboardLayout: dashboardLayoutRef.current,
       },
       userIdRef.current,
@@ -228,7 +240,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
     const { data: settings, error: settingsError } = await supabase
       .from("user_settings")
-      .select("daily_notes, category_weights, category_colors, notification_prefs, timezone, dashboard_layout")
+      .select("daily_notes, category_weights, category_colors, notification_prefs, timezone, dashboard_layout, tasks")
       .eq("id", userId)
       .maybeSingle();
 
@@ -256,6 +268,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       logs: logsRef.current,
       goals: goalsRef.current,
       goalHabits: goalHabitsRef.current,
+      tasks: tasksRef.current,
       categoryWeights: categoryWeightsRef.current,
       categoryColors: categoryColorsRef.current,
       dailyNotes: mergeDailyNotesBlob(dailyNotesRef.current, dayMoodRef.current),
@@ -310,6 +323,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
         setNotificationSettings(parseNotificationSettings(settings.notification_prefs));
       }
       if (settings.timezone) setTimezone(settings.timezone);
+      if (Array.isArray((settings as { tasks?: unknown }).tasks)) {
+        setTasks((settings as { tasks: Task[] }).tasks);
+      }
     }
 
     setGoals(goalRows?.length ? goalRows.map((row) => mapGoalRow(row as Record<string, unknown>)) : []);
@@ -340,6 +356,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       setLogs([]);
       setGoals([]);
       setGoalHabits([]);
+      setTasks([]);
       setCategoryWeightsState({});
       setCategoryColorsState({});
       setDailyNotes({});
@@ -365,6 +382,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       logs: logsRef.current,
       goals: goalsRef.current,
       goalHabits: goalHabitsRef.current,
+      tasks: tasksRef.current,
       categoryWeights: categoryWeightsRef.current,
       categoryColors: categoryColorsRef.current,
       dailyNotes: mergeDailyNotesBlob(dailyNotesRef.current, dayMoodRef.current),
@@ -394,7 +412,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   useDebouncedEffect(() => {
     persistLocal();
-  }, [habits, logs, goals, goalHabits, categoryWeights, categoryColors, dailyNotes, dayMood, notificationSettings, timezone, persistLocal]);
+  }, [habits, logs, goals, goalHabits, tasks, categoryWeights, categoryColors, dailyNotes, dayMood, notificationSettings, timezone, persistLocal]);
 
   useDebouncedEffect(() => {
     if (isDemoMode || !supabase || !userId) return;
@@ -406,9 +424,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
         category_weights: categoryWeightsRef.current,
         category_colors: categoryColorsRef.current,
         dashboard_layout: dashboardLayoutRef.current,
+        tasks: tasksRef.current,
       })
       .then(({ error }) => logDbError("save settings", error));
-  }, [dailyNotes, dayMood, categoryWeights, categoryColors, dashboardLayout, userId]);
+  }, [dailyNotes, dayMood, categoryWeights, categoryColors, dashboardLayout, tasks, userId]);
 
   const setLogValue = (
     habitId: string,
@@ -590,16 +609,33 @@ export function DataProvider({ children }: { children: ReactNode }) {
   };
 
   const deleteHabit = (habitId: string) => {
-    const habit = habits.find((h) => h.id === habitId);
+    const habit = habitsRef.current.find((h) => h.id === habitId);
     if (!habit) return null;
-    const removedLogs = logs.filter((l) => l.habitId === habitId);
+    const removedLogs = logsRef.current.filter((l) => l.habitId === habitId);
 
-    setHabits((prev) => prev.filter((h) => h.id !== habitId));
-    setLogs((prev) => prev.filter((l) => l.habitId !== habitId));
-    setGoalHabits((prev) => prev.filter((l) => l.habitId !== habitId));
+    const nextHabits = habitsRef.current.filter((h) => h.id !== habitId);
+    const nextLogs = logsRef.current.filter((l) => l.habitId !== habitId);
+    const nextGoalHabits = goalHabitsRef.current.filter((l) => l.habitId !== habitId);
+    habitsRef.current = nextHabits;
+    logsRef.current = nextLogs;
+    goalHabitsRef.current = nextGoalHabits;
+    setHabits(nextHabits);
+    setLogs(nextLogs);
+    setGoalHabits(nextGoalHabits);
+    persistLocal();
 
-    if (!isDemoMode && supabase) {
-      void supabase.from("habits").delete().eq("id", habitId);
+    if (!isDemoMode && supabase && userId) {
+      void supabase
+        .from("habits")
+        .delete()
+        .eq("id", habitId)
+        .eq("user_id", userId)
+        .then(({ error }) => {
+          if (error) {
+            logDbError("delete habit", error);
+            showToastRef.current(`Could not delete activity: ${error.message}`);
+          }
+        });
     }
 
     return { habit, logs: removedLogs };
@@ -753,11 +789,63 @@ export function DataProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // Tasks are a plain one-off to-do list: never scored, persisted via the
+  // snapshot + the user_settings.tasks blob (the debounced effects above).
+  const addTask = (task: Task) => {
+    setTasks((prev) => {
+      const minOrder = prev.reduce((m, t) => Math.min(m, t.orderIndex ?? 0), 0);
+      const orderIndex = task.orderIndex ?? minOrder - 1;
+      return [{ ...task, orderIndex }, ...prev];
+    });
+  };
+
+  const updateTask = (task: Task) => {
+    setTasks((prev) => prev.map((t) => (t.id === task.id ? task : t)));
+  };
+
+  const toggleTask = (taskId: string, date: string) => {
+    setTasks((prev) =>
+      prev.map((t) =>
+        t.id === taskId
+          ? t.done
+            ? { ...t, done: false, completedDate: undefined, completedAt: undefined }
+            : { ...t, done: true, completedDate: date, completedAt: new Date().toISOString() }
+          : t,
+      ),
+    );
+  };
+
+  const deleteTask = (taskId: string) => {
+    setTasks((prev) => prev.filter((t) => t.id !== taskId));
+  };
+
+  const reorderTasks = (orderedIds: string[]) => {
+    setTasks((prev) => {
+      const byId = new Map(prev.map((t) => [t.id, t]));
+      const next: Task[] = [];
+      orderedIds.forEach((id, index) => {
+        const t = byId.get(id);
+        if (t) {
+          next.push({ ...t, orderIndex: index });
+          byId.delete(id);
+        }
+      });
+      let index = orderedIds.length;
+      for (const t of prev) {
+        if (byId.has(t.id)) {
+          next.push({ ...t, orderIndex: index++ });
+        }
+      }
+      return next;
+    });
+  };
+
   const importBundle = (bundle: ExportBundle) => {
     setHabits(bundle.habits);
     setLogs(bundle.logs);
     setGoals((bundle.goals ?? []).map(normalizeGoal));
     setGoalHabits(bundle.goalHabits ?? []);
+    setTasks(bundle.tasks ?? []);
     setCategoryWeightsState(bundle.categoryWeights);
     setCategoryColorsState(bundle.categoryColors);
     const split = splitDailyNotesBlob(bundle.dailyNotes);
@@ -796,6 +884,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
           notification_prefs: serializeNotificationSettings(bundle.notificationSettings),
           timezone: bundle.timezone,
           dashboard_layout: dashboardLayoutRef.current,
+          tasks: bundle.tasks ?? [],
         });
         const importedGoals = (bundle.goals ?? []).map(normalizeGoal);
         const importedGoalIds = new Set(importedGoals.map((g) => g.id));
@@ -828,6 +917,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     setLogs([]);
     setGoals([]);
     setGoalHabits([]);
+    setTasks([]);
     setCategoryWeightsState({});
     setCategoryColorsState({});
     setDashboardLayoutState({ ...EMPTY_DASHBOARD_LAYOUT });
@@ -846,6 +936,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
           category_weights: {},
           category_colors: {},
           dashboard_layout: { order: [], hidden: [] },
+          tasks: [],
         });
       })();
     }
@@ -865,6 +956,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       dailyNotes,
       dayMood,
       loading,
+      tasks,
       demoMode: isDemoMode,
       setLogValue,
       addHabit,
@@ -885,6 +977,11 @@ export function DataProvider({ children }: { children: ReactNode }) {
       addGoal,
       updateGoal,
       deleteGoal,
+      addTask,
+      updateTask,
+      toggleTask,
+      deleteTask,
+      reorderTasks,
       importBundle,
       loadSampleData,
       clearAllData,
@@ -903,6 +1000,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       dailyNotes,
       dayMood,
       loading,
+      tasks,
       reloadFromCloud,
     ],
   );
@@ -934,6 +1032,11 @@ export function useGoals() {
 export function useDayNotes() {
   const { getDayNote, setDayNote } = useData();
   return { getDayNote, setDayNote };
+}
+
+export function useTasks() {
+  const { tasks, addTask, updateTask, toggleTask, deleteTask, reorderTasks } = useData();
+  return { tasks, addTask, updateTask, toggleTask, deleteTask, reorderTasks };
 }
 
 export function useDayMood() {

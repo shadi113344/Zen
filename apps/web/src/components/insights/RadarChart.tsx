@@ -10,7 +10,7 @@ interface RadarChartProps {
 
 export function RadarChart({
   points,
-  emptyMessage = "Add habits to see balance.",
+  emptyMessage = "Add activities to see balance.",
   ariaLabel = "Category balance radar",
   onRemove,
 }: RadarChartProps) {

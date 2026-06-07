@@ -745,6 +745,275 @@
   background: repeating-linear-gradient(45deg, var(--line) 0, var(--line) 2px, transparent 2px, transparent 4px);
 }
 
+/* Habit detail — interactive month calendar */
+.habit-month-cal {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.habit-month-cal__nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.habit-month-cal__nav-label {
+  font-weight: 800;
+  font-size: 14px;
+  background: none;
+  border: none;
+  color: var(--text);
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 8px;
+}
+
+.habit-month-cal__nav-label:hover {
+  background: var(--card-raised);
+}
+
+.habit-month-cal__viewport {
+  overflow: hidden;
+  touch-action: pan-y;
+}
+
+.habit-month-cal__track {
+  display: flex;
+  width: 100%;
+  will-change: transform;
+}
+
+.habit-month-cal__track--animating {
+  transition-property: transform;
+  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.habit-month-cal__panel {
+  flex: 0 0 100%;
+  min-width: 0;
+}
+
+.habit-month-cal__nav-btn {
+  background: var(--card-raised);
+  border: none;
+  color: var(--text);
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.habit-month-cal__nav-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.habit-month-cal__weekdays,
+.habit-month-cal__grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+}
+
+.habit-month-cal__weekday {
+  text-align: center;
+  font-size: 10px;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.habit-month-cal__cell {
+  position: relative;
+  aspect-ratio: 1;
+  border: none;
+  background: transparent;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  color: var(--text);
+}
+
+.habit-month-cal__cell--out {
+  visibility: hidden;
+}
+
+.habit-month-cal__cell--future {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.habit-month-cal__cell--today {
+  box-shadow: inset 0 0 0 2px var(--accent);
+}
+
+.habit-month-cal__cell--done {
+  background: var(--green);
+}
+
+.habit-month-cal__cell--rest {
+  background: repeating-linear-gradient(45deg, var(--line) 0, var(--line) 2px, transparent 2px, transparent 4px);
+}
+
+.habit-month-cal__num {
+  font-size: 12px;
+  font-weight: 700;
+  position: relative;
+  z-index: 1;
+}
+
+.habit-month-cal__num--skipped {
+  text-decoration: line-through;
+  color: var(--muted);
+}
+
+.habit-month-cal__cell--done .habit-month-cal__num {
+  color: #fff;
+}
+
+.habit-month-cal__moon {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.habit-month-cal__ring {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.habit-month-cal__ring-track {
+  stroke: var(--score-ring-track);
+}
+
+.habit-month-cal__ring-progress {
+  stroke: var(--green);
+  transition: stroke-dashoffset 0.3s ease;
+}
+
+.habit-month-cal__ring-progress--complete {
+  stroke: var(--gold);
+}
+
+.habit-month-cal__legend {
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+  flex-wrap: wrap;
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+.habit-month-cal__legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.habit-month-cal__legend-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: inline-block;
+  background: var(--card-raised);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+
+.habit-month-cal__legend-dot--done {
+  background: var(--green);
+  box-shadow: none;
+}
+
+.habit-month-cal__legend-dot--rest {
+  background: repeating-linear-gradient(45deg, var(--line) 0, var(--line) 2px, transparent 2px, transparent 4px);
+}
+
+/* Day editor sheet — check toggle + rest/clear actions */
+.habit-day-sheet__toggle {
+  width: 100%;
+  padding: 14px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: var(--card-raised);
+  color: var(--text);
+  font-weight: 800;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.habit-day-sheet__toggle--done {
+  background: var(--green);
+  color: #fff;
+  border-color: transparent;
+}
+
+.habit-day-sheet__actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.habit-day-sheet__actions .btn {
+  flex: 1;
+}
+
+.habit-day-sheet__rest--active {
+  color: var(--text);
+  border-color: var(--accent);
+}
+
+/* Month picker sheet (habit detail calendar) */
+.habit-month-picker__year-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.habit-month-picker__year {
+  font-weight: 800;
+  font-size: 16px;
+}
+
+.habit-month-picker__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.habit-month-picker__month {
+  border: 1px solid var(--line);
+  background: var(--card-raised);
+  color: var(--text);
+  border-radius: 12px;
+  padding: 12px 8px;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.habit-month-picker__month--current {
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+
+.habit-month-picker__month:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.habit-month-picker__today {
+  width: 100%;
+  margin-top: 14px;
+}
+
 .bar-chart {
   display: flex;
   align-items: flex-end;
@@ -2598,6 +2867,235 @@ body.reorder-active .habit-group:not(.habit-group--dragging) {
   .habit-card__streak-confetti-piece {
     animation: none;
     display: none;
+  }
+}
+
+.task-lane {
+  margin-top: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 0;
+  overflow: visible;
+}
+
+.task-lane__header {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 12px 14px 10px;
+}
+
+.task-lane__title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: var(--text);
+}
+
+.task-lane__count {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.task-lane__add {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+  padding: 0 14px 12px;
+}
+
+.task-lane__divider {
+  height: 1px;
+  margin: 0 14px;
+  background: color-mix(in srgb, var(--line-strong) 26%, transparent);
+}
+
+.task-lane__input {
+  flex: 1;
+  min-width: 0;
+  padding: 9px 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 14px;
+}
+
+.task-lane__input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.task-lane__add-btn {
+  flex-shrink: 0;
+  width: 38px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.task-lane__add-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.task-lane__empty {
+  margin: 0;
+  padding: 0 14px 14px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.task-lane__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.task-lane__item {
+  touch-action: pan-y;
+  transition:
+    opacity 0.2s var(--ease-out),
+    box-shadow 0.2s var(--ease-out);
+}
+
+.task-lane__item--dragging {
+  z-index: 30;
+  overflow: visible;
+  box-shadow: var(--shadow-drag);
+}
+
+body.reorder-active .task-lane__item:not(.task-lane__item--dragging) {
+  opacity: 0.85;
+}
+
+.log-page .task-lane__item {
+  overflow: visible;
+}
+
+.task-lane__item:not(:last-child) .task-row {
+  border-bottom: 1px solid color-mix(in srgb, var(--line-strong) 26%, transparent);
+}
+
+.task-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: transparent;
+}
+
+.task-row__main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.task-row__actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.task-row__title {
+  flex: 1;
+  min-width: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.task-row--done .task-row__title {
+  color: var(--muted);
+  text-decoration: line-through;
+}
+
+.task-row__due {
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.task-stats-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+
+.task-stats-card__title {
+  margin: 0;
+}
+
+.task-stats-card__link {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.task-stats-card__link:hover {
+  color: var(--text);
+}
+
+.task-stats-card__grid {
+  margin-top: 8px;
+}
+
+.habit-card__comeback {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  font-weight: 650;
+  line-height: 1;
+  color: var(--green);
+  white-space: nowrap;
+  flex-shrink: 0;
+  animation: comeback-pop 0.4s var(--ease-spring) both;
+}
+
+.habit-card__comeback-emoji {
+  font-size: 12px;
+  line-height: 1;
+}
+
+@keyframes comeback-pop {
+  0% {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.08);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .habit-card__comeback {
+    animation: none;
   }
 }
 

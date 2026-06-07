@@ -46,9 +46,9 @@ export function GoalsPage({ openAdd = false }: { openAdd?: boolean }) {
   };
 
   const confirmDelete = (goal: Goal) => {
-    if (!window.confirm(`Remove goal “${goal.name}”? Activities stay; only the goal is removed.`)) return;
+    if (!window.confirm(`Remove target “${goal.name}”? Activities stay; only the target is removed.`)) return;
     deleteGoal(goal.id);
-    showToast("Goal removed");
+    showToast("Target removed");
   };
 
   const formOpen = addOpen || editGoal != null;
@@ -57,7 +57,7 @@ export function GoalsPage({ openAdd = false }: { openAdd?: boolean }) {
     <div className="goals-screen">
       <header className="log-header tab-screen-header goals-screen__header">
         <div className="log-header__title-row">
-          <h1 className="log-header__title">Goals</h1>
+          <h1 className="log-header__title">Targets</h1>
           <button
             type="button"
             className="btn btn--primary btn--sm goals-screen__add"
@@ -66,7 +66,7 @@ export function GoalsPage({ openAdd = false }: { openAdd?: boolean }) {
               setAddOpen(true);
             }}
           >
-            Add goal
+            Add target
           </button>
         </div>
       </header>
@@ -74,8 +74,8 @@ export function GoalsPage({ openAdd = false }: { openAdd?: boolean }) {
       <div className="goals-screen__body">
         {sorted.length === 0 ? (
           <EmptyState
-            title="No goals yet"
-            message="Create a goal to track activities over time and include them in a category group score."
+            title="No targets yet"
+            message="Create a target to track activities over time and include them in a life area group score."
             action={
               <button
                 type="button"
@@ -85,7 +85,7 @@ export function GoalsPage({ openAdd = false }: { openAdd?: boolean }) {
                   setAddOpen(true);
                 }}
               >
-                Add your first goal
+                Add your first target
               </button>
             }
           />
@@ -95,7 +95,7 @@ export function GoalsPage({ openAdd = false }: { openAdd?: boolean }) {
               <div className="goals-screen__group-head">
                 <h2 className="goals-screen__group-title">{category}</h2>
                 <Link to={`/categories/${categoryToSlug(category)}`} className="goals-screen__group-link">
-                  Category →
+                  Life area →
                 </Link>
               </div>
               <ul className="goals-screen__list">
@@ -124,7 +124,7 @@ export function GoalsPage({ openAdd = false }: { openAdd?: boolean }) {
       </div>
 
       <FabButton
-        label="Add goal"
+        label="Add target"
         onClick={() => {
           setEditGoal(null);
           setAddOpen(true);

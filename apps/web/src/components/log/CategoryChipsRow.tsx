@@ -25,7 +25,7 @@ export function CategoryChipsRow({
 
   return (
     <div className="chips-row">
-      <div className="chips-row__scroll" role="tablist" aria-label="Filter by category">
+      <div className="chips-row__scroll" role="tablist" aria-label="Filter by life area">
         <button
           type="button"
           role="tab"

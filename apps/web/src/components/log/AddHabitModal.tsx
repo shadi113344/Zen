@@ -58,6 +58,8 @@ export function AddHabitModal({ open, onClose, defaultCategory = "Health" }: Add
 
   const [scoring, setScoring] = useState<"scale" | "any">("scale");
 
+  const [avoid, setAvoid] = useState(false);
+
   const [why, setWhy] = useState("");
 
   const [reminderOn, setReminderOn] = useState(false);
@@ -93,6 +95,8 @@ export function AddHabitModal({ open, onClose, defaultCategory = "Health" }: Add
     setStep(1);
 
     setScoring("scale");
+
+    setAvoid(false);
 
     setWhy("");
 
@@ -138,6 +142,8 @@ export function AddHabitModal({ open, onClose, defaultCategory = "Health" }: Add
 
       notify: time ? { enabled: true, remindAt: time } : undefined,
 
+      goalDirection: type === "check" && avoid ? "avoid" : undefined,
+
       ...(type === "numeric" || type === "milestone"
         ? { min, max, step, progressScoring: scoring === "any" ? "any" : undefined }
         : {}),
@@ -176,12 +182,12 @@ export function AddHabitModal({ open, onClose, defaultCategory = "Health" }: Add
 
           <div className="habit-form__field">
 
-            <span className="habit-form__label">Category</span>
+            <span className="habit-form__label">Life area</span>
 
             <GlassSelect
               value={categoryOptions.includes(category) ? category : (categoryOptions[0] ?? "Health")}
               onChange={setCategory}
-              aria-label="Category"
+              aria-label="Life area"
               options={categoryOptions.map((c) => ({ value: c, label: c }))}
             />
 
@@ -209,6 +215,20 @@ export function AddHabitModal({ open, onClose, defaultCategory = "Health" }: Add
             />
 
           </div>
+
+          {type === "check" && (
+            <div className="habit-form__field">
+              <label className="habit-form__check">
+                <input type="checkbox" checked={avoid} onChange={(e) => setAvoid(e.target.checked)} />
+                <span>I&apos;m quitting or avoiding this</span>
+              </label>
+              {avoid ? (
+                <p className="habit-form__hint">
+                  Check it off each day you stay clean. A slip just starts a fresh streak — never a failure.
+                </p>
+              ) : null}
+            </div>
+          )}
 
           {(type === "numeric" || type === "milestone") && (
 

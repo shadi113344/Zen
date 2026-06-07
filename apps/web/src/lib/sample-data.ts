@@ -1,5 +1,5 @@
 import { addDays, defaultNotificationSettings, todayKey } from "@mottazen/core";
-import type { CategoryWeights, DayLog, Goal, GoalHabitLink, Habit } from "@mottazen/core";
+import type { CategoryWeights, DayLog, Goal, GoalHabitLink, Habit, Task } from "@mottazen/core";
 import { buildExportBundle, type ExportBundle } from "@/lib/export-import";
 import { defaultTimezone } from "@/lib/coach-notify";
 import { newId } from "@/lib/new-id";
@@ -11,13 +11,28 @@ const SAMPLE_COLORS = {
   life: "#f59e0b",
 };
 
-/** Four categories, varied habit types, ~90 days of logs, plus consistency + cumulative goals. */
+/** Days of history — long enough to exercise milestone tiers (100/365) + a year recap. */
+const HISTORY_DAYS = 400;
+
+/**
+ * Four life areas, varied activity types, ~400 days of logs (a perfect-streak
+ * "Read" to demo milestone cards + Wrapped recap), consistency + cumulative
+ * targets, and a few tasks.
+ */
 export function buildSampleBundle(): ExportBundle {
   const today = todayKey();
   const goalFitId = newId();
   const goalCourseId = newId();
 
   const habits: Habit[] = [
+    {
+      id: newId(),
+      name: "Read",
+      category: "Mind",
+      type: "check",
+      color: SAMPLE_COLORS.mind,
+      why: "Become someone who learns every day",
+    },
     {
       id: newId(),
       name: "Creatine",
@@ -98,7 +113,7 @@ export function buildSampleBundle(): ExportBundle {
     },
   ];
 
-  const [creatine, sleep, focus, meditate, course, steps, gym, passport, books] = habits;
+  const [read, creatine, sleep, focus, meditate, course, steps, gym, passport, books] = habits;
   const logs: DayLog[] = [];
   const onetimeDoneDate = addDays(today, -42);
   const courseStart = addDays(today, -14);
@@ -132,9 +147,12 @@ export function buildSampleBundle(): ExportBundle {
     { goalId: goalCourseId, habitId: course!.id, weight: 100, required: true },
   ];
 
-  for (let offset = -89; offset <= 0; offset++) {
+  for (let offset = -(HISTORY_DAYS - 1); offset <= 0; offset++) {
     const date = addDays(today, offset);
-    const dayIndex = offset + 89;
+    const dayIndex = offset + (HISTORY_DAYS - 1);
+
+    // Read: a perfect, unbroken streak — powers the 100/365-day milestone card + recap.
+    if (read) logs.push({ habitId: read.id, date, value: 1 });
 
     if (creatine) {
       if (dayIndex % 11 !== 5) logs.push({ habitId: creatine.id, date, value: dayIndex % 7 === 3 ? 0 : 1 });
@@ -179,14 +197,55 @@ export function buildSampleBundle(): ExportBundle {
     }
 
     if (books) {
-      const progress = Math.min(12, Math.floor(dayIndex / 8) + (dayIndex % 5 === 0 ? 1 : 0));
+      const progress = Math.min(12, Math.floor(dayIndex / 30));
       if (progress > 0) logs.push({ habitId: books.id, date, value: progress });
     }
   }
 
+  const nowIso = new Date().toISOString();
+  const tasks: Task[] = [
+    {
+      id: newId(),
+      title: "Book dentist appointment",
+      category: "Health",
+      done: true,
+      createdAt: nowIso,
+      createdDate: addDays(today, -12),
+      completedDate: addDays(today, -10),
+      completedAt: nowIso,
+    },
+    {
+      id: newId(),
+      title: "Renew gym membership",
+      category: "Movement",
+      done: true,
+      createdAt: nowIso,
+      createdDate: addDays(today, -40),
+      completedDate: addDays(today, -38),
+      completedAt: nowIso,
+    },
+    {
+      id: newId(),
+      title: "Reply to landlord",
+      category: "Life",
+      done: false,
+      createdAt: nowIso,
+      createdDate: addDays(today, -2),
+      orderIndex: 0,
+    },
+    {
+      id: newId(),
+      title: "Plan weekend trip",
+      done: false,
+      createdAt: nowIso,
+      createdDate: today,
+      orderIndex: 1,
+    },
+  ];
+
   const categoryWeights: Record<string, CategoryWeights> = {
     Health: { [creatine!.id]: 50, [sleep!.id]: 50 },
-    Mind: { [focus!.id]: 40, [meditate!.id]: 30, [course!.id]: 30 },
+    Mind: { [read!.id]: 25, [focus!.id]: 30, [meditate!.id]: 20, [course!.id]: 25 },
     Movement: { [steps!.id]: 60, [gym!.id]: 40 },
     Life: { [passport!.id]: 30, [books!.id]: 70 },
   };
@@ -203,6 +262,7 @@ export function buildSampleBundle(): ExportBundle {
     logs,
     goals,
     goalHabits,
+    tasks,
     categoryWeights,
     categoryColors,
     dailyNotes: {},

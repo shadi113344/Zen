@@ -12,6 +12,8 @@ import {
 
   resolveCategoryWeights,
 
+  weightedScoreContribution,
+
 } from "@mottazen/core";
 
 import { WeightEditor, type WeightItem } from "@/components/WeightEditor";
@@ -180,7 +182,7 @@ export function CategoryWeightsSection({ category }: CategoryWeightsSectionProps
 
             const weight = resolved[habit.id] ?? 0;
 
-            const contrib = score === null ? "—" : `${Math.round((weight * score) / 100)} pts`;
+            const contrib = score === null ? "—" : `${weightedScoreContribution(weight, score)} pts`;
 
             return (
 

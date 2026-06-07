@@ -25,13 +25,13 @@ export function GoalDetailPage() {
       <div className="goals-screen">
         <header className="log-header tab-screen-header goals-screen__header">
           <div className="log-header__title-row">
-            <h1 className="log-header__title">Goal</h1>
+            <h1 className="log-header__title">Target</h1>
           </div>
         </header>
         <p className="goals-screen__missing">
-          Goal not found.{" "}
+          Target not found.{" "}
           <Link to="/goals" className="goals-screen__missing-link">
-            Back to Goals
+            Back to Targets
           </Link>
         </p>
       </div>
@@ -39,9 +39,9 @@ export function GoalDetailPage() {
   }
 
   const confirmDelete = () => {
-    if (!window.confirm(`Remove goal “${goal.name}”? Activities stay; only the goal is removed.`)) return;
+    if (!window.confirm(`Remove target “${goal.name}”? Activities stay; only the target is removed.`)) return;
     deleteGoal(goal.id);
-    showToast("Goal removed");
+    showToast("Target removed");
   };
 
   return (
@@ -49,13 +49,13 @@ export function GoalDetailPage() {
       <header className="log-header tab-screen-header goals-screen__header">
         <div className="log-header__title-row">
           <Link to="/goals" className="page-header__back goals-screen__back">
-            ← Goals
+            ← Targets
           </Link>
           <h1 className="log-header__title">{goal.name}</h1>
         </div>
         {goal.category ? (
           <Link to={`/categories/${categoryToSlug(goal.category)}`} className="goals-screen__group-link">
-            {goal.category} category →
+            {goal.category} life area →
           </Link>
         ) : null}
       </header>
