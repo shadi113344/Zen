@@ -317,6 +317,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         setDashboardLayoutState({
           order: Array.isArray(dl.order) ? dl.order : [],
           hidden: Array.isArray(dl.hidden) ? dl.hidden : [],
+          ...(Array.isArray(dl.items) ? { items: dl.items } : {}),
         });
       }
       if (settings.notification_prefs) {

@@ -35,59 +35,81 @@ export const DASHBOARD_CARD_LABELS: Record<DashboardCardId, string> = {
   browse: "Browse by life area",
 };
 
-// ——— Widget Grid types ———
+// ——— Widget grid types (iOS gallery + reflow model) ———
 
-export interface WidgetPlacement {
-  id: string;
-  col: number;    // 0-based column start (0–3 on desktop 4-col grid)
-  row: number;    // 0-based row start
-  colSpan: 1 | 2 | 4;
-  rowSpan: 1 | 2 | 3;
+/** Tile sizes. sm=1×1, md=2×1, lg=2×2, wide=full-row. */
+export type WidgetSize = "sm" | "md" | "lg" | "wide";
+
+export const WIDGET_SIZE_LABELS: Record<WidgetSize, string> = {
+  sm: "Small",
+  md: "Medium",
+  lg: "Large",
+  wide: "Wide",
+};
+
+export const WIDGET_SIZE_ORDER: readonly WidgetSize[] = ["sm", "md", "lg", "wide"] as const;
+
+/** An ordered, sized widget tile. Layout is a dense flow grid — no x/y math. */
+export interface WidgetItem {
+  id: DashboardCardId;
+  size: WidgetSize;
 }
 
 /** Per-user dashboard layout, synced via user_settings.dashboard_layout. */
 export interface DashboardLayout {
   order: string[];
   hidden: string[];
-  /** New widget grid format. When present, overrides the legacy order-based layout. */
-  widgets?: WidgetPlacement[];
+  /** New widget-tile format. When present, this is the source of truth. */
+  items?: WidgetItem[];
 }
 
 export const EMPTY_DASHBOARD_LAYOUT: DashboardLayout = { order: [], hidden: [] };
 
-/** Default grid placements for all cards. */
-export const DEFAULT_WIDGET_GRID: WidgetPlacement[] = [
-  { id: "taskStats",     col: 0, row: 0, colSpan: 2, rowSpan: 1 },
-  { id: "activityRadar", col: 2, row: 0, colSpan: 2, rowSpan: 2 },
-  { id: "categoryRadar", col: 0, row: 1, colSpan: 2, rowSpan: 2 },
-  { id: "dayScores",     col: 0, row: 3, colSpan: 4, rowSpan: 2 },
-  { id: "heatmap",       col: 0, row: 5, colSpan: 4, rowSpan: 2 },
-  { id: "metrics",       col: 0, row: 7, colSpan: 2, rowSpan: 2 },
-  { id: "bestHabit",     col: 2, row: 7, colSpan: 2, rowSpan: 1 },
-  { id: "activityList",  col: 2, row: 8, colSpan: 2, rowSpan: 2 },
-  { id: "browse",        col: 0, row: 9, colSpan: 2, rowSpan: 1 },
-];
+/** Sensible default size per widget. */
+export const DEFAULT_WIDGET_SIZES: Record<DashboardCardId, WidgetSize> = {
+  taskStats: "md",
+  activityRadar: "lg",
+  categoryRadar: "lg",
+  metrics: "md",
+  heatmap: "wide",
+  dayScores: "wide",
+  bestHabit: "sm",
+  activityList: "md",
+  browse: "md",
+};
+
+/** Default ordered tiles for a fresh dashboard. */
+export const DEFAULT_WIDGET_ITEMS: WidgetItem[] = DASHBOARD_CARDS.map((id) => ({
+  id,
+  size: DEFAULT_WIDGET_SIZES[id],
+}));
 
 /**
- * Merge saved widget placements with defaults: keep valid saved placements,
- * append any defaults not present in saved, drop ids no longer defined.
+ * Resolve the visible widget tiles from a layout, migrating legacy formats:
+ *  - `items` present → use it (validated, hidden removed, new cards appended)
+ *  - legacy `order[]` only → map to default sizes in saved order
  */
-export function mergeWidgetGrid(
-  saved: WidgetPlacement[] | undefined,
-  hidden: string[],
-): WidgetPlacement[] {
+export function resolveWidgetItems(layout: DashboardLayout): WidgetItem[] {
   const validIds = new Set(DASHBOARD_CARDS as readonly string[]);
-  const hiddenSet = new Set(hidden);
-  if (!saved || saved.length === 0) {
-    return DEFAULT_WIDGET_GRID.filter((w) => !hiddenSet.has(w.id));
+  const hidden = new Set(layout.hidden ?? []);
+
+  if (layout.items && layout.items.length > 0) {
+    const seen = new Set<string>();
+    const valid = layout.items.filter((w) => {
+      if (!validIds.has(w.id) || hidden.has(w.id) || seen.has(w.id)) return false;
+      seen.add(w.id);
+      return true;
+    });
+    // Append any known cards missing from saved items (new features) unless hidden.
+    const missing = DASHBOARD_CARDS.filter((id) => !seen.has(id) && !hidden.has(id)).map(
+      (id) => ({ id, size: DEFAULT_WIDGET_SIZES[id] }),
+    );
+    return [...valid, ...missing];
   }
-  const savedIds = new Set(saved.map((w) => w.id));
-  const valid = saved.filter((w) => validIds.has(w.id) && !hiddenSet.has(w.id));
-  // Append defaults for any ids missing from saved (excluding hidden)
-  const missing = DEFAULT_WIDGET_GRID.filter(
-    (w) => !savedIds.has(w.id) && !hiddenSet.has(w.id),
-  );
-  return [...valid, ...missing];
+
+  // Legacy migration: order[] → sized tiles.
+  const order = mergeCardOrder(layout.order, DASHBOARD_CARDS).filter((id) => !hidden.has(id));
+  return order.map((id) => ({ id, size: DEFAULT_WIDGET_SIZES[id] }));
 }
 
 /**

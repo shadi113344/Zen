@@ -22,6 +22,7 @@ import { HabitInsightsList } from "@/components/insights/HabitInsightsList";
 import { HabitMetricsCard } from "@/components/insights/HabitMetricsCard";
 import { HeatmapGrid } from "@/components/insights/HeatmapGrid";
 import { RadarChart } from "@/components/insights/RadarChart";
+import { AnimatePresence } from "framer-motion";
 import { ScreenPageBody, ScreenPageTop } from "@/components/ScreenPageTop";
 import { SegmentedControl } from "@/components/SegmentedControl";
 import { useAppDate } from "@/hooks/useAppDate";
@@ -29,7 +30,7 @@ import { useCategoryWeights, useHabits, useLogs, useTasks } from "@/hooks/useDat
 import { useWidgetGrid } from "@/hooks/useWidgetGrid";
 import { TaskStatsCard } from "@/components/dashboard/TaskStatsCard";
 import { WidgetGrid } from "@/components/dashboard/WidgetGrid";
-import { AddWidgetSheet } from "@/components/dashboard/AddWidgetSheet";
+import { WidgetGallery } from "@/components/dashboard/WidgetGallery";
 
 export function DashboardPage() {
   const { habits } = useHabits();
@@ -81,19 +82,10 @@ export function DashboardPage() {
   const activeCount = habits.filter((h) => !h.paused).length;
   const taskStats = useMemo(() => taskCountsForPeriod(tasks, rangeDates), [tasks, rangeDates]);
 
-  const {
-    widgets,
-    hiddenIds,
-    editMode,
-    toggleEditMode,
-    moveWidget,
-    resizeWidget,
-    hideWidget,
-    showWidget,
-    isOccupied,
-  } = useWidgetGrid();
+  const { items, hiddenIds, editMode, toggleEditMode, reorder, resize, hide, show } =
+    useWidgetGrid();
 
-  const [addSheetOpen, setAddSheetOpen] = useState(false);
+  const [galleryOpen, setGalleryOpen] = useState(false);
 
   const cards = useMemo(
     () => ({
@@ -102,7 +94,7 @@ export function DashboardPage() {
           periodTitle={periodTitle}
           pending={taskStats.pending}
           completed={taskStats.completed}
-          onRemove={() => hideWidget("taskStats")}
+          onRemove={() => hide("taskStats")}
         />
       ),
       activityRadar: (
@@ -116,14 +108,14 @@ export function DashboardPage() {
             points={habitRadar}
             emptyMessage="Add activities to see balance."
             ariaLabel="Activity consistency radar"
-            onRemove={() => hideWidget("activityRadar")}
+            onRemove={() => hide("activityRadar")}
           />
         </section>
       ),
       categoryRadar: (
         <section className="card page-section">
           <h3 className="page-section__title">Balance by category · {periodTitle}</h3>
-          <RadarChart points={categoryRadar} onRemove={() => hideWidget("categoryRadar")} />
+          <RadarChart points={categoryRadar} onRemove={() => hide("categoryRadar")} />
         </section>
       ),
       metrics: (
@@ -132,7 +124,7 @@ export function DashboardPage() {
           consistencyRows={consistencyRows}
           performanceRows={performanceRows}
           streakRows={streakRows}
-          onRemoveChart={() => hideWidget("metrics")}
+          onRemoveChart={() => hide("metrics")}
         />
       ),
       heatmap: (
@@ -144,12 +136,12 @@ export function DashboardPage() {
             logs={logs}
             weeks={heatmapWeeks}
             onDaySelect={(date) => navigate(date === today ? "/log" : `/log/${date}`)}
-            onRemove={() => hideWidget("heatmap")}
+            onRemove={() => hide("heatmap")}
           />
         </section>
       ),
       dayScores: (
-        <DayScoreBars period={period} dates={rangeDates} scores={dayScores} onRemove={() => hideWidget("dayScores")} />
+        <DayScoreBars period={period} dates={rangeDates} scores={dayScores} onRemove={() => hide("dayScores")} />
       ),
       bestHabit: best ? (
         <section className="card page-section best-habit-card">
@@ -183,7 +175,7 @@ export function DashboardPage() {
       habitRows,
       heatmapWeeks,
       habits,
-      hideWidget,
+      hide,
       logs,
       navigate,
       performanceRows,
@@ -219,7 +211,7 @@ export function DashboardPage() {
               <button
                 type="button"
                 className="dashboard-toolbar__add"
-                onClick={() => setAddSheetOpen(true)}
+                onClick={() => setGalleryOpen(true)}
                 aria-label="Add widget"
               >
                 + Add
@@ -236,22 +228,26 @@ export function DashboardPage() {
         </div>
 
         <WidgetGrid
-          widgets={widgets}
+          items={items}
           cards={cards}
           editMode={editMode}
-          onMove={moveWidget}
-          onRemove={hideWidget}
-          onResize={resizeWidget}
-          isOccupied={isOccupied}
+          onReorder={reorder}
+          onRemove={hide}
+          onResize={resize}
         />
 
-        {addSheetOpen && (
-          <AddWidgetSheet
-            hiddenIds={hiddenIds}
-            onAdd={showWidget}
-            onClose={() => setAddSheetOpen(false)}
-          />
-        )}
+        <AnimatePresence>
+          {galleryOpen && (
+            <WidgetGallery
+              hiddenIds={hiddenIds}
+              onAdd={(id, size) => {
+                show(id, size);
+                setGalleryOpen(false);
+              }}
+              onClose={() => setGalleryOpen(false)}
+            />
+          )}
+        </AnimatePresence>
       </ScreenPageBody>
     </div>
   );
