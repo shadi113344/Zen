@@ -21,16 +21,15 @@ import { DayScoreBars } from "@/components/insights/DayScoreBars";
 import { HabitInsightsList } from "@/components/insights/HabitInsightsList";
 import { HabitMetricsCard } from "@/components/insights/HabitMetricsCard";
 import { HeatmapGrid } from "@/components/insights/HeatmapGrid";
-import { InsightsAddCharts } from "@/components/insights/InsightsAddCharts";
-import { InsightsReorderStack } from "@/components/insights/InsightsReorderStack";
 import { RadarChart } from "@/components/insights/RadarChart";
 import { ScreenPageBody, ScreenPageTop } from "@/components/ScreenPageTop";
 import { SegmentedControl } from "@/components/SegmentedControl";
 import { useAppDate } from "@/hooks/useAppDate";
 import { useCategoryWeights, useHabits, useLogs, useTasks } from "@/hooks/useData";
-import { useDashboardCardOrder } from "@/hooks/useDashboardCardOrder";
+import { useWidgetGrid } from "@/hooks/useWidgetGrid";
 import { TaskStatsCard } from "@/components/dashboard/TaskStatsCard";
-import { DASHBOARD_CARD_LABELS, type DashboardCardId } from "@/lib/dashboard-cards";
+import { WidgetGrid } from "@/components/dashboard/WidgetGrid";
+import { AddWidgetSheet } from "@/components/dashboard/AddWidgetSheet";
 
 export function DashboardPage() {
   const { habits } = useHabits();
@@ -82,7 +81,19 @@ export function DashboardPage() {
   const activeCount = habits.filter((h) => !h.paused).length;
   const taskStats = useMemo(() => taskCountsForPeriod(tasks, rangeDates), [tasks, rangeDates]);
 
-  const { order, hiddenIds, swap, hide, show } = useDashboardCardOrder();
+  const {
+    widgets,
+    hiddenIds,
+    editMode,
+    toggleEditMode,
+    moveWidget,
+    resizeWidget,
+    hideWidget,
+    showWidget,
+    isOccupied,
+  } = useWidgetGrid();
+
+  const [addSheetOpen, setAddSheetOpen] = useState(false);
 
   const cards = useMemo(
     () => ({
@@ -91,7 +102,7 @@ export function DashboardPage() {
           periodTitle={periodTitle}
           pending={taskStats.pending}
           completed={taskStats.completed}
-          onRemove={() => hide("taskStats")}
+          onRemove={() => hideWidget("taskStats")}
         />
       ),
       activityRadar: (
@@ -105,14 +116,14 @@ export function DashboardPage() {
             points={habitRadar}
             emptyMessage="Add activities to see balance."
             ariaLabel="Activity consistency radar"
-            onRemove={() => hide("activityRadar")}
+            onRemove={() => hideWidget("activityRadar")}
           />
         </section>
       ),
       categoryRadar: (
         <section className="card page-section">
           <h3 className="page-section__title">Balance by category · {periodTitle}</h3>
-          <RadarChart points={categoryRadar} onRemove={() => hide("categoryRadar")} />
+          <RadarChart points={categoryRadar} onRemove={() => hideWidget("categoryRadar")} />
         </section>
       ),
       metrics: (
@@ -121,7 +132,7 @@ export function DashboardPage() {
           consistencyRows={consistencyRows}
           performanceRows={performanceRows}
           streakRows={streakRows}
-          onRemoveChart={() => hide("metrics")}
+          onRemoveChart={() => hideWidget("metrics")}
         />
       ),
       heatmap: (
@@ -133,12 +144,12 @@ export function DashboardPage() {
             logs={logs}
             weeks={heatmapWeeks}
             onDaySelect={(date) => navigate(date === today ? "/log" : `/log/${date}`)}
-            onRemove={() => hide("heatmap")}
+            onRemove={() => hideWidget("heatmap")}
           />
         </section>
       ),
       dayScores: (
-        <DayScoreBars period={period} dates={rangeDates} scores={dayScores} onRemove={() => hide("dayScores")} />
+        <DayScoreBars period={period} dates={rangeDates} scores={dayScores} onRemove={() => hideWidget("dayScores")} />
       ),
       bestHabit: best ? (
         <section className="card page-section best-habit-card">
@@ -172,7 +183,7 @@ export function DashboardPage() {
       habitRows,
       heatmapWeeks,
       habits,
-      hide,
+      hideWidget,
       logs,
       navigate,
       performanceRows,
@@ -185,30 +196,62 @@ export function DashboardPage() {
     ],
   );
 
-  const hiddenChartOptions = useMemo(
-    () => hiddenIds.map((id) => ({ id, label: DASHBOARD_CARD_LABELS[id as DashboardCardId] })),
-    [hiddenIds],
-  );
-
   return (
     <div className="insights-page screen-page">
       <ScreenPageTop title="Dashboard" />
       <ScreenPageBody>
-        <SegmentedControl
-          className="insights-page__period"
-          ariaLabel="Analysis period"
-          value={period}
-          onChange={setPeriod}
-          options={[
-            { value: "today", label: "Today" },
-            { value: "week", label: "Week" },
-            { value: "month", label: "Month" },
-            { value: "year", label: "Year" },
-            { value: "all", label: "All" },
-          ]}
+        <div className="dashboard-toolbar">
+          <SegmentedControl
+            className="insights-page__period"
+            ariaLabel="Analysis period"
+            value={period}
+            onChange={setPeriod}
+            options={[
+              { value: "today", label: "Today" },
+              { value: "week", label: "Week" },
+              { value: "month", label: "Month" },
+              { value: "year", label: "Year" },
+              { value: "all", label: "All" },
+            ]}
+          />
+          <div className="dashboard-toolbar__actions">
+            {hiddenIds.length > 0 && (
+              <button
+                type="button"
+                className="dashboard-toolbar__add"
+                onClick={() => setAddSheetOpen(true)}
+                aria-label="Add widget"
+              >
+                + Add
+              </button>
+            )}
+            <button
+              type="button"
+              className={`dashboard-toolbar__edit${editMode ? " dashboard-toolbar__edit--active" : ""}`}
+              onClick={toggleEditMode}
+            >
+              {editMode ? "Done" : "Edit"}
+            </button>
+          </div>
+        </div>
+
+        <WidgetGrid
+          widgets={widgets}
+          cards={cards}
+          editMode={editMode}
+          onMove={moveWidget}
+          onRemove={hideWidget}
+          onResize={resizeWidget}
+          isOccupied={isOccupied}
         />
-        <InsightsAddCharts hidden={hiddenChartOptions} onAdd={(id) => show(id)} />
-        <InsightsReorderStack order={order} onSwap={swap} cards={cards} />
+
+        {addSheetOpen && (
+          <AddWidgetSheet
+            hiddenIds={hiddenIds}
+            onAdd={showWidget}
+            onClose={() => setAddSheetOpen(false)}
+          />
+        )}
       </ScreenPageBody>
     </div>
   );
