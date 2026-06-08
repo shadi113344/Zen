@@ -4745,7 +4745,16 @@ body.habit-menu-active .log-page__scroll {
   position: relative;
   height: 100%;
   border-radius: var(--radius);
+  overflow: hidden;
   animation: widget-pop 0.26s var(--ease-spring) both;
+}
+
+/* Tiles never overlap neighbours: clip content to the tile, but let the card
+   itself scroll if its content is taller than the chosen size. */
+.widget-cell__inner > .card,
+.widget-cell__inner > .page-section,
+.widget-cell__inner > section {
+  overflow: auto;
 }
 
 /* The card/section inside fills the tile so size actually changes the visual */
@@ -4767,8 +4776,8 @@ body.habit-menu-active .log-page__scroll {
   100% { transform: rotate(0.8deg); }
 }
 
-.widget-cell--edit { cursor: grab; }
-.widget-cell--edit:active { cursor: grabbing; }
+.widget-cell { cursor: grab; }
+.widget-cell:active { cursor: grabbing; }
 .widget-cell--edit .widget-cell__inner {
   animation: widget-wobble 0.42s ease-in-out infinite alternate;
 }

@@ -70,7 +70,7 @@ export const DEFAULT_WIDGET_SIZES: Record<DashboardCardId, WidgetSize> = {
   taskStats: "md",
   activityRadar: "lg",
   categoryRadar: "lg",
-  metrics: "md",
+  metrics: "lg",
   heatmap: "wide",
   dayScores: "wide",
   bestHabit: "sm",

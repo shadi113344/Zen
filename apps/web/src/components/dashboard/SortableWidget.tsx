@@ -23,9 +23,11 @@ interface SortableWidgetProps {
  * DragOverlay shows the floating copy.
  */
 export function SortableWidget({ item, editMode, children, onRemove, onResize }: SortableWidgetProps) {
+  // Always sortable: a tap under the sensor's 6px threshold clicks through to the
+  // card; a press-and-drag reorders. Edit mode only adds the wobble + remove/resize
+  // affordances — it is not required to move a tile.
   const { setNodeRef, attributes, listeners, transform, transition, isDragging } = useSortable({
     id: item.id,
-    disabled: !editMode,
   });
 
   const style: React.CSSProperties = {
@@ -46,8 +48,8 @@ export function SortableWidget({ item, editMode, children, onRemove, onResize }:
         .filter(Boolean)
         .join(" ")}
       data-widget-id={item.id}
-      {...(editMode ? attributes : {})}
-      {...(editMode ? listeners : {})}
+      {...attributes}
+      {...listeners}
     >
       <div className="widget-cell__inner">
         {children}
