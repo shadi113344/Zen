@@ -67,135 +67,99 @@ export function LogPage() {
 
 
 
+  const banners = (
+    <>
+      {!online && (
+        <div className="offline-banner" role="status">
+          Offline — changes sync when you reconnect.
+        </div>
+      )}
+      {demoMode && (
+        <div className="demo-banner">
+          Demo mode — add <code>VITE_SUPABASE_URL</code> and <code>VITE_SUPABASE_ANON_KEY</code> to connect Supabase.
+        </div>
+      )}
+    </>
+  );
+
+  const habitContent = (
+    <div className="log-page__content">
+      <GoalChipsRow date={selectedDate} />
+      {!hideCategoryChips ? (
+        <CategoryChipsRow
+          habits={habits}
+          logs={logs}
+          date={selectedDate}
+          selectedCategory={categoryFilter}
+          onSelectCategory={setCategoryFilter}
+        />
+      ) : null}
+      {activeHabits.length === 0 ? (
+        <EmptyState
+          title="Add your first activity"
+          message="Start with one small action you can log every day."
+          action={
+            <button type="button" className="btn btn--primary" onClick={() => setAddOpen(true)}>
+              Add activity
+            </button>
+          }
+        />
+      ) : (
+        <HabitListGrouped habits={habits} date={selectedDate} categoryFilter={categoryFilter} />
+      )}
+      <TaskLane date={selectedDate} />
+      <DayNotes date={selectedDate} />
+    </div>
+  );
+
   return (
-
     <div className="log-page">
-
       {!desktop && (
-        <>
-          <div className="log-page__header-stack">
-            <LogHeader isToday={isToday} />
-            <div className="log-page__hero-wrap">
-              <HeroScore habits={habits} logs={logs} date={selectedDate} compact />
-            </div>
-            <div className="log-page__date-wrap">
-              <LogDateChrome className="log-page__date-strip" />
-            </div>
+        <div className="log-page__header-stack">
+          <LogHeader isToday={isToday} />
+          <div className="log-page__hero-wrap">
+            <HeroScore habits={habits} logs={logs} date={selectedDate} compact />
           </div>
-        </>
+          <div className="log-page__date-wrap">
+            <LogDateChrome className="log-page__date-strip" />
+          </div>
+        </div>
       )}
 
-
-
-      <div
-        ref={scrollRef}
-        className={`log-page__scroll${pulling || refreshing ? " log-page__scroll--ptr" : ""}`}
-      >
-        {(pulling || refreshing) && (
-          <div
-            className="ptr-indicator"
-            style={{ height: `${Math.max(0, pullY)}px` }}
-            aria-hidden={!refreshing}
-            aria-live="polite"
-          >
-            <span className="ptr-indicator__label">{refreshing ? "Syncing…" : "Pull to refresh"}</span>
+      {desktop ? (
+        <div className="log-page__desktop-grid">
+          <div className="log-page__main-col">
+            {banners}
+            {habitContent}
           </div>
-        )}
-
-
-
-
-        {!online && (
-
-          <div className="offline-banner" role="status">
-
-            Offline — changes sync when you reconnect.
-
-          </div>
-
-        )}
-
-
-
-        {demoMode && (
-
-          <div className="demo-banner">
-
-            Demo mode — add <code>VITE_SUPABASE_URL</code> and <code>VITE_SUPABASE_ANON_KEY</code> to connect Supabase.
-
-          </div>
-
-        )}
-
-
-
-        {desktop && (
-          <>
+          <aside className="log-page__right-panel">
             <HeroScore habits={habits} logs={logs} date={selectedDate} />
             <LogDateChrome className="log-page__date-strip" />
-          </>
-        )}
-
-
-
-        <div className="log-page__content">
-
-          <GoalChipsRow date={selectedDate} />
-
-          {!hideCategoryChips ? (
-            <CategoryChipsRow
-              habits={habits}
-              logs={logs}
-              date={selectedDate}
-              selectedCategory={categoryFilter}
-              onSelectCategory={setCategoryFilter}
-            />
-          ) : null}
-
-
-
-          {activeHabits.length === 0 ? (
-
-            <EmptyState
-
-              title="Add your first activity"
-
-              message="Start with one small action you can log every day."
-
-              action={
-
-                <button type="button" className="btn btn--primary" onClick={() => setAddOpen(true)}>
-
-                  Add activity
-
-                </button>
-
-              }
-
-            />
-
-          ) : (
-
-            <HabitListGrouped habits={habits} date={selectedDate} categoryFilter={categoryFilter} />
-
-          )}
-
-          <TaskLane date={selectedDate} />
-
-          <DayNotes date={selectedDate} />
-
+          </aside>
         </div>
-
-      </div>
-
-
+      ) : (
+        <div
+          ref={scrollRef}
+          className={`log-page__scroll${pulling || refreshing ? " log-page__scroll--ptr" : ""}`}
+        >
+          {(pulling || refreshing) && (
+            <div
+              className="ptr-indicator"
+              style={{ height: `${Math.max(0, pullY)}px` }}
+              aria-hidden={!refreshing}
+              aria-live="polite"
+            >
+              <span className="ptr-indicator__label">{refreshing ? "Syncing…" : "Pull to refresh"}</span>
+            </div>
+          )}
+          {banners}
+          {habitContent}
+        </div>
+      )}
 
       <AddHabitFAB onClick={() => setAddOpen(true)} />
-
       <AddHabitModal open={addOpen} onClose={() => setAddOpen(false)} />
-
     </div>
-
   );
 
 }
