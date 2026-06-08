@@ -4707,23 +4707,21 @@ body.habit-menu-active .log-page__scroll {
 .widget-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  grid-auto-rows: 168px;
+  grid-auto-rows: auto;
   grid-auto-flow: row dense;
   gap: 14px;
+  align-items: start;
 }
 
 @media (max-width: 1023px) {
-  .widget-grid { grid-template-columns: repeat(2, 1fr); grid-auto-rows: 160px; }
-}
-@media (max-width: 639px) {
-  .widget-grid { grid-auto-rows: 138px; }
+  .widget-grid { grid-template-columns: repeat(2, 1fr); }
 }
 
-/* Tile sizes (column × row span) */
-.widget-cell--sm   { grid-column: span 1; grid-row: span 1; }
-.widget-cell--md   { grid-column: span 2; grid-row: span 1; }
-.widget-cell--lg   { grid-column: span 2; grid-row: span 2; }
-.widget-cell--wide { grid-column: span 4; grid-row: span 1; }
+/* Tile sizes — column span only; rows are auto-height so content always fits */
+.widget-cell--sm   { grid-column: span 1; }
+.widget-cell--md   { grid-column: span 2; }
+.widget-cell--lg   { grid-column: span 2; }
+.widget-cell--wide { grid-column: span 4; }
 
 @media (max-width: 1023px) {
   .widget-cell--wide,
@@ -4743,26 +4741,15 @@ body.habit-menu-active .log-page__scroll {
 
 .widget-cell__inner {
   position: relative;
-  height: 100%;
   border-radius: var(--radius);
-  overflow: hidden;
   animation: widget-pop 0.26s var(--ease-spring) both;
 }
 
-/* Tiles never overlap neighbours: clip content to the tile, but let the card
-   itself scroll if its content is taller than the chosen size. */
-.widget-cell__inner > .card,
-.widget-cell__inner > .page-section,
-.widget-cell__inner > section {
-  overflow: auto;
-}
-
-/* The card/section inside fills the tile so size actually changes the visual */
+/* Cards fill the tile width; margins are owned by the grid gap */
 .widget-cell__inner > .card,
 .widget-cell__inner > .page-section,
 .widget-cell__inner > section,
 .widget-cell__inner > a {
-  height: 100%;
   margin: 0;
 }
 
@@ -4805,17 +4792,24 @@ body.habit-menu-active .log-page__scroll {
   .widget-cell--edit .widget-cell__inner { animation: none; }
 }
 
-/* Floating drag copy */
-.widget-overlay { height: 100%; cursor: grabbing; }
+/* Floating drag copy — width/height set by inline style from actual rect */
+.widget-overlay {
+  cursor: grabbing;
+  border-radius: var(--radius);
+  overflow: hidden;
+  opacity: 0.92;
+}
 .widget-overlay .widget-cell__inner {
+  height: 100%;
   animation: none;
-  box-shadow: var(--shadow-elevated);
-  transform: scale(1.03);
+  box-shadow: 0 16px 40px rgba(0,0,0,0.18);
+  transform: scale(1.025);
+  transition: transform 0.12s ease;
 }
 .widget-overlay .card,
 .widget-overlay .page-section,
 .widget-overlay section,
-.widget-overlay a { height: 100%; margin: 0; }
+.widget-overlay a { height: 100%; margin: 0; overflow: hidden; }
 
 /* Remove (×) badge */
 .widget-cell__remove {
