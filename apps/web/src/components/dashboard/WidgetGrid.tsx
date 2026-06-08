@@ -1,114 +1,90 @@
-import { useRef, type ReactNode } from "react";
-import { useGridDrag } from "@/hooks/useGridDrag";
-import { WidgetShell } from "@/components/dashboard/WidgetShell";
-import type { WidgetPlacement } from "@/lib/dashboard-cards";
+import { useState, type ReactNode } from "react";
+import {
+  DndContext,
+  DragOverlay,
+  PointerSensor,
+  TouchSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+  type DragStartEvent,
+} from "@dnd-kit/core";
+import { SortableContext, rectSortingStrategy } from "@dnd-kit/sortable";
+import { SortableWidget } from "@/components/dashboard/SortableWidget";
+import type { WidgetItem, WidgetSize } from "@/lib/dashboard-cards";
 
 interface WidgetGridProps {
-  widgets: WidgetPlacement[];
+  items: WidgetItem[];
   cards: Record<string, ReactNode | null | undefined>;
   editMode: boolean;
-  onMove: (id: string, col: number, row: number) => void;
+  onReorder: (fromIndex: number, toIndex: number) => void;
   onRemove: (id: string) => void;
-  onResize: (id: string, colSpan: WidgetPlacement["colSpan"], rowSpan: WidgetPlacement["rowSpan"]) => void;
-  isOccupied: (col: number, row: number, colSpan: number, rowSpan: number, excludeId?: string) => boolean;
+  onResize: (id: string, size: WidgetSize) => void;
 }
 
-export function WidgetGrid({
-  widgets,
-  cards,
-  editMode,
-  onMove,
-  onRemove,
-  onResize,
-  isOccupied,
-}: WidgetGridProps) {
-  const containerRef = useRef<HTMLDivElement>(null);
+export function WidgetGrid({ items, cards, editMode, onReorder, onRemove, onResize }: WidgetGridProps) {
+  const [activeId, setActiveId] = useState<string | null>(null);
 
-  const { draggingId, pendingId, dropTarget, getDragProps } = useGridDrag({
-    containerRef,
-    widgets,
-    onMove,
-    isOccupied,
-  });
+  const sensors = useSensors(
+    // Mouse/trackpad: small drag threshold so taps still click through.
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+    // Touch: short long-press to pick up, with slop tolerance.
+    useSensor(TouchSensor, { activationConstraint: { delay: 180, tolerance: 8 } }),
+  );
 
-  // Calculate how many rows the grid spans for the drop zone overlay
-  const totalRows = Math.max(...widgets.map((w) => w.row + w.rowSpan), 1);
+  const ids: string[] = items.map((w) => w.id);
+  const activeItem = activeId ? items.find((w) => w.id === activeId) : null;
+
+  function handleDragStart(e: DragStartEvent) {
+    setActiveId(String(e.active.id));
+  }
+
+  function handleDragEnd(e: DragEndEvent) {
+    setActiveId(null);
+    const { active, over } = e;
+    if (!over || active.id === over.id) return;
+    const from = ids.indexOf(String(active.id));
+    const to = ids.indexOf(String(over.id));
+    if (from < 0 || to < 0) return;
+    onReorder(from, to);
+  }
 
   return (
-    <div
-      ref={containerRef}
-      className={`widget-grid${editMode ? " widget-grid--edit" : ""}${draggingId ? " widget-grid--dragging" : ""}`}
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCenter}
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+      onDragCancel={() => setActiveId(null)}
     >
-      {widgets.map((w) => {
-        const content = cards[w.id];
-        if (content == null) return null;
-        const isDragging = draggingId === w.id;
-        const isPending = pendingId === w.id;
-
-        return (
-          <div
-            key={w.id}
-            className={[
-              "widget-cell",
-              editMode ? "widget-cell--edit" : "",
-              isDragging ? "widget-cell--dragging" : "",
-              isPending ? "widget-cell--pending" : "",
-            ]
-              .filter(Boolean)
-              .join(" ")}
-            style={{
-              gridColumn: `${w.col + 1} / span ${w.colSpan}`,
-              gridRow: `${w.row + 1} / span ${w.rowSpan}`,
-            }}
-            {...getDragProps(w.id)}
-          >
-            <WidgetShell
-              placement={w}
-              editMode={editMode}
-              onRemove={() => onRemove(w.id)}
-              onResize={(cs, rs) => onResize(w.id, cs, rs)}
-            >
-              {content}
-            </WidgetShell>
-          </div>
-        );
-      })}
-
-      {/* Drop zone overlay — only shown during active drag */}
-      {draggingId && (
-        <div className="widget-drop-overlay" aria-hidden>
-          {Array.from({ length: totalRows + 2 }, (_, row) =>
-            Array.from({ length: 4 }, (__, col) => {
-              const draggingWidget = widgets.find((w) => w.id === draggingId);
-              if (!draggingWidget) return null;
-              const isTarget =
-                dropTarget &&
-                col >= dropTarget.col &&
-                col < dropTarget.col + draggingWidget.colSpan &&
-                row >= dropTarget.row &&
-                row < dropTarget.row + draggingWidget.rowSpan;
-              const isValid = dropTarget?.valid ?? false;
-
-              return (
-                <div
-                  key={`${col},${row}`}
-                  className={[
-                    "widget-drop-cell",
-                    isTarget && isValid ? "widget-drop-cell--valid" : "",
-                    isTarget && !isValid ? "widget-drop-cell--invalid" : "",
-                  ]
-                    .filter(Boolean)
-                    .join(" ")}
-                  style={{
-                    gridColumn: `${col + 1}`,
-                    gridRow: `${row + 1}`,
-                  }}
-                />
-              );
-            }),
-          )}
+      <SortableContext items={ids} strategy={rectSortingStrategy}>
+        <div className={`widget-grid${editMode ? " widget-grid--edit" : ""}`}>
+          {items.map((item) => {
+            const content = cards[item.id];
+            if (content == null) return null;
+            return (
+              <SortableWidget
+                key={item.id}
+                item={item}
+                editMode={editMode}
+                onRemove={() => onRemove(item.id)}
+                onResize={(size) => onResize(item.id, size)}
+              >
+                {content}
+              </SortableWidget>
+            );
+          })}
         </div>
-      )}
-    </div>
+      </SortableContext>
+
+      <DragOverlay dropAnimation={{ duration: 220, easing: "cubic-bezier(0.18, 0.67, 0.36, 1.1)" }}>
+        {activeItem ? (
+          <div className={`widget-cell widget-cell--${activeItem.size} widget-overlay`}>
+            <div className="widget-cell__inner">{cards[activeItem.id]}</div>
+          </div>
+        ) : null}
+      </DragOverlay>
+    </DndContext>
   );
 }
