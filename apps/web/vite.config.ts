@@ -27,5 +27,38 @@ export default defineConfig({
   },
   build: {
     outDir: "dist",
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          // React runtime — always needed, cache separately
+          if (id.includes("node_modules/react/") || id.includes("node_modules/react-dom/")) {
+            return "react-vendor";
+          }
+          // Router
+          if (id.includes("node_modules/react-router") || id.includes("node_modules/@remix-run")) {
+            return "router";
+          }
+          // Dashboard-only: framer-motion + dnd-kit land in the lazy dashboard chunk
+          if (id.includes("node_modules/framer-motion")) {
+            return "motion";
+          }
+          if (id.includes("node_modules/@dnd-kit")) {
+            return "dnd";
+          }
+          // Lottie — only loaded when mood/streak animations render
+          if (id.includes("node_modules/lottie-react") || id.includes("node_modules/lottie-web")) {
+            return "lottie";
+          }
+          // Supabase SDK
+          if (id.includes("node_modules/@supabase")) {
+            return "supabase";
+          }
+          // html-to-image — only used in RecapPage (lazy)
+          if (id.includes("node_modules/html-to-image")) {
+            return "share";
+          }
+        },
+      },
+    },
   },
 });

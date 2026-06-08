@@ -65,8 +65,8 @@
     "semantic_hash": ""
   },
   "apps/web/src/app/router.tsx": {
-    "mtime": 1780874363.2639444,
-    "ast_hash": "7d1bfdd1e4de7c6b3ef5879a54019dec",
+    "mtime": 1780935478.9398367,
+    "ast_hash": "4d6030df4197f549105e7a44c565e276",
     "semantic_hash": ""
   },
   "apps/web/src/components/ActivityCalendar.tsx": {
@@ -740,8 +740,8 @@
     "semantic_hash": ""
   },
   "apps/web/vite.config.ts": {
-    "mtime": 1780874363.30173,
-    "ast_hash": "db5ca7212a24145e8a86a77b49cf61b8",
+    "mtime": 1780935490.0158372,
+    "ast_hash": "7534db9841b1e02079ea07c6ea88d2f8",
     "semantic_hash": ""
   },
   "package.json": {
