@@ -1055,13 +1055,13 @@
     "semantic_hash": ""
   },
   "apps/web/src/lib/dashboard-cards.ts": {
-    "mtime": 1780934034.3176675,
-    "ast_hash": "af7031a581175cbbe7130efdd4b164bc",
+    "mtime": 1780942263.3283336,
+    "ast_hash": "a14ec54679ec3a89b691fbdec6018068",
     "semantic_hash": ""
   },
   "apps/web/src/routes/DashboardPage.tsx": {
-    "mtime": 1780934263.141675,
-    "ast_hash": "ade57390923afd33ed96c6743c2a8d0a",
+    "mtime": 1780942263.3283336,
+    "ast_hash": "8c08a17e1d360d177ccd482ed1c788be",
     "semantic_hash": ""
   },
   "supabase/migrations/0008_dashboard_layout.sql": {
