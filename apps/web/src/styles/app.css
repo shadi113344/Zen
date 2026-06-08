@@ -4704,28 +4704,42 @@ body.habit-menu-active .log-page__scroll {
 
 /* ——— Widget grid (iOS gallery + reflow) ——— */
 
-/* Two-column board. No dense flow → DOM order == visual order, so drag is
-   accurate; rows stretch so paired half-tiles share a height (no gaps). */
+/* 4-col grid. No row spans, no dense flow → DOM order == visual order.
+   Heights are controlled by min-height per size class only. */
 .widget-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   grid-auto-rows: auto;
   grid-auto-flow: row;
-  gap: 14px;
-  align-items: stretch;
+  gap: 12px;
+  align-items: start;
 }
 
+@media (max-width: 900px) {
+  .widget-grid { grid-template-columns: repeat(2, 1fr); }
+}
 @media (max-width: 639px) {
   .widget-grid { grid-template-columns: 1fr; }
 }
 
-/* Two widths: half = one column, full = both columns */
-.widget-cell--half { grid-column: span 1; }
-.widget-cell--full { grid-column: span 2; }
+/* Size classes — column span + min-height only (no row spans) */
+.widget-cell--bar   { grid-column: 1 / -1; min-height: 52px; }
+.widget-cell--small { grid-column: span 1; min-height: 180px; }
+.widget-cell--large { grid-column: span 1; min-height: 340px; }
+.widget-cell--full  { grid-column: span 2; min-height: 340px; }
 
+/* Legacy aliases kept for migrated layouts */
+.widget-cell--half { grid-column: span 1; min-height: 180px; }
+
+@media (max-width: 900px) {
+  .widget-cell--full  { grid-column: span 2; }
+}
 @media (max-width: 639px) {
-  .widget-cell--half,
-  .widget-cell--full { grid-column: span 1; }
+  .widget-cell--bar,
+  .widget-cell--small,
+  .widget-cell--large,
+  .widget-cell--full,
+  .widget-cell--half { grid-column: span 1; }
 }
 
 .widget-cell {
@@ -5002,6 +5016,194 @@ body.habit-menu-active .log-page__scroll {
   display: flex;
   margin-bottom: 0;
 }
+
+/* ——— Widget bar strip ——— */
+.widget-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 16px;
+  height: 100%;
+  min-height: 52px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  background: var(--card);
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  white-space: nowrap;
+  overflow: hidden;
+}
+.widget-bar__sep { color: var(--muted); }
+
+/* ——— Dashboard FAB ——— */
+.dashboard-fab {
+  position: fixed;
+  bottom: 88px;
+  right: 20px;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--text);
+  color: var(--bg);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 300;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.22);
+}
+.dashboard-fab__icon {
+  font-size: 26px;
+  line-height: 1;
+  display: block;
+  margin-top: -2px;
+}
+
+/* ——— Widget folder tile ——— */
+.widget-folder-tile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  padding: 8px;
+  width: 100%;
+  height: 100%;
+  min-height: 180px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  cursor: pointer;
+  text-align: left;
+  overflow: hidden;
+}
+.widget-folder-tile__mosaic {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 4px;
+  flex: 1;
+}
+.widget-folder-tile__preview {
+  background: var(--card-raised);
+  border-radius: calc(var(--radius) - 4px);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 70px;
+}
+.widget-folder-tile__preview--empty {
+  opacity: 0.3;
+}
+.widget-folder-tile__preview-inner {
+  width: 100%;
+  height: 100%;
+  transform: scale(0.52);
+  transform-origin: top left;
+  width: 192%;
+  height: 192%;
+  pointer-events: none;
+}
+.widget-folder-tile__name {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+  text-align: center;
+  margin: 0;
+}
+
+/* ——— Folder sheet ——— */
+.folder-sheet__scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 400;
+  background: rgba(10, 10, 10, 0.38);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+.folder-sheet {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 401;
+  max-height: 88vh;
+  overflow-y: auto;
+  background: var(--card);
+  border-top: 1px solid var(--line);
+  border-radius: var(--radius) var(--radius) 0 0;
+  padding: 14px 18px 36px;
+  box-shadow: 0 -8px 40px rgba(0,0,0,0.18);
+}
+@media (min-width: 640px) {
+  .folder-sheet {
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+    width: min(560px, 96vw);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    bottom: 24px;
+  }
+}
+.folder-sheet__handle {
+  width: 36px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--line-strong);
+  margin: 0 auto 14px;
+}
+.folder-sheet__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.folder-sheet__title {
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--text);
+  margin: 0;
+}
+.folder-sheet__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.folder-sheet__dissolve {
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.folder-sheet__close {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--card-raised);
+  border: 1px solid var(--line);
+  color: var(--text);
+  font-size: 17px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.folder-sheet__grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+@media (max-width: 480px) {
+  .folder-sheet__grid { grid-template-columns: 1fr; }
+}
+.folder-sheet__widget { min-height: 240px; display: flex; flex-direction: column; }
 
 .insights-page__scope .seg-control__btn {
   flex: 1;

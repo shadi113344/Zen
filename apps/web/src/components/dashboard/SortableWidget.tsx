@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { motion } from "framer-motion";
 import {
   WIDGET_SIZE_LABELS,
   WIDGET_SIZE_ORDER,
@@ -11,48 +12,72 @@ import {
 interface SortableWidgetProps {
   item: WidgetItem;
   editMode: boolean;
+  isActive: boolean;
   children: ReactNode;
   onRemove: () => void;
   onResize: (size: WidgetSize) => void;
 }
 
 /**
- * A single dashboard tile. dnd-kit owns the drag transform + reflow transition;
- * the visible content lives on an inner element so the edit-mode wobble (rotate)
- * never fights the drag translate. While lifted, the source fades and the
- * DragOverlay shows the floating copy.
+ * One dashboard tile.
+ *
+ * Drag split: dnd-kit provides gesture detection (setNodeRef, listeners,
+ * isDragging). framer-motion layout provides position animation for all tiles
+ * when the array order changes mid-drag. The two must not both apply a CSS
+ * transform to non-active tiles — so we suppress useSortable's transform on
+ * non-dragging tiles and let framer-motion FLIP them instead.
  */
-export function SortableWidget({ item, editMode, children, onRemove, onResize }: SortableWidgetProps) {
-  // Always sortable: a tap under the sensor's 6px threshold clicks through to the
-  // card; a press-and-drag reorders. Edit mode only adds the wobble + remove/resize
-  // affordances — it is not required to move a tile.
+export function SortableWidget({
+  item,
+  editMode,
+  isActive,
+  children,
+  onRemove,
+  onResize,
+}: SortableWidgetProps) {
   const { setNodeRef, attributes, listeners, transform, transition, isDragging } = useSortable({
     id: item.id,
   });
 
-  const style: React.CSSProperties = {
-    transform: CSS.Transform.toString(transform),
-    transition,
+  // Only apply useSortable's CSS transform to the ACTIVE tile (which becomes
+  // invisible anyway — the DragOverlay is the visible ghost). Non-active tiles
+  // are animated by framer-motion layout alone so the two don't conflict.
+  const style: React.CSSProperties = isDragging
+    ? {
+        transform: CSS.Transform.toString(transform),
+        transition,
+      }
+    : {};
+
+  const sizeIcon: Record<WidgetSize, string> = {
+    bar:   "━",
+    small: "▪",
+    large: "▬",
+    full:  "▭",
   };
 
   return (
-    <div
+    <motion.div
+      layout
+      layoutId={item.id}
       ref={setNodeRef}
       style={style}
       className={[
         "widget-cell",
         `widget-cell--${item.size}`,
         editMode ? "widget-cell--edit" : "",
-        isDragging ? "widget-cell--dragging" : "",
+        isActive ? "widget-cell--dragging" : "",
       ]
         .filter(Boolean)
         .join(" ")}
       data-widget-id={item.id}
       {...attributes}
       {...listeners}
+      transition={{ type: "spring", stiffness: 500, damping: 40, mass: 0.8 }}
     >
       <div className="widget-cell__inner">
         {children}
+
         {editMode && (
           <>
             <button
@@ -77,13 +102,13 @@ export function SortableWidget({ item, editMode, children, onRemove, onResize }:
                   title={WIDGET_SIZE_LABELS[s]}
                   aria-label={`Resize to ${WIDGET_SIZE_LABELS[s]}`}
                 >
-                  {s === "full" ? "▭" : "◧"}
+                  {sizeIcon[s]}
                 </button>
               ))}
             </div>
           </>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 }

@@ -35,64 +35,89 @@ export const DASHBOARD_CARD_LABELS: Record<DashboardCardId, string> = {
   browse: "Browse by life area",
 };
 
-// ——— Widget grid types (2-column board model) ———
+// ——— Widget grid types ———
 
 /**
- * Two clean widths only. On the 2-column desktop board: half = 1 column,
- * full = both columns. Mobile collapses everything to full. Keeping widths
- * to clean fractions is what makes drag accurate (DOM order == visual order,
- * no dense backfill) and gap-free (halves always pair, fulls take a row).
+ * Four sizes. Column span only — no grid-row: span, no dense flow.
+ * DOM order always equals visual order; dnd-kit and framer-motion never conflict.
+ *
+ *  bar   → full 4-col strip, min-height 72px   (key numbers only)
+ *  small → 1-col,            min-height 180px  (compact card)
+ *  large → 1-col,            min-height 360px  (chart, no details)
+ *  full  → 2-col,            min-height 360px  (chart + detail list)
  */
-export type WidgetSize = "half" | "full";
+export type WidgetSize = "bar" | "small" | "large" | "full";
 
 export const WIDGET_SIZE_LABELS: Record<WidgetSize, string> = {
-  half: "Half",
-  full: "Full",
+  bar:   "Bar",
+  small: "Small",
+  large: "Large",
+  full:  "Full",
 };
 
-export const WIDGET_SIZE_ORDER: readonly WidgetSize[] = ["half", "full"] as const;
+export const WIDGET_SIZE_ORDER: readonly WidgetSize[] = ["bar", "small", "large", "full"] as const;
 
-/** Normalise any historic size value (sm/md/lg/wide) to the current model. */
+/** Normalise any historic size value to the current model. */
 const SIZE_MIGRATION: Record<string, WidgetSize> = {
-  sm: "half",
-  md: "half",
-  lg: "full",
+  // previous "half/full" model
+  half: "small",
+  // old sm/md/lg/wide model
+  sm:   "small",
+  md:   "small",
+  lg:   "large",
   wide: "full",
-  half: "half",
-  full: "full",
+  // current
+  bar:   "bar",
+  small: "small",
+  large: "large",
+  full:  "full",
 };
 
 export function normalizeWidgetSize(size: string): WidgetSize {
-  return SIZE_MIGRATION[size] ?? "half";
+  return (SIZE_MIGRATION[size] as WidgetSize | undefined) ?? "small";
 }
 
-/** An ordered, sized widget tile. Layout is a dense flow grid — no x/y math. */
+/** An ordered, sized widget tile. */
 export interface WidgetItem {
   id: DashboardCardId;
   size: WidgetSize;
+}
+
+/** A folder of widgets shown as a mosaic tile. */
+export interface FolderItem {
+  type: "folder";
+  id: string;               // "folder-<timestamp>"
+  childIds: DashboardCardId[];
+  name?: string;
+}
+
+export type DashboardTile = WidgetItem | FolderItem;
+
+export function isFolderItem(tile: DashboardTile): tile is FolderItem {
+  return (tile as FolderItem).type === "folder";
 }
 
 /** Per-user dashboard layout, synced via user_settings.dashboard_layout. */
 export interface DashboardLayout {
   order: string[];
   hidden: string[];
-  /** New widget-tile format. When present, this is the source of truth. */
-  items?: WidgetItem[];
+  /** New format: source of truth when present. Can include FolderItems. */
+  items?: DashboardTile[];
 }
 
 export const EMPTY_DASHBOARD_LAYOUT: DashboardLayout = { order: [], hidden: [] };
 
 /** Sensible default size per widget. */
 export const DEFAULT_WIDGET_SIZES: Record<DashboardCardId, WidgetSize> = {
-  taskStats: "half",
-  activityRadar: "half",
-  categoryRadar: "half",
-  metrics: "half",
-  heatmap: "full",
-  dayScores: "full",
-  bestHabit: "half",
-  activityList: "full",
-  browse: "full",
+  taskStats:     "small",
+  activityRadar: "large",
+  categoryRadar: "large",
+  metrics:       "large",
+  heatmap:       "full",
+  dayScores:     "full",
+  bestHabit:     "small",
+  activityList:  "full",
+  browse:        "bar",
 };
 
 /** Default ordered tiles for a fresh dashboard. */
@@ -102,9 +127,9 @@ export const DEFAULT_WIDGET_ITEMS: WidgetItem[] = DASHBOARD_CARDS.map((id) => ({
 }));
 
 /**
- * Resolve the visible widget tiles from a layout, migrating legacy formats:
- *  - `items` present → use it (validated, hidden removed, new cards appended)
- *  - legacy `order[]` only → map to default sizes in saved order
+ * Resolve the visible widget tiles from a layout, migrating legacy formats.
+ * Returns only WidgetItems (folders are preserved as-is in the raw items array
+ * but are filtered from the resolved list used by most callers).
  */
 export function resolveWidgetItems(layout: DashboardLayout): WidgetItem[] {
   const validIds = new Set(DASHBOARD_CARDS as readonly string[]);
@@ -112,28 +137,65 @@ export function resolveWidgetItems(layout: DashboardLayout): WidgetItem[] {
 
   if (layout.items && layout.items.length > 0) {
     const seen = new Set<string>();
-    const valid = layout.items
-      .filter((w) => {
-        if (!validIds.has(w.id) || hidden.has(w.id) || seen.has(w.id)) return false;
-        seen.add(w.id);
-        return true;
-      })
-      .map((w) => ({ id: w.id, size: normalizeWidgetSize(w.size) }));
-    // Append any known cards missing from saved items (new features) unless hidden.
+    const valid: WidgetItem[] = [];
+
+    for (const tile of layout.items) {
+      if (isFolderItem(tile)) {
+        // Folder tiles are resolved elsewhere (FolderSheet); skip here.
+        tile.childIds.forEach((id) => seen.add(id));
+        continue;
+      }
+      if (!validIds.has(tile.id) || hidden.has(tile.id) || seen.has(tile.id)) continue;
+      seen.add(tile.id);
+      valid.push({ id: tile.id, size: normalizeWidgetSize(tile.size) });
+    }
+
     const missing = DASHBOARD_CARDS.filter((id) => !seen.has(id) && !hidden.has(id)).map(
-      (id) => ({ id, size: DEFAULT_WIDGET_SIZES[id] }),
+      (id): WidgetItem => ({ id, size: DEFAULT_WIDGET_SIZES[id] }),
     );
     return [...valid, ...missing];
   }
 
   // Legacy migration: order[] → sized tiles.
   const order = mergeCardOrder(layout.order, DASHBOARD_CARDS).filter((id) => !hidden.has(id));
-  return order.map((id) => ({ id, size: DEFAULT_WIDGET_SIZES[id] }));
+  return order.map((id): WidgetItem => ({ id, size: DEFAULT_WIDGET_SIZES[id] }));
 }
 
 /**
- * Merge a saved order with the canonical defaults: keep saved ids that still
- * exist (in saved order), append any new defaults, drop ids no longer defined.
+ * Resolve ALL tiles (WidgetItems + FolderItems) for the grid.
+ */
+export function resolveAllTiles(layout: DashboardLayout): DashboardTile[] {
+  const validIds = new Set(DASHBOARD_CARDS as readonly string[]);
+  const hidden = new Set(layout.hidden ?? []);
+
+  if (layout.items && layout.items.length > 0) {
+    const seen = new Set<string>();
+    const result: DashboardTile[] = [];
+
+    for (const tile of layout.items) {
+      if (isFolderItem(tile)) {
+        // Keep folder; mark its children as "seen" so they don't re-appear.
+        tile.childIds.forEach((id) => seen.add(id));
+        result.push(tile);
+        continue;
+      }
+      if (!validIds.has(tile.id) || hidden.has(tile.id) || seen.has(tile.id)) continue;
+      seen.add(tile.id);
+      result.push({ id: tile.id, size: normalizeWidgetSize(tile.size) });
+    }
+
+    const missing = DASHBOARD_CARDS.filter((id) => !seen.has(id) && !hidden.has(id)).map(
+      (id): WidgetItem => ({ id, size: DEFAULT_WIDGET_SIZES[id] }),
+    );
+    return [...result, ...missing];
+  }
+
+  const order = mergeCardOrder(layout.order, DASHBOARD_CARDS).filter((id) => !hidden.has(id));
+  return order.map((id): WidgetItem => ({ id, size: DEFAULT_WIDGET_SIZES[id] }));
+}
+
+/**
+ * Merge a saved order with the canonical defaults.
  */
 export function mergeCardOrder(
   saved: string[] | undefined,
@@ -147,4 +209,3 @@ export function mergeCardOrder(
   const append = missing.filter((id) => id !== "taskStats");
   return [...prepend, ...valid, ...append];
 }
-
