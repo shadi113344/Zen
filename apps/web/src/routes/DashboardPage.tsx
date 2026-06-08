@@ -134,7 +134,7 @@ export function DashboardPage() {
           const top = habitRows[0];
           return (
             <div className="widget-bar">
-              <span>Top: {top ? `${top.habit.name} ${Math.round(top.consistency * 100)}%` : "—"}</span>
+              <span>Top: {top ? `${top.habit.name} ${Math.round(top.consistency)}%` : "—"}</span>
             </div>
           );
         }
@@ -163,7 +163,7 @@ export function DashboardPage() {
           return (
             <div className="widget-bar">
               {top2.map((c) => (
-                <span key={c.label}>{c.label} {Math.round(c.value * 100)}%</span>
+                <span key={c.category}>{c.category} {Math.round(c.score)}%</span>
               )).reduce<ReactNode[]>((acc, el, i) => i === 0 ? [el] : [...acc, <span key={`sep-${i}`} className="widget-bar__sep">·</span>, el], [])}
             </div>
           );
@@ -181,7 +181,7 @@ export function DashboardPage() {
           const top = performanceRows[0];
           return (
             <div className="widget-bar">
-              <span>{top ? `${top.habit.name} ${Math.round(top.performance * 100)}%` : "No data"}</span>
+              <span>{top ? `${top.habit.name} ${Math.round(top.value)}%` : "No data"}</span>
             </div>
           );
         }
@@ -223,7 +223,7 @@ export function DashboardPage() {
       dayScores: (size) => {
         if (size === "bar") {
           const avg = dayScores.length
-            ? Math.round(dayScores.reduce((s, d) => s + d.score, 0) / dayScores.length * 100)
+            ? Math.round(dayScores.reduce((s, d) => s + d, 0) / dayScores.length)
             : 0;
           return (
             <div className="widget-bar">
@@ -245,14 +245,20 @@ export function DashboardPage() {
             </div>
           );
         }
+        // full / large: show top habits list
+        const topHabits = habitRows.slice(0, size === "full" ? 6 : 3);
         return (
           <section className="card page-section best-habit-card">
-            <h3 className="page-section__title">Best habit · {periodTitle}</h3>
-            <Link to={`/habit/${best.id}`} className="best-habit-card__link">
-              <span className="best-habit-card__dot" style={{ background: best.color ?? "var(--green)" }} />
-              <span className="best-habit-card__name">{best.name}</span>
-              <span className="best-habit-card__cat">{best.category}</span>
-            </Link>
+            <h3 className="page-section__title">Top habits · {periodTitle}</h3>
+            <div className="best-habit-card__list">
+              {topHabits.map(({ habit, consistency }) => (
+                <Link key={habit.id} to={`/habit/${habit.id}`} className="best-habit-card__row">
+                  <span className="best-habit-card__dot" style={{ background: habit.color ?? "var(--green)" }} />
+                  <span className="best-habit-card__name">{habit.name}</span>
+                  <span className="best-habit-card__pct">{Math.round(consistency)}%</span>
+                </Link>
+              ))}
+            </div>
           </section>
         );
       },
@@ -274,11 +280,22 @@ export function DashboardPage() {
         );
       },
 
-      browse: (_size) => (
-        <Link to="/categories" className="insights-browse card">
-          Browse by category →
-        </Link>
-      ),
+      browse: (size) => {
+        if (size === "bar" || size === "small") {
+          return (
+            <Link to="/categories" className="insights-browse card">
+              Browse by category →
+            </Link>
+          );
+        }
+        return (
+          <Link to="/categories" className="card page-section browse-card">
+            <h3 className="page-section__title">Browse by category</h3>
+            <p className="muted-text browse-card__hint">Explore all your habits organised by life area.</p>
+            <span className="browse-card__arrow">→</span>
+          </Link>
+        );
+      },
     }),
     [
       activeCount,

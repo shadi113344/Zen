@@ -5600,15 +5600,44 @@ body.reorder-active .insights-reorder-card {
   min-height: 44px;
 }
 
+.best-habit-card__list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.best-habit-card__row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: inherit;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line);
+}
+.best-habit-card__row:last-child { border-bottom: none; }
+
 .best-habit-card__dot {
-  width: 12px;
-  height: 12px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
+  flex-shrink: 0;
 }
 
 .best-habit-card__name {
+  flex: 1;
+  font-weight: 700;
+  font-size: 14px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.best-habit-card__pct {
+  font-size: 13px;
   font-weight: 800;
-  font-size: 17px;
+  color: var(--text);
 }
 
 .best-habit-card__cat {
@@ -5618,12 +5647,31 @@ body.reorder-active .insights-reorder-card {
 }
 
 .insights-browse {
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   text-decoration: none;
   color: var(--accent);
   font-weight: 800;
   text-align: center;
-  margin-top: 8px;
+  height: 100%;
+  min-height: 52px;
+  padding: 16px;
+}
+
+.browse-card {
+  display: flex;
+  flex-direction: column;
+  text-decoration: none;
+  color: inherit;
+  height: 100%;
+  gap: 8px;
+}
+.browse-card__hint { flex: 1; }
+.browse-card__arrow {
+  font-size: 28px;
+  color: var(--accent);
+  align-self: flex-end;
 }
 
 .heatmap__grid {
