@@ -7,3 +7,4 @@ dist/
 supabase/.temp/
 *.local
 .DS_Store
+apps/web/tsconfig.tsbuildinfo
