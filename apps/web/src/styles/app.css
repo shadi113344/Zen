@@ -199,25 +199,38 @@
     top: calc(var(--desktop-header-h, 88px) + 20px);
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 0;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    overflow: hidden;
   }
 
   .log-page__right-panel .hero-score {
     margin: 0;
+    border-radius: 0;
+    border: none;
+    border-bottom: 1px solid var(--line);
+    padding: 20px;
   }
 
-  /* ——— Dashboard two-column grid ——— */
-  .insights-reorder-stack {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 16px;
+  /* Date strip inside right panel: not sticky, just flows */
+  .log-page__right-panel .log-page__date-strip {
+    position: static !important;
+    top: auto !important;
+    z-index: auto !important;
+    background: transparent !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    box-shadow: none !important;
+    padding: 12px 16px;
+    margin: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
   }
 
-  .insights-reorder-card:has(.day-score-bars),
-  .insights-reorder-card:has(.heatmap),
-  .insights-reorder-card:has(.insights-metric-card),
-  .insights-reorder-card:has(.insights-browse) {
-    grid-column: 1 / -1;
+  .log-page__right-panel .log-page__date-strip::-webkit-scrollbar {
+    display: none;
   }
 
   /* ——— Desktop hover affordances ——— */
@@ -4703,6 +4716,22 @@ body.habit-menu-active .log-page__scroll {
   gap: 10px;
 }
 
+@media (min-width: 1024px) {
+  .insights-reorder-stack {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    align-items: start;
+  }
+
+  .insights-reorder-card:has(.day-score-bars),
+  .insights-reorder-card:has(.heatmap),
+  .insights-reorder-card:has(.insights-metric-card),
+  .insights-reorder-card:has(.insights-browse) {
+    grid-column: 1 / -1;
+  }
+}
+
 .screen-page__scroll > .insights-reorder-stack .page-section {
   margin-top: 0;
 }
@@ -7504,6 +7533,16 @@ body.reorder-active .insights-reorder-card {
     display: grid;
     grid-template-columns: repeat(2, minmax(280px, 1fr));
     gap: 0;
+  }
+
+  .log-page .habit-group__list > .habit-group__item:nth-child(odd) {
+    border-right: 1px solid color-mix(in srgb, var(--line-strong) 28%, transparent);
+  }
+
+  /* Remove bottom border on the last row's items so the group card bottom isn't doubled */
+  .log-page .habit-group__list > .habit-group__item:nth-last-child(-n+2):nth-child(odd),
+  .log-page .habit-group__list > .habit-group__item:last-child {
+    border-bottom: none;
   }
 }
 
