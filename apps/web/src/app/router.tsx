@@ -1,46 +1,82 @@
+import { lazy, Suspense } from "react";
 import { createBrowserRouter, Navigate, RouterProvider } from "react-router-dom";
 import { AppShell } from "@/components/AppShell";
 import { AuthPage } from "@/routes/AuthPage";
-import { CategoriesIndexPage } from "@/routes/CategoriesIndexPage";
-import { CategoriesLayout } from "@/routes/CategoriesLayout";
-import { CategoryDetailPage } from "@/routes/CategoryDetailPage";
-import { HabitDetailPage } from "@/routes/HabitDetailPage";
-import { DashboardPage } from "@/routes/DashboardPage";
 import { LogPage } from "@/routes/LogPage";
-import { RecapPage } from "@/routes/RecapPage";
-import {
-  NotificationsPage,
-  ProfileDataPage,
-  ProfileDisplayPage,
-  ProfilePage,
-} from "@/routes/ProfilePages";
-import { GoalDetailPage } from "@/routes/GoalDetailPage";
-import { GoalsPage } from "@/routes/GoalsPage";
-import { ProfileAccountPage } from "@/routes/ProfileAccountPage";
 import { ResetPasswordPage } from "@/routes/ResetPasswordPage";
-import { ProfileHapticsPage } from "@/routes/ProfileHapticsPage";
-import { ProfileThemePage } from "@/routes/ProfileThemePage";
 import { isDemoMode } from "@/lib/demo-data";
 import { supabaseConfigured } from "@/lib/supabase";
 import { useSession } from "@/hooks/useSession";
+
+// Heavy routes — loaded lazily so framer-motion, dnd-kit, lottie, html-to-image
+// stay out of the initial bundle.
+const DashboardPage = lazy(() =>
+  import("@/routes/DashboardPage").then((m) => ({ default: m.DashboardPage })),
+);
+const RecapPage = lazy(() =>
+  import("@/routes/RecapPage").then((m) => ({ default: m.RecapPage })),
+);
+const HabitDetailPage = lazy(() =>
+  import("@/routes/HabitDetailPage").then((m) => ({ default: m.HabitDetailPage })),
+);
+const CategoriesLayout = lazy(() =>
+  import("@/routes/CategoriesLayout").then((m) => ({ default: m.CategoriesLayout })),
+);
+const CategoriesIndexPage = lazy(() =>
+  import("@/routes/CategoriesIndexPage").then((m) => ({ default: m.CategoriesIndexPage })),
+);
+const CategoryDetailPage = lazy(() =>
+  import("@/routes/CategoryDetailPage").then((m) => ({ default: m.CategoryDetailPage })),
+);
+const GoalsPage = lazy(() =>
+  import("@/routes/GoalsPage").then((m) => ({ default: m.GoalsPage })),
+);
+const GoalDetailPage = lazy(() =>
+  import("@/routes/GoalDetailPage").then((m) => ({ default: m.GoalDetailPage })),
+);
+const ProfilePage = lazy(() =>
+  import("@/routes/ProfilePages").then((m) => ({ default: m.ProfilePage })),
+);
+const NotificationsPage = lazy(() =>
+  import("@/routes/ProfilePages").then((m) => ({ default: m.NotificationsPage })),
+);
+const ProfileDataPage = lazy(() =>
+  import("@/routes/ProfilePages").then((m) => ({ default: m.ProfileDataPage })),
+);
+const ProfileDisplayPage = lazy(() =>
+  import("@/routes/ProfilePages").then((m) => ({ default: m.ProfileDisplayPage })),
+);
+const ProfileAccountPage = lazy(() =>
+  import("@/routes/ProfileAccountPage").then((m) => ({ default: m.ProfileAccountPage })),
+);
+const ProfileHapticsPage = lazy(() =>
+  import("@/routes/ProfileHapticsPage").then((m) => ({ default: m.ProfileHapticsPage })),
+);
+const ProfileThemePage = lazy(() =>
+  import("@/routes/ProfileThemePage").then((m) => ({ default: m.ProfileThemePage })),
+);
+
+function PageFallback() {
+  return <div className="stub-page"><p>Loading…</p></div>;
+}
 
 function ProtectedLayout() {
   const { session, loading } = useSession();
 
   if (supabaseConfigured && !isDemoMode) {
     if (loading) {
-      return (
-        <div className="stub-page">
-          <p>Loading…</p>
-        </div>
-      );
+      return <PageFallback />;
     }
     if (!session) {
       return <Navigate to="/auth" replace />;
     }
   }
 
-  return <AppShell />;
+  return (
+    <Suspense fallback={<PageFallback />}>
+      <AppShell />
+    </Suspense>
+  );
 }
 
 export const router = createBrowserRouter([
