@@ -10,7 +10,7 @@ import {
   type DragEndEvent,
   type DragStartEvent,
 } from "@dnd-kit/core";
-import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import { SortableContext, rectSortingStrategy } from "@dnd-kit/sortable";
 import { SortableWidget } from "@/components/dashboard/SortableWidget";
 import type { WidgetItem, WidgetSize } from "@/lib/dashboard-cards";
 
@@ -61,7 +61,7 @@ export function WidgetGrid({ items, cards, editMode, onReorder, onRemove, onResi
       onDragEnd={handleDragEnd}
       onDragCancel={() => { setActiveId(null); setOverlaySize(null); }}
     >
-      <SortableContext items={ids} strategy={verticalListSortingStrategy}>
+      <SortableContext items={ids} strategy={rectSortingStrategy}>
         <div className={`widget-grid${editMode ? " widget-grid--edit" : ""}`}>
           {items.map((item) => {
             const content = cards[item.id];

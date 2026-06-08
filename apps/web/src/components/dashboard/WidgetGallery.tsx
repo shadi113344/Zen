@@ -87,7 +87,7 @@ export function WidgetGallery({ hiddenIds, onAdd, onClose }: WidgetGalleryProps)
                           onClick={() => setSizes((m) => ({ ...m, [id]: s }))}
                           title={WIDGET_SIZE_LABELS[s]}
                         >
-                          {s === "wide" ? "▭" : s.toUpperCase()}
+                          {s === "full" ? "▭" : "◧"}
                         </button>
                       ))}
                     </div>

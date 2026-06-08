@@ -1055,8 +1055,8 @@
     "semantic_hash": ""
   },
   "apps/web/src/lib/dashboard-cards.ts": {
-    "mtime": 1780936840.0330238,
-    "ast_hash": "b3eedef499c418f818f9ea13d47da3b9",
+    "mtime": 1780939871.664697,
+    "ast_hash": "a0119d96f65e2b436601eb22035ac753",
     "semantic_hash": ""
   },
   "apps/web/src/routes/DashboardPage.tsx": {

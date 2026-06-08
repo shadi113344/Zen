@@ -4704,53 +4704,54 @@ body.habit-menu-active .log-page__scroll {
 
 /* ——— Widget grid (iOS gallery + reflow) ——— */
 
+/* Two-column board. No dense flow → DOM order == visual order, so drag is
+   accurate; rows stretch so paired half-tiles share a height (no gaps). */
 .widget-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   grid-auto-rows: auto;
-  grid-auto-flow: row dense;
+  grid-auto-flow: row;
   gap: 14px;
-  align-items: start;
+  align-items: stretch;
 }
 
-@media (max-width: 1023px) {
-  .widget-grid { grid-template-columns: repeat(2, 1fr); }
-}
-
-/* Tile sizes — column span only; rows are auto-height so content always fits */
-.widget-cell--sm   { grid-column: span 1; }
-.widget-cell--md   { grid-column: span 2; }
-.widget-cell--lg   { grid-column: span 2; }
-.widget-cell--wide { grid-column: span 4; }
-
-@media (max-width: 1023px) {
-  .widget-cell--wide,
-  .widget-cell--lg { grid-column: span 2; }
-}
 @media (max-width: 639px) {
-  .widget-cell--md,
-  .widget-cell--lg,
-  .widget-cell--wide { grid-column: span 2; }
+  .widget-grid { grid-template-columns: 1fr; }
+}
+
+/* Two widths: half = one column, full = both columns */
+.widget-cell--half { grid-column: span 1; }
+.widget-cell--full { grid-column: span 2; }
+
+@media (max-width: 639px) {
+  .widget-cell--half,
+  .widget-cell--full { grid-column: span 1; }
 }
 
 .widget-cell {
   position: relative;
   min-width: 0;
+  display: flex;
   touch-action: manipulation;
 }
 
 .widget-cell__inner {
   position: relative;
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
   border-radius: var(--radius);
   animation: widget-pop 0.26s var(--ease-spring) both;
 }
 
-/* Cards fill the tile width; margins are owned by the grid gap */
+/* Cards fill the tile (stretch to row height); margins owned by the grid gap */
 .widget-cell__inner > .card,
 .widget-cell__inner > .page-section,
 .widget-cell__inner > section,
 .widget-cell__inner > a {
   margin: 0;
+  flex: 1;
 }
 
 @keyframes widget-pop {

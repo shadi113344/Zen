@@ -77,7 +77,7 @@ export function SortableWidget({ item, editMode, children, onRemove, onResize }:
                   title={WIDGET_SIZE_LABELS[s]}
                   aria-label={`Resize to ${WIDGET_SIZE_LABELS[s]}`}
                 >
-                  {s === "wide" ? "▭" : s.toUpperCase()}
+                  {s === "full" ? "▭" : "◧"}
                 </button>
               ))}
             </div>

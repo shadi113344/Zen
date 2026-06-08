@@ -35,19 +35,36 @@ export const DASHBOARD_CARD_LABELS: Record<DashboardCardId, string> = {
   browse: "Browse by life area",
 };
 
-// ——— Widget grid types (iOS gallery + reflow model) ———
+// ——— Widget grid types (2-column board model) ———
 
-/** Tile sizes. sm=1×1, md=2×1, lg=2×2, wide=full-row. */
-export type WidgetSize = "sm" | "md" | "lg" | "wide";
+/**
+ * Two clean widths only. On the 2-column desktop board: half = 1 column,
+ * full = both columns. Mobile collapses everything to full. Keeping widths
+ * to clean fractions is what makes drag accurate (DOM order == visual order,
+ * no dense backfill) and gap-free (halves always pair, fulls take a row).
+ */
+export type WidgetSize = "half" | "full";
 
 export const WIDGET_SIZE_LABELS: Record<WidgetSize, string> = {
-  sm: "Small",
-  md: "Medium",
-  lg: "Large",
-  wide: "Wide",
+  half: "Half",
+  full: "Full",
 };
 
-export const WIDGET_SIZE_ORDER: readonly WidgetSize[] = ["sm", "md", "lg", "wide"] as const;
+export const WIDGET_SIZE_ORDER: readonly WidgetSize[] = ["half", "full"] as const;
+
+/** Normalise any historic size value (sm/md/lg/wide) to the current model. */
+const SIZE_MIGRATION: Record<string, WidgetSize> = {
+  sm: "half",
+  md: "half",
+  lg: "full",
+  wide: "full",
+  half: "half",
+  full: "full",
+};
+
+export function normalizeWidgetSize(size: string): WidgetSize {
+  return SIZE_MIGRATION[size] ?? "half";
+}
 
 /** An ordered, sized widget tile. Layout is a dense flow grid — no x/y math. */
 export interface WidgetItem {
@@ -67,15 +84,15 @@ export const EMPTY_DASHBOARD_LAYOUT: DashboardLayout = { order: [], hidden: [] }
 
 /** Sensible default size per widget. */
 export const DEFAULT_WIDGET_SIZES: Record<DashboardCardId, WidgetSize> = {
-  taskStats: "md",
-  activityRadar: "lg",
-  categoryRadar: "lg",
-  metrics: "lg",
-  heatmap: "wide",
-  dayScores: "wide",
-  bestHabit: "sm",
-  activityList: "md",
-  browse: "md",
+  taskStats: "half",
+  activityRadar: "half",
+  categoryRadar: "half",
+  metrics: "half",
+  heatmap: "full",
+  dayScores: "full",
+  bestHabit: "half",
+  activityList: "full",
+  browse: "full",
 };
 
 /** Default ordered tiles for a fresh dashboard. */
@@ -95,11 +112,13 @@ export function resolveWidgetItems(layout: DashboardLayout): WidgetItem[] {
 
   if (layout.items && layout.items.length > 0) {
     const seen = new Set<string>();
-    const valid = layout.items.filter((w) => {
-      if (!validIds.has(w.id) || hidden.has(w.id) || seen.has(w.id)) return false;
-      seen.add(w.id);
-      return true;
-    });
+    const valid = layout.items
+      .filter((w) => {
+        if (!validIds.has(w.id) || hidden.has(w.id) || seen.has(w.id)) return false;
+        seen.add(w.id);
+        return true;
+      })
+      .map((w) => ({ id: w.id, size: normalizeWidgetSize(w.size) }));
     // Append any known cards missing from saved items (new features) unless hidden.
     const missing = DASHBOARD_CARDS.filter((id) => !seen.has(id) && !hidden.has(id)).map(
       (id) => ({ id, size: DEFAULT_WIDGET_SIZES[id] }),
