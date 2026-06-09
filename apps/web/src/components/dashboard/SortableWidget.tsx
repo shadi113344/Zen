@@ -1,7 +1,6 @@
 import type { ReactNode } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { motion } from "framer-motion";
 import {
   WIDGET_SIZE_LABELS,
   WIDGET_SIZE_ORDER,
@@ -21,11 +20,12 @@ interface SortableWidgetProps {
 /**
  * One dashboard tile.
  *
- * Drag split: dnd-kit provides gesture detection (setNodeRef, listeners,
- * isDragging). framer-motion layout provides position animation for all tiles
- * when the array order changes mid-drag. The two must not both apply a CSS
- * transform to non-active tiles — so we suppress useSortable's transform on
- * non-dragging tiles and let framer-motion FLIP them instead.
+ * Reflow is handled entirely by dnd-kit's useSortable transforms: when a tile
+ * is dragged, every other tile gets a CSS transform that slides it to its new
+ * slot, and dnd-kit smoothly transitions it. The dragged tile itself is hidden
+ * (opacity 0) while the DragOverlay renders the floating ghost. No framer-motion
+ * layout animation — a single reflow system avoids the flicker/jank that comes
+ * from two systems both moving the same element.
  */
 export function SortableWidget({
   item,
@@ -39,15 +39,13 @@ export function SortableWidget({
     id: item.id,
   });
 
-  // Only apply useSortable's CSS transform to the ACTIVE tile (which becomes
-  // invisible anyway — the DragOverlay is the visible ghost). Non-active tiles
-  // are animated by framer-motion layout alone so the two don't conflict.
-  const style: React.CSSProperties = isDragging
-    ? {
-        transform: CSS.Transform.toString(transform),
-        transition,
-      }
-    : {};
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    // The source tile is hidden while the overlay ghost is lifted.
+    opacity: isDragging ? 0 : 1,
+    zIndex: isDragging ? 2 : undefined,
+  };
 
   const sizeIcon: Record<WidgetSize, string> = {
     bar:   "━",
@@ -57,10 +55,7 @@ export function SortableWidget({
   };
 
   return (
-    <motion.div
-      layout="position"
-      layoutId={item.id}
-      initial={false}
+    <div
       ref={setNodeRef}
       style={style}
       className={[
@@ -74,7 +69,6 @@ export function SortableWidget({
       data-widget-id={item.id}
       {...attributes}
       {...listeners}
-      transition={{ type: "spring", stiffness: 400, damping: 35, mass: 0.6 }}
     >
       <div className="widget-cell__inner">
         {children}
@@ -110,6 +104,6 @@ export function SortableWidget({
           </>
         )}
       </div>
-    </motion.div>
+    </div>
   );
 }

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import {
   DndContext,
   DragOverlay,
@@ -8,11 +8,9 @@ import {
   useSensor,
   useSensors,
   type DragEndEvent,
-  type DragOverEvent,
   type DragStartEvent,
 } from "@dnd-kit/core";
 import { SortableContext, arrayMove, rectSortingStrategy } from "@dnd-kit/sortable";
-import { AnimatePresence } from "framer-motion";
 import { SortableWidget } from "@/components/dashboard/SortableWidget";
 import { isFolderItem, type DashboardTile, type FolderItem, type WidgetItem, type WidgetSize } from "@/lib/dashboard-cards";
 
@@ -39,23 +37,17 @@ export function WidgetGrid({
   onCreateFolder,
   renderFolder,
 }: WidgetGridProps) {
-  const [localItems, setLocalItems] = useState<WidgetItem[]>(items);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [overlaySize, setOverlaySize] = useState<{ width: number; height: number } | null>(null);
 
   const dragMovedRef = useRef(false);
-
-  useEffect(() => {
-    if (!activeId) setLocalItems(items);
-  }, [items, activeId]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
     useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 5 } }),
   );
 
-  const allIds = tiles.map((t) => t.id);
-  const activeItem = activeId ? localItems.find((w) => w.id === activeId) : null;
+  const activeItem = activeId ? items.find((w) => w.id === activeId) : null;
 
   function handleDragStart(e: DragStartEvent) {
     setActiveId(String(e.active.id));
@@ -64,89 +56,89 @@ export function WidgetGrid({
     if (rect) setOverlaySize({ width: rect.width, height: rect.height });
   }
 
-  function handleDragOver(e: DragOverEvent) {
-    const { active, over } = e;
-    if (!over || active.id === over.id) return;
-    dragMovedRef.current = true;
-    const from = localItems.findIndex((w) => w.id === active.id);
-    const to = localItems.findIndex((w) => w.id === over.id);
-    if (from >= 0 && to >= 0) {
-      setLocalItems((prev) => arrayMove(prev, from, to));
-    }
-  }
-
   function handleDragEnd(e: DragEndEvent) {
     const { active, over } = e;
-    const wasStationary = !dragMovedRef.current;
     setActiveId(null);
     setOverlaySize(null);
-    dragMovedRef.current = false;
 
     if (!over) return;
 
-    if (editMode && wasStationary && over.id !== active.id) {
+    if (active.id === over.id) {
+      // Dropped on itself without moving — in edit mode this could be a folder
+      // intent if released directly atop another tile, but closestCenter sets
+      // over === active when stationary, so nothing to do here.
+      return;
+    }
+
+    const from = items.findIndex((w) => w.id === active.id);
+    const to = items.findIndex((w) => w.id === over.id);
+    if (from < 0 || to < 0) return;
+
+    // A near-stationary drop directly onto another tile = folder intent.
+    if (editMode && !dragMovedRef.current) {
       onCreateFolder(String(active.id), String(over.id));
       return;
     }
 
-    onFinalOrder(localItems);
+    onFinalOrder(arrayMove(items, from, to));
   }
 
-  const localItemById = new Map(localItems.map((w) => [w.id, w]));
+  const renderOrder = items.map((w) => w.id);
+  const itemById = new Map(items.map((w) => [w.id, w]));
+  const folderById = new Map(
+    tiles.filter(isFolderItem).map((f) => [f.id, f] as const),
+  );
 
   return (
     <DndContext
       sensors={sensors}
       collisionDetection={closestCenter}
       onDragStart={handleDragStart}
-      onDragOver={handleDragOver}
+      onDragMove={() => { dragMovedRef.current = true; }}
       onDragEnd={handleDragEnd}
       onDragCancel={() => {
         setActiveId(null);
         setOverlaySize(null);
-        dragMovedRef.current = false;
-        setLocalItems(items);
       }}
     >
-      <SortableContext items={allIds} strategy={rectSortingStrategy}>
+      <SortableContext items={renderOrder} strategy={rectSortingStrategy}>
         <div className={`widget-grid${editMode ? " widget-grid--edit" : ""}`}>
-          <AnimatePresence mode="popLayout">
-            {tiles.map((tile) => {
-              if (isFolderItem(tile)) {
-                return (
-                  <SortableWidget
-                    key={tile.id}
-                    item={{ id: tile.id, size: "full" }}
-                    editMode={editMode}
-                    isActive={tile.id === activeId}
-                    onRemove={() => onRemove(tile.id)}
-                    onResize={() => {}}
-                  >
-                    {renderFolder(tile)}
-                  </SortableWidget>
-                );
-              }
-              const liveItem = localItemById.get(tile.id) ?? tile;
-              const renderCard = cards[tile.id];
-              if (!renderCard) return null;
+          {renderOrder.map((id) => {
+            const folder = folderById.get(id);
+            if (folder) {
               return (
                 <SortableWidget
-                  key={tile.id}
-                  item={liveItem}
+                  key={folder.id}
+                  item={{ id: folder.id, size: "full" }}
                   editMode={editMode}
-                  isActive={tile.id === activeId}
-                  onRemove={() => onRemove(tile.id)}
-                  onResize={(size) => onResize(tile.id, size)}
+                  isActive={folder.id === activeId}
+                  onRemove={() => onRemove(folder.id)}
+                  onResize={() => {}}
                 >
-                  {renderCard(liveItem.size)}
+                  {renderFolder(folder)}
                 </SortableWidget>
               );
-            })}
-          </AnimatePresence>
+            }
+            const liveItem = itemById.get(id);
+            const renderCard = cards[id];
+            if (!liveItem || !renderCard) return null;
+            return (
+              <SortableWidget
+                key={id}
+                item={liveItem}
+                editMode={editMode}
+                isActive={id === activeId}
+                onRemove={() => onRemove(id)}
+                onResize={(size) => onResize(id, size)}
+              >
+                {renderCard(liveItem.size)}
+              </SortableWidget>
+            );
+          })}
         </div>
       </SortableContext>
 
-      <DragOverlay dropAnimation={{ duration: 200, easing: "ease-out" }}>
+      <DragOverlay dropAnimation={{ duration: 200, easing: "cubic-bezier(0.18, 0.67, 0.6, 1.22)" }}>
         {activeItem && overlaySize ? (
           <div
             className="widget-overlay"

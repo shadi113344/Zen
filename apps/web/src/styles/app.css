@@ -4720,6 +4720,21 @@ body.habit-menu-active .log-page__scroll {
   grid-auto-flow: row dense;
   gap: 12px;
   align-items: stretch;
+  /* Long-press to drag must never trigger the native text/selection cursor. */
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+/* Force-disable selection across every descendant of a tile (cards, labels,
+   numbers) so a long-press anywhere on the grid starts a drag, never a
+   selection — on iOS especially. */
+.widget-grid,
+.widget-cell,
+.widget-cell * {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
 }
 
 /* Tablets and phones: always 2 columns (never 1) */
