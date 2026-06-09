@@ -4802,6 +4802,40 @@ body.habit-menu-active .log-page__scroll {
   flex: 1;
   min-height: 0;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* The last block inside a card (the chart / list body) grows to absorb the
+   leftover height, so content fills the tile instead of leaving dead space. */
+.widget-cell__inner > .card > :last-child,
+.widget-cell__inner > .page-section > :last-child,
+.widget-cell__inner > section > :last-child {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+/* Chart bodies stretch to fill the leftover space; their SVGs scale by
+   viewBox so resizing a tile rescales the chart instead of clipping it. */
+.widget-cell__inner .chart-chrome,
+.widget-cell__inner .radar-chart,
+.widget-cell__inner .score-line-chart {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.widget-cell__inner .radar-chart > svg,
+.widget-cell__inner .score-line-chart > svg,
+.widget-cell__inner .chart-chrome > svg {
+  width: auto;
+  max-width: 100%;
+  height: 100%;
+  max-height: 100%;
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
 @keyframes widget-pop {
@@ -4883,11 +4917,11 @@ body.habit-menu-active .log-page__scroll {
   box-shadow: var(--shadow-elevated);
 }
 
-/* Per-tile size cycle toggle — bottom-right corner, always visible.
+/* Per-tile size cycle toggle — top-right corner, always visible.
    Shows current size glyph; one tap cycles bar → small → large → full → bar. */
 .widget-cell__size-toggle {
   position: absolute;
-  bottom: 6px;
+  top: 6px;
   right: 6px;
   width: 26px;
   height: 26px;

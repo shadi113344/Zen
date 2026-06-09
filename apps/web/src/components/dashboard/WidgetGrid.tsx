@@ -100,6 +100,7 @@ export function WidgetGrid({
   const folderById = new Map(
     tiles.filter(isFolderItem).map((f) => [f.id, f] as const),
   );
+  const anyDragging = activeId !== null;
 
   return (
     <DndContext
@@ -124,6 +125,7 @@ export function WidgetGrid({
                   item={{ id: folder.id, size: "full" }}
                   editMode={editMode}
                   isActive={folder.id === activeId}
+                  anyDragging={anyDragging}
                   onRemove={() => onRemove(folder.id)}
                   onResize={() => {}}
                 >
@@ -140,6 +142,7 @@ export function WidgetGrid({
                 item={liveItem}
                 editMode={editMode}
                 isActive={id === activeId}
+                anyDragging={anyDragging}
                 onRemove={() => onRemove(id)}
                 onResize={(size) => onResize(id, size)}
               >

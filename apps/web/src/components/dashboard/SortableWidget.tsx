@@ -1,6 +1,7 @@
-import { useRef, type ReactNode } from "react";
+import { type ReactNode } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { motion } from "framer-motion";
 import {
   WIDGET_SIZE_LABELS,
   WIDGET_SIZE_ORDER,
@@ -12,6 +13,7 @@ interface SortableWidgetProps {
   item: WidgetItem;
   editMode: boolean;
   isActive: boolean;
+  anyDragging: boolean;
   children: ReactNode;
   onRemove: () => void;
   onResize: (size: WidgetSize) => void;
@@ -28,32 +30,37 @@ export function SortableWidget({
   item,
   editMode,
   isActive,
+  anyDragging,
   children,
   onRemove,
   onResize,
 }: SortableWidgetProps) {
-  const wrapRef = useRef<HTMLDivElement>(null);
   const { setNodeRef, attributes, listeners, transform, transition, isDragging } = useSortable({
     id: item.id,
   });
 
-  const style: React.CSSProperties = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0 : 1,
-    zIndex: isDragging ? 2 : undefined,
-  };
+  // While a drag is in progress, dnd-kit drives motion via a CSS translate
+  // (translate ONLY — never scale, so neighbours never stretch). When idle,
+  // we hand control to framer-motion `layout` so a size change animates
+  // smoothly. The two never run at once.
+  const style: React.CSSProperties = anyDragging
+    ? {
+        transform: CSS.Translate.toString(transform),
+        transition,
+        opacity: isDragging ? 0 : 1,
+        zIndex: isDragging ? 2 : undefined,
+      }
+    : {};
 
   // Cycle bar → small → large → full → bar on each tap.
   const sizeIndex = WIDGET_SIZE_ORDER.indexOf(item.size);
   const nextSize = WIDGET_SIZE_ORDER[(sizeIndex + 1) % WIDGET_SIZE_ORDER.length];
 
   return (
-    <div
-      ref={(el) => {
-        setNodeRef(el);
-        (wrapRef as React.MutableRefObject<HTMLDivElement | null>).current = el;
-      }}
+    <motion.div
+      layout={!anyDragging}
+      transition={{ type: "spring", stiffness: 420, damping: 38, mass: 0.7 }}
+      ref={setNodeRef}
       style={style}
       className={[
         "widget-cell",
@@ -70,7 +77,7 @@ export function SortableWidget({
       <div className="widget-cell__inner">
         {children}
 
-        {/* Size cycle badge — always visible so users discover it without entering edit mode */}
+        {/* Size cycle badge — top-right, always visible */}
         <button
           type="button"
           className="widget-cell__size-toggle"
@@ -94,6 +101,6 @@ export function SortableWidget({
           </button>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 }
