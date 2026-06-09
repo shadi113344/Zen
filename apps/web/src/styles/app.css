@@ -4796,21 +4796,24 @@ body.habit-menu-active .log-page__scroll {
   animation: widget-pop 0.26s var(--ease-spring) both;
 }
 
-/* Cards fill the tile exactly (no overflow, no scrollbars) */
+/* ——— Widget tile content fill ———
+   A definite-height flex chain runs from the tile down to each chart so the
+   chart fills the available space. Every link in the chain must be a flex
+   column with min-height:0; the leaf chart then resolves its 100% height. */
+
 .widget-cell__inner > .card,
 .widget-cell__inner > .page-section,
 .widget-cell__inner > section,
 .widget-cell__inner > a {
   margin: 0;
-  flex: 1;
+  flex: 1 1 auto;
   min-height: 0;
   overflow: hidden;
   display: flex;
   flex-direction: column;
 }
 
-/* The last block inside a card (the chart / list body) grows to absorb the
-   leftover height, so content fills the tile instead of leaving dead space. */
+/* The chart/list body (last block after the title) grows to absorb height. */
 .widget-cell__inner > .card > :last-child,
 .widget-cell__inner > .page-section > :last-child,
 .widget-cell__inner > section > :last-child {
@@ -4818,49 +4821,66 @@ body.habit-menu-active .log-page__scroll {
   min-height: 0;
 }
 
-/* ——— Widget tile content fill ———
-   Every chart/list body inside a tile grows to absorb the available height.
-   Hardcoded px sizes on chart primitives are overridden here so they scale
-   with the tile instead of clipping or leaving dead space. */
-
-/* ChartChrome wrapper must pass height down */
+/* ChartChrome wraps the chart; pass height through it and its inner wrapper. */
 .widget-cell__inner .chart-chrome {
   flex: 1 1 auto;
   min-height: 0;
   display: flex;
   flex-direction: column;
 }
-
-/* Radar: override the hardcoded width/height attrs on the <svg> element */
-.widget-cell__inner .radar-chart {
+.widget-cell__inner .chart-chrome > div:not(.chart-chrome__menu) {
   flex: 1 1 auto;
   min-height: 0;
   display: flex;
   flex-direction: column;
-  align-items: center;
+}
+
+/* Radar: scale the svg by its viewBox (square), centred, never distorted. */
+.widget-cell__inner .radar-chart {
+  flex: 1 1 auto;
+  min-height: 0;
   justify-content: center;
+  gap: 8px;
   overflow: hidden;
 }
 .widget-cell__inner .radar-chart > svg {
-  width: 100% !important;
-  height: 100% !important;
+  flex: 1 1 0;
+  min-height: 0;
+  width: auto;
+  height: auto;
   max-width: 100%;
-  min-height: 0;
+}
+.widget-cell__inner .radar-chart__legend {
+  flex: 0 0 auto;
 }
 
-/* Bar chart: grow to fill tile instead of staying at 120px */
+/* Bar chart: fill the tile height (definite via the flex chain above). */
 .widget-cell__inner .bar-chart {
-  height: auto !important;
-  flex: 1 1 auto;
+  height: 100%;
   min-height: 0;
 }
 
-/* Heatmap and other flex lists */
+/* Heatmap / metrics list fill and clip rather than overflow. */
 .widget-cell__inner .heatmap,
 .widget-cell__inner .habit-metrics-card {
   flex: 1 1 auto;
   min-height: 0;
   overflow: hidden;
+}
+
+/* ——— Per-size content: drop supplementary blocks when the tile is short ———
+   bar/small/large are ≤ 2 rows tall, so the chart alone needs the room. Hide
+   hints and legends there; full/max1/max2 are tall enough to show everything. */
+.widget-cell--bar   .radar-chart__legend,
+.widget-cell--small .radar-chart__legend,
+.widget-cell--large .radar-chart__legend,
+.widget-cell--bar   .insights-activities__hint,
+.widget-cell--small .insights-activities__hint,
+.widget-cell--large .insights-activities__hint,
+.widget-cell--bar   .heatmap__legend,
+.widget-cell--small .heatmap__legend,
+.widget-cell--large .heatmap__legend {
+  display: none;
 }
 
 @keyframes widget-pop {
@@ -4875,6 +4895,15 @@ body.habit-menu-active .log-page__scroll {
 
 .widget-cell { cursor: grab; }
 .widget-cell:active { cursor: grabbing; }
+
+/* Reserve space at the top-right so card titles never run under the size
+   toggle + chart-menu corner buttons. */
+.widget-cell__inner .page-section__title,
+.widget-cell__inner .task-stats-card__title,
+.widget-cell__inner .card > h3:first-child,
+.widget-cell__inner section > h3:first-child {
+  padding-right: 66px;
+}
 .widget-cell--edit .widget-cell__inner {
   animation: widget-wobble 0.42s ease-in-out infinite alternate;
 }
