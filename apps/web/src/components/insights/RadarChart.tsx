@@ -44,7 +44,7 @@ export function RadarChart({
   return (
     <ChartChrome onRemove={onRemove}>
     <div className="radar-chart">
-      <svg viewBox={`0 0 ${size} ${size}`} width={size} height={size} role="img" aria-label={ariaLabel}>
+      <svg viewBox={`0 0 ${size} ${size}`} role="img" aria-label={ariaLabel} style={{ width: "100%", height: "auto" }}>
         {gridLevels.map((level) => (
           <polygon
             key={level}

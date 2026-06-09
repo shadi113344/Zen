@@ -4898,8 +4898,17 @@ body.habit-menu-active .log-page__scroll {
 .widget-cell--large .insights-activities__hint,
 .widget-cell--bar   .heatmap__legend,
 .widget-cell--small .heatmap__legend,
-.widget-cell--large .heatmap__legend {
+.widget-cell--large .heatmap__legend,
+.widget-cell--full  .heatmap__legend,
+.widget-cell--max1  .heatmap__legend {
   display: none;
+}
+
+/* Heatmap grid in widget tiles: clip overflow, no scrollbar */
+.widget-cell__inner .heatmap__grid {
+  overflow: hidden;
+  flex-wrap: wrap;
+  align-content: flex-start;
 }
 
 @keyframes widget-pop {
@@ -4932,13 +4941,23 @@ body.habit-menu-active .log-page__scroll {
 
 /* Cards with a flex header (title + control on the same row) reserve the
    space on the header instead, and the title itself needs no extra pad. */
-.widget-cell__inner .insights-metric-card__head,
 .widget-cell__inner .task-stats-card__header {
   padding-right: 70px;
 }
-.widget-cell__inner .insights-metric-card__head .page-section__title,
 .widget-cell__inner .task-stats-card__header .task-stats-card__title {
   padding-right: 0;
+}
+
+/* Hide "Open today →" link in narrow 1-col tiles so the title has room */
+.widget-cell--small .task-stats-card__link,
+.widget-cell--full  .task-stats-card__link {
+  display: none;
+}
+
+/* Metrics card now has a 3rd absolute button (picker) at right:70px, so its
+   title needs to clear all three: chart-chrome(16) + toggle(44) + picker(70) */
+.widget-cell__inner .insights-metric-card .page-section__title {
+  padding-right: 96px;
 }
 .widget-cell--edit .widget-cell__inner {
   animation: widget-wobble 0.42s ease-in-out infinite alternate;
@@ -5222,7 +5241,7 @@ body.habit-menu-active .log-page__scroll {
 /* ——— Dashboard FAB ——— */
 .dashboard-fab {
   position: fixed;
-  bottom: 88px;
+  bottom: calc(var(--tab-h, 60px) + 16px + env(safe-area-inset-bottom, 0px));
   right: 20px;
   width: 52px;
   height: 52px;
@@ -5480,44 +5499,91 @@ body.reorder-active .insights-reorder-card {
   touch-action: none;
 }
 
-.insights-metric-card__head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 4px;
+/* Metric picker — compact circle button in the absolute button row */
+.insights-metric-card {
+  position: relative;
 }
 
-.insights-metric-card__title {
-  margin: 0;
-  flex: 1;
-  min-width: 0;
-}
-
-.insights-metric-card__picker {
-  flex-shrink: 0;
-}
-
-.insights-metric-card__picker select {
-  appearance: none;
+.metric-picker__trigger {
+  position: absolute;
+  top: 16px;
+  right: 70px;       /* 3rd slot: chrome=right:16, toggle=right:44, picker=right:70 */
+  z-index: 12;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border-radius: 50%;
   border: 1px solid var(--line-strong);
-  border-radius: var(--radius-pill);
-  background: var(--card-raised);
-  color: var(--text);
-  font-size: 12px;
-  font-weight: 700;
-  padding: 8px 28px 8px 12px;
-  min-height: 36px;
+  background: var(--card-solid);
+  box-shadow: var(--shadow-soft);
   cursor: pointer;
-  background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%),
-    linear-gradient(135deg, var(--muted) 50%, transparent 50%);
-  background-position:
-    calc(100% - 14px) calc(50% + 2px),
-    calc(100% - 9px) calc(50% + 2px);
-  background-size:
-    5px 5px,
-    5px 5px;
-  background-repeat: no-repeat;
+}
+
+.metric-picker__trigger::before {
+  content: "";
+  position: absolute;
+  inset: -10px;
+}
+
+.metric-picker__trigger::after {
+  content: "⌄";
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1;
+  padding-bottom: 2px;
+}
+
+@media (hover: hover) {
+  .metric-picker__trigger:hover {
+    border-color: var(--text);
+  }
+  .metric-picker__trigger:hover::after {
+    color: var(--text);
+  }
+}
+
+.metric-picker__trigger:active {
+  transform: scale(0.85);
+}
+
+.metric-picker__menu {
+  position: absolute;
+  top: 44px;
+  right: 44px;
+  z-index: 13;
+  min-width: 130px;
+  padding: 6px;
+  border-radius: 10px;
+  background: var(--card-solid);
+  border: 1px solid var(--line-strong);
+  box-shadow: var(--shadow-glass);
+}
+
+.metric-picker__item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 7px 10px;
+  font-size: 14px;
+  border-radius: 6px;
+  color: var(--text);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.metric-picker__item.is-active {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.metric-picker__item:active {
+  background: var(--card-raised);
 }
 
 .insights-activities {

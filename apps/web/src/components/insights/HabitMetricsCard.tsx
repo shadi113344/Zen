@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import type { HabitMetricBarRow } from "@/components/insights/HabitMetricBars";
 import { HabitMetricBars } from "@/components/insights/HabitMetricBars";
 
@@ -6,7 +6,7 @@ export type ActivityMetricView = "consistency" | "performance" | "streak";
 
 const METRIC_OPTIONS: { value: ActivityMetricView; label: string }[] = [
   { value: "consistency", label: "Consistency" },
-  { value: "performance", label: "Average score" },
+  { value: "performance", label: "Avg score" },
   { value: "streak", label: "Streaks" },
 ];
 
@@ -26,6 +26,17 @@ export function HabitMetricsCard({
   onRemoveChart,
 }: HabitMetricsCardProps) {
   const [metric, setMetric] = useState<ActivityMetricView>("consistency");
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onDoc = (e: MouseEvent) => {
+      if (!rootRef.current?.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("click", onDoc);
+    return () => document.removeEventListener("click", onDoc);
+  }, [open]);
 
   const hint =
     metric === "consistency"
@@ -41,20 +52,45 @@ export function HabitMetricsCard({
   const maxValue = metric === "streak" ? undefined : 100;
 
   return (
-    <section className="card page-section insights-metric-card">
-      <div className="insights-metric-card__head">
-        <h3 className="page-section__title insights-metric-card__title">Activity metrics · {periodTitle}</h3>
-        <label className="insights-metric-card__picker">
-          <span className="sr-only">Metric to display</span>
-          <select value={metric} onChange={(e) => setMetric(e.target.value as ActivityMetricView)}>
-            {METRIC_OPTIONS.map((o) => (
-              <option key={o.value} value={o.value}>
-                {o.label}
-              </option>
-            ))}
-          </select>
-        </label>
-      </div>
+    <section ref={rootRef} className="card page-section insights-metric-card">
+      <h3 className="page-section__title insights-metric-card__title">
+        Activity metrics · {periodTitle}
+      </h3>
+
+      {/* Compact metric-picker — sits in the absolute button row alongside
+          size-toggle (right:44px) and chart-chrome trigger (right:16px) */}
+      <button
+        type="button"
+        className="metric-picker__trigger"
+        aria-label="Switch metric"
+        aria-haspopup="menu"
+        aria-expanded={open}
+        onPointerDown={(e) => e.stopPropagation()}
+        onClick={(e) => {
+          e.stopPropagation();
+          setOpen((v) => !v);
+        }}
+      />
+      {open && (
+        <div className="metric-picker__menu" role="menu">
+          {METRIC_OPTIONS.map((o) => (
+            <button
+              key={o.value}
+              type="button"
+              role="menuitem"
+              className={`metric-picker__item${metric === o.value ? " is-active" : ""}`}
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={() => {
+                setMetric(o.value);
+                setOpen(false);
+              }}
+            >
+              {o.label}
+            </button>
+          ))}
+        </div>
+      )}
+
       <p className="muted-text insights-activities__hint">{hint}</p>
       <HabitMetricBars rows={rows} maxValue={maxValue} valueSuffix={suffix} onRemove={onRemoveChart} />
     </section>
