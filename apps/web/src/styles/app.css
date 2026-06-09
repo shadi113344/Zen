@@ -4718,10 +4718,12 @@ body.habit-menu-active .log-page__scroll {
   background: var(--card-raised);
 }
 
-.dashboard-toolbar__edit:hover,
-.dashboard-toolbar__add:hover {
-  background: var(--card-raised);
-  border-color: var(--line-strong);
+@media (hover: hover) {
+  .dashboard-toolbar__edit:hover,
+  .dashboard-toolbar__add:hover {
+    background: var(--card-raised);
+    border-color: var(--line-strong);
+  }
 }
 
 /* ——— Widget grid (iOS gallery + reflow) ——— */
@@ -5025,9 +5027,19 @@ body.habit-menu-active .log-page__scroll {
   line-height: 1;
   transition: color 0.15s ease, border-color 0.15s ease, transform 0.12s var(--ease-spring);
 }
-.widget-cell__size-toggle:hover {
-  color: var(--text);
-  border-color: var(--text);
+/* Expand the tap target ~10px in every direction without changing the visual
+   so the small circle is comfortable to hit on a phone. */
+.widget-cell__size-toggle::before {
+  content: "";
+  position: absolute;
+  inset: -10px;
+}
+/* Hover only on devices with a real pointer — never sticks after a touch tap. */
+@media (hover: hover) {
+  .widget-cell__size-toggle:hover {
+    color: var(--text);
+    border-color: var(--text);
+  }
 }
 .widget-cell__size-toggle:active {
   transform: scale(0.85);
@@ -5553,7 +5565,11 @@ body.reorder-active .insights-reorder-card {
   z-index: 2;
   transition: color 0.12s ease;
 }
-.habit-metric-bars__arrow:hover { color: var(--text); }
+@media (hover: hover) {
+  .habit-metric-bars__arrow:hover { color: var(--text); }
+}
+/* Bigger tap target for the scroll arrows on touch */
+.habit-metric-bars__arrow { min-height: 22px; }
 
 .habit-metric-bars__row {
   display: grid;
@@ -8353,6 +8369,13 @@ body.reorder-active .insights-reorder-card {
   box-shadow: var(--shadow-soft);
   cursor: pointer;
   padding: 0;
+}
+
+/* Comfortable tap target on touch without enlarging the dot visually. */
+.widget-cell__inner .chart-chrome__trigger::before {
+  content: "";
+  position: absolute;
+  inset: -10px -8px -10px -6px;
 }
 
 .chart-chrome__trigger::after {
