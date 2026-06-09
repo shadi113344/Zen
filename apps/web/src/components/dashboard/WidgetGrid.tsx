@@ -50,10 +50,22 @@ export function WidgetGrid({
   const activeItem = activeId ? items.find((w) => w.id === activeId) : null;
 
   function handleDragStart(e: DragStartEvent) {
-    setActiveId(String(e.active.id));
+    const id = String(e.active.id);
+    setActiveId(id);
     dragMovedRef.current = false;
-    const rect = e.active.rect.current.initial;
-    if (rect) setOverlaySize({ width: rect.width, height: rect.height });
+
+    // Prefer dnd-kit's measured rect, fall back to querying the DOM directly
+    // (dnd-kit's rect can be null on the first touch event on some browsers).
+    const dndRect = e.active.rect.current.initial;
+    if (dndRect) {
+      setOverlaySize({ width: dndRect.width, height: dndRect.height });
+    } else {
+      const el = document.querySelector<HTMLElement>(`[data-widget-id="${id}"]`);
+      if (el) {
+        const r = el.getBoundingClientRect();
+        setOverlaySize({ width: r.width, height: r.height });
+      }
+    }
   }
 
   function handleDragEnd(e: DragEndEvent) {

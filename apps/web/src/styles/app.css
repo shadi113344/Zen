@@ -4883,33 +4883,38 @@ body.habit-menu-active .log-page__scroll {
   box-shadow: var(--shadow-elevated);
 }
 
-/* Per-tile size cycle toggle — top-right corner, beside the menu/remove dot.
-   One tap advances bar → small → large → full → bar. */
+/* Per-tile size cycle toggle — bottom-right corner, always visible.
+   Shows current size glyph; one tap cycles bar → small → large → full → bar. */
 .widget-cell__size-toggle {
   position: absolute;
-  top: -7px;
-  right: -7px;
-  width: 22px;
-  height: 22px;
+  bottom: 6px;
+  right: 6px;
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
-  background: var(--active);
-  color: var(--active-fg);
-  border: 2px solid var(--bg);
+  background: color-mix(in srgb, var(--bg) 80%, transparent);
+  color: var(--muted);
+  border: 1.5px solid var(--line);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   z-index: 12;
-  box-shadow: var(--shadow-elevated);
-  transition: transform 0.12s var(--ease-spring);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  box-shadow: var(--shadow-soft);
+  transition: background 0.15s ease, color 0.15s ease, transform 0.12s var(--ease-spring);
+}
+.widget-cell__size-toggle:hover {
+  background: var(--active);
+  color: var(--active-fg);
+  border-color: transparent;
 }
 .widget-cell__size-toggle:active {
-  transform: scale(0.88);
-}
-.widget-cell__size-glyph {
-  font-size: 12px;
-  line-height: 1;
-  font-weight: 700;
+  transform: scale(0.85);
 }
 
 /* ——— Widget gallery (add sheet) ——— */
