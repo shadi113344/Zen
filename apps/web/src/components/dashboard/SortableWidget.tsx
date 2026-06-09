@@ -58,8 +58,9 @@ export function SortableWidget({
 
   return (
     <motion.div
-      layout
+      layout="position"
       layoutId={item.id}
+      initial={false}
       ref={setNodeRef}
       style={style}
       className={[
@@ -73,7 +74,7 @@ export function SortableWidget({
       data-widget-id={item.id}
       {...attributes}
       {...listeners}
-      transition={{ type: "spring", stiffness: 500, damping: 40, mass: 0.8 }}
+      transition={{ type: "spring", stiffness: 400, damping: 35, mass: 0.6 }}
     >
       <div className="widget-cell__inner">
         {children}
