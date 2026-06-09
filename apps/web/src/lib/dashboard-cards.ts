@@ -46,16 +46,18 @@ export const DASHBOARD_CARD_LABELS: Record<DashboardCardId, string> = {
  *  large → 1-col,            min-height 360px  (chart, no details)
  *  full  → 2-col,            min-height 360px  (chart + detail list)
  */
-export type WidgetSize = "bar" | "small" | "large" | "full";
+export type WidgetSize = "bar" | "small" | "large" | "full" | "max1" | "max2";
 
 export const WIDGET_SIZE_LABELS: Record<WidgetSize, string> = {
   bar:   "Bar",
   small: "Small",
   large: "Large",
   full:  "Full",
+  max1:  "Max",
+  max2:  "Max+",
 };
 
-export const WIDGET_SIZE_ORDER: readonly WidgetSize[] = ["bar", "small", "large", "full"] as const;
+export const WIDGET_SIZE_ORDER: readonly WidgetSize[] = ["bar", "small", "large", "full", "max1", "max2"] as const;
 
 /** Normalise any historic size value to the current model. */
 const SIZE_MIGRATION: Record<string, WidgetSize> = {
@@ -71,6 +73,8 @@ const SIZE_MIGRATION: Record<string, WidgetSize> = {
   small: "small",
   large: "large",
   full:  "full",
+  max1:  "max1",
+  max2:  "max2",
 };
 
 export function normalizeWidgetSize(size: string): WidgetSize {

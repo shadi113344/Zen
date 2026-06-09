@@ -32,6 +32,8 @@ const SIZE_ICON: Record<WidgetSize, string> = {
   small: "▪",
   large: "▬",
   full:  "▭",
+  max1:  "⬛",
+  max2:  "▮",
 };
 
 export function WidgetGallery({ hiddenIds, onAdd, onClose }: WidgetGalleryProps) {

@@ -4745,26 +4745,29 @@ body.habit-menu-active .log-page__scroll {
   .widget-grid { grid-auto-rows: 80px; gap: 10px; }
 }
 
-/* Size classes — four distinct shapes built from a 2-row base unit, so every
-   tile is a whole multiple of the square's height and dense packing leaves no
-   gaps:
-     bar   = wide strip      2 cols × 1 row   (numbers only)
-     small = square          1 col  × 2 rows  (compact card)
-     large = wide rectangle  2 cols × 2 rows  (chart, horizontal)
-     full  = long rectangle  1 col  × 4 rows  (double square height, vertical) */
+/* Size classes — all built from an 88px row unit so they pack without gaps.
+     bar   2 cols × 1 row   strip  (numbers only)
+     small 1 col  × 2 rows  square
+     large 2 cols × 2 rows  wide rectangle
+     full  1 col  × 4 rows  tall rectangle (double square)
+     max1  2 cols × 4 rows  big square (2 smalls wide, 2 smalls tall)
+     max2  2 cols × 6 rows  large portrait (2 wide, 3 smalls tall)   */
 .widget-cell--bar   { grid-column: span 2; grid-row: span 1; }
 .widget-cell--small { grid-column: span 1; grid-row: span 2; }
 .widget-cell--large { grid-column: span 2; grid-row: span 2; }
 .widget-cell--full  { grid-column: span 1; grid-row: span 4; }
+.widget-cell--max1  { grid-column: span 2; grid-row: span 4; }
+.widget-cell--max2  { grid-column: span 2; grid-row: span 6; }
 
-/* Legacy aliases kept for migrated layouts */
+/* Legacy alias */
 .widget-cell--half  { grid-column: span 1; grid-row: span 2; }
 
-/* Tablet (2-col): bar + large fill the row; small + full stay one column so
-   the long rectangle keeps its tall, narrow shape */
+/* Tablet (2-col): wide tiles span full width; narrow tiles stay 1 col */
 @media (max-width: 880px) {
-  .widget-cell--bar   { grid-column: 1 / -1; grid-row: span 1; }
-  .widget-cell--large { grid-column: 1 / -1; grid-row: span 2; }
+  .widget-cell--bar,
+  .widget-cell--large,
+  .widget-cell--max1,
+  .widget-cell--max2  { grid-column: 1 / -1; }
   .widget-cell--small,
   .widget-cell--full,
   .widget-cell--half  { grid-column: span 1; }
@@ -4815,27 +4818,49 @@ body.habit-menu-active .log-page__scroll {
   min-height: 0;
 }
 
-/* Chart bodies stretch to fill the leftover space; their SVGs scale by
-   viewBox so resizing a tile rescales the chart instead of clipping it. */
-.widget-cell__inner .chart-chrome,
-.widget-cell__inner .radar-chart,
-.widget-cell__inner .score-line-chart {
+/* ——— Widget tile content fill ———
+   Every chart/list body inside a tile grows to absorb the available height.
+   Hardcoded px sizes on chart primitives are overridden here so they scale
+   with the tile instead of clipping or leaving dead space. */
+
+/* ChartChrome wrapper must pass height down */
+.widget-cell__inner .chart-chrome {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Radar: override the hardcoded width/height attrs on the <svg> element */
+.widget-cell__inner .radar-chart {
   flex: 1 1 auto;
   min-height: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
 }
-.widget-cell__inner .radar-chart > svg,
-.widget-cell__inner .score-line-chart > svg,
-.widget-cell__inner .chart-chrome > svg {
-  width: auto;
+.widget-cell__inner .radar-chart > svg {
+  width: 100% !important;
+  height: 100% !important;
   max-width: 100%;
-  height: 100%;
-  max-height: 100%;
+  min-height: 0;
+}
+
+/* Bar chart: grow to fill tile instead of staying at 120px */
+.widget-cell__inner .bar-chart {
+  height: auto !important;
   flex: 1 1 auto;
   min-height: 0;
+}
+
+/* Heatmap and other flex lists */
+.widget-cell__inner .heatmap,
+.widget-cell__inner .habit-metrics-card {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
 }
 
 @keyframes widget-pop {
@@ -4917,12 +4942,13 @@ body.habit-menu-active .log-page__scroll {
   box-shadow: var(--shadow-elevated);
 }
 
-/* Per-tile size cycle toggle — top-right corner, always visible.
-   Shows current size glyph; one tap cycles bar → small → large → full → bar. */
+/* Per-tile size cycle toggle — top-right, but 36px left of the card edge so
+   it doesn't overlap the ChartChrome menu dot (which sits at right:16px
+   inside the card). */
 .widget-cell__size-toggle {
   position: absolute;
-  top: 6px;
-  right: 6px;
+  top: 8px;
+  right: 38px;
   width: 26px;
   height: 26px;
   border-radius: 50%;
