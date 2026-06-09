@@ -4914,12 +4914,23 @@ body.habit-menu-active .log-page__scroll {
 .widget-cell:active { cursor: grabbing; }
 
 /* Reserve space at the top-right so card titles never run under the size
-   toggle + chart-menu corner buttons. */
+   toggle + chart-menu corner buttons (the pair spans ~16–66px from the edge). */
 .widget-cell__inner .page-section__title,
 .widget-cell__inner .task-stats-card__title,
 .widget-cell__inner .card > h3:first-child,
 .widget-cell__inner section > h3:first-child {
   padding-right: 66px;
+}
+
+/* Cards with a flex header (title + control on the same row) reserve the
+   space on the header instead, and the title itself needs no extra pad. */
+.widget-cell__inner .insights-metric-card__head,
+.widget-cell__inner .task-stats-card__header {
+  padding-right: 70px;
+}
+.widget-cell__inner .insights-metric-card__head .page-section__title,
+.widget-cell__inner .task-stats-card__header .task-stats-card__title {
+  padding-right: 0;
 }
 .widget-cell--edit .widget-cell__inner {
   animation: widget-wobble 0.42s ease-in-out infinite alternate;
@@ -4988,35 +4999,35 @@ body.habit-menu-active .log-page__scroll {
   box-shadow: var(--shadow-elevated);
 }
 
-/* Per-tile size cycle toggle — sits immediately left of the ChartChrome dot.
-   Both are positioned at the same top so they form a tidy pair. */
+/* Per-tile size cycle toggle — visually identical to the ChartChrome dot
+   (same size, border, background, shadow, muted colour) and sits on the same
+   horizontal line, 6px to its left. The dot menu lives at top:16px right:16px
+   relative to the card, which fills the tile, so the same coords align here. */
 .widget-cell__size-toggle {
   position: absolute;
-  top: 10px;
-  right: 42px;
+  top: 16px;
+  right: 44px;
+  z-index: 12;
   width: 22px;
   height: 22px;
+  padding: 0;
   border-radius: 50%;
-  background: color-mix(in srgb, var(--bg) 80%, transparent);
-  color: var(--muted);
   border: 1px solid var(--line-strong);
+  background: var(--card-solid);
+  box-shadow: var(--shadow-soft);
+  color: var(--muted);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  z-index: 12;
-  font-size: 11px;
-  font-weight: 700;
+  font-size: 10px;
+  font-weight: 800;
   line-height: 1;
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-  box-shadow: var(--shadow-soft);
-  transition: background 0.15s ease, color 0.15s ease, transform 0.12s var(--ease-spring);
+  transition: color 0.15s ease, border-color 0.15s ease, transform 0.12s var(--ease-spring);
 }
 .widget-cell__size-toggle:hover {
-  background: var(--active);
-  color: var(--active-fg);
-  border-color: transparent;
+  color: var(--text);
+  border-color: var(--text);
 }
 .widget-cell__size-toggle:active {
   transform: scale(0.85);
