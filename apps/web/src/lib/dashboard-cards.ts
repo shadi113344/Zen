@@ -109,15 +109,15 @@ export const EMPTY_DASHBOARD_LAYOUT: DashboardLayout = { order: [], hidden: [] }
 
 /** Sensible default size per widget. */
 export const DEFAULT_WIDGET_SIZES: Record<DashboardCardId, WidgetSize> = {
-  taskStats:     "bar",   // strip at top — just numbers, no need for tall card
-  activityRadar: "full",
-  categoryRadar: "full",
-  metrics:       "full",
-  heatmap:       "full",
-  dayScores:     "full",
-  bestHabit:     "full",
-  activityList:  "full",
-  browse:        "full",  // paired with activityList to fill row with no gap
+  taskStats:     "small",
+  activityRadar: "large",
+  categoryRadar: "large",
+  metrics:       "large",
+  heatmap:       "large",
+  dayScores:     "large",
+  bestHabit:     "small",
+  activityList:  "large",
+  browse:        "bar",
 };
 
 /** Default ordered tiles for a fresh dashboard. */
