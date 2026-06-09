@@ -4745,26 +4745,29 @@ body.habit-menu-active .log-page__scroll {
   .widget-grid { grid-auto-rows: 80px; gap: 10px; }
 }
 
-/* Size classes — uniform col × row spans (no min-height; rows define height)
-   bar   = wide strip   (numbers only)
-   small = square       (compact card)
-   large = wide chart   (chart only)
-   full  = wide + tall  (chart + details) */
+/* Size classes — four distinct shapes built from a 2-row base unit, so every
+   tile is a whole multiple of the square's height and dense packing leaves no
+   gaps:
+     bar   = wide strip      2 cols × 1 row   (numbers only)
+     small = square          1 col  × 2 rows  (compact card)
+     large = wide rectangle  2 cols × 2 rows  (chart, horizontal)
+     full  = long rectangle  1 col  × 4 rows  (double square height, vertical) */
 .widget-cell--bar   { grid-column: span 2; grid-row: span 1; }
 .widget-cell--small { grid-column: span 1; grid-row: span 2; }
-.widget-cell--large { grid-column: span 2; grid-row: span 3; }
-.widget-cell--full  { grid-column: span 2; grid-row: span 4; }
+.widget-cell--large { grid-column: span 2; grid-row: span 2; }
+.widget-cell--full  { grid-column: span 1; grid-row: span 4; }
 
 /* Legacy aliases kept for migrated layouts */
 .widget-cell--half  { grid-column: span 1; grid-row: span 2; }
 
-/* Tablet (2-col): bar+large+full fill the row, small stays half */
+/* Tablet (2-col): bar + large fill the row; small + full stay one column so
+   the long rectangle keeps its tall, narrow shape */
 @media (max-width: 880px) {
   .widget-cell--bar   { grid-column: 1 / -1; grid-row: span 1; }
-  .widget-cell--large { grid-column: 1 / -1; grid-row: span 3; }
-  .widget-cell--full  { grid-column: 1 / -1; grid-row: span 4; }
+  .widget-cell--large { grid-column: 1 / -1; grid-row: span 2; }
   .widget-cell--small,
-  .widget-cell--half  { grid-column: span 1; grid-row: span 2; }
+  .widget-cell--full,
+  .widget-cell--half  { grid-column: span 1; }
 }
 
 .widget-cell {
@@ -4880,39 +4883,34 @@ body.habit-menu-active .log-page__scroll {
   box-shadow: var(--shadow-elevated);
 }
 
-/* Per-tile size pills */
-.widget-cell__sizes {
+/* Per-tile size cycle toggle — top-right corner, beside the menu/remove dot.
+   One tap advances bar → small → large → full → bar. */
+.widget-cell__size-toggle {
   position: absolute;
-  bottom: 6px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  gap: 3px;
-  padding: 3px;
-  border-radius: var(--radius-pill);
-  background: color-mix(in srgb, var(--bg) 82%, transparent);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid var(--line);
-  z-index: 12;
-  box-shadow: var(--shadow-soft);
-}
-.widget-cell__size {
-  min-width: 24px;
+  top: -7px;
+  right: -7px;
+  width: 22px;
   height: 22px;
-  padding: 0 6px;
-  border: none;
-  border-radius: var(--radius-pill);
-  background: transparent;
-  color: var(--muted);
-  font-size: 10px;
-  font-weight: 800;
-  cursor: pointer;
+  border-radius: 50%;
+  background: var(--active);
+  color: var(--active-fg);
+  border: 2px solid var(--bg);
   display: flex;
   align-items: center;
   justify-content: center;
+  cursor: pointer;
+  z-index: 12;
+  box-shadow: var(--shadow-elevated);
+  transition: transform 0.12s var(--ease-spring);
 }
-.widget-cell__size.is-active { background: var(--active); color: var(--active-fg); }
+.widget-cell__size-toggle:active {
+  transform: scale(0.88);
+}
+.widget-cell__size-glyph {
+  font-size: 12px;
+  line-height: 1;
+  font-weight: 700;
+}
 
 /* ——— Widget gallery (add sheet) ——— */
 

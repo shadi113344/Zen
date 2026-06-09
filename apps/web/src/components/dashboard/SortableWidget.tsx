@@ -7,7 +7,6 @@ import {
   type WidgetItem,
   type WidgetSize,
 } from "@/lib/dashboard-cards";
-
 interface SortableWidgetProps {
   item: WidgetItem;
   editMode: boolean;
@@ -49,10 +48,14 @@ export function SortableWidget({
 
   const sizeIcon: Record<WidgetSize, string> = {
     bar:   "━",
-    small: "▪",
-    large: "▬",
-    full:  "▭",
+    small: "◻",
+    large: "▭",
+    full:  "▯",
   };
+
+  // Cycle bar → small → large → full → bar on each tap of the size toggle.
+  const sizeIndex = WIDGET_SIZE_ORDER.indexOf(item.size);
+  const nextSize = WIDGET_SIZE_ORDER[(sizeIndex + 1) % WIDGET_SIZE_ORDER.length];
 
   return (
     <div
@@ -84,23 +87,16 @@ export function SortableWidget({
             >
               ×
             </button>
-            <div
-              className="widget-cell__sizes"
+            <button
+              type="button"
+              className="widget-cell__size-toggle"
               onPointerDown={(e) => e.stopPropagation()}
+              onClick={() => onResize(nextSize)}
+              title={`Size: ${WIDGET_SIZE_LABELS[item.size]} — tap for ${WIDGET_SIZE_LABELS[nextSize]}`}
+              aria-label={`Resize widget. Current size ${WIDGET_SIZE_LABELS[item.size]}, tap for ${WIDGET_SIZE_LABELS[nextSize]}`}
             >
-              {WIDGET_SIZE_ORDER.map((s) => (
-                <button
-                  key={s}
-                  type="button"
-                  className={`widget-cell__size${s === item.size ? " is-active" : ""}`}
-                  onClick={() => onResize(s)}
-                  title={WIDGET_SIZE_LABELS[s]}
-                  aria-label={`Resize to ${WIDGET_SIZE_LABELS[s]}`}
-                >
-                  {sizeIcon[s]}
-                </button>
-              ))}
-            </div>
+              <span className="widget-cell__size-glyph">{sizeIcon[item.size]}</span>
+            </button>
           </>
         )}
       </div>
