@@ -650,8 +650,8 @@
 .stat-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
-  margin-top: 16px;
+  gap: 8px;
+  margin-top: 8px;
 }
 
 @media (min-width: 640px) {
@@ -3133,7 +3133,24 @@ body.reorder-active .task-lane__item:not(.task-lane__item--dragging) {
 }
 
 .task-stats-card__grid {
-  margin-top: 8px;
+  margin-top: 6px;
+}
+
+/* In a small widget tile both stat tiles must fit without wrapping or
+   clipping: reset the stat-tile's padding and value font so they compress. */
+.widget-cell .task-stats-card__grid .stat-tile {
+  padding: 8px 10px;
+}
+.widget-cell .task-stats-card__grid .stat-tile__value {
+  font-size: 18px;
+  margin-top: 2px;
+}
+.widget-cell .task-stats-card__grid .stat-tile__label {
+  font-size: 10px;
+}
+/* Force 2-col layout at every viewport so both tiles show side by side */
+.widget-cell .task-stats-card__grid {
+  grid-template-columns: repeat(2, 1fr);
 }
 
 .habit-card__comeback {
@@ -4971,25 +4988,24 @@ body.habit-menu-active .log-page__scroll {
   box-shadow: var(--shadow-elevated);
 }
 
-/* Per-tile size cycle toggle — top-right, but 36px left of the card edge so
-   it doesn't overlap the ChartChrome menu dot (which sits at right:16px
-   inside the card). */
+/* Per-tile size cycle toggle — sits immediately left of the ChartChrome dot.
+   Both are positioned at the same top so they form a tidy pair. */
 .widget-cell__size-toggle {
   position: absolute;
-  top: 8px;
-  right: 38px;
-  width: 26px;
-  height: 26px;
+  top: 10px;
+  right: 42px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
   background: color-mix(in srgb, var(--bg) 80%, transparent);
   color: var(--muted);
-  border: 1.5px solid var(--line);
+  border: 1px solid var(--line-strong);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   z-index: 12;
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 700;
   line-height: 1;
   backdrop-filter: blur(6px);
@@ -5486,14 +5502,47 @@ body.reorder-active .insights-reorder-card {
   margin: 0 0 14px;
 }
 
+/* Wrapper positions the arrow buttons above/below the scroll area */
+.habit-metric-bars__wrap {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
 .habit-metric-bars {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  max-height: 320px;
-  overflow-y: auto;
-  padding-right: 2px;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: scroll;   /* always scroll, never shows bar */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
+.habit-metric-bars::-webkit-scrollbar { display: none; }
+
+/* Up / down arrow nudge buttons */
+.habit-metric-bars__arrow {
+  flex: 0 0 auto;
+  width: 100%;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, var(--bg) 75%, transparent);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--muted);
+  font-size: 9px;
+  cursor: pointer;
+  z-index: 2;
+  transition: color 0.12s ease;
+}
+.habit-metric-bars__arrow:hover { color: var(--text); }
 
 .habit-metric-bars__row {
   display: grid;

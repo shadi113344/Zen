@@ -18,6 +18,7 @@ import {
   todayKey,
   visibleStreak,
 } from "@mottazen/core";
+import { ChartChrome } from "@/components/charts/ChartChrome";
 import { DayScoreBars } from "@/components/insights/DayScoreBars";
 import { HabitInsightsList } from "@/components/insights/HabitInsightsList";
 import { HabitMetricsCard } from "@/components/insights/HabitMetricsCard";
@@ -273,9 +274,11 @@ export function DashboardPage() {
           );
         }
         return (
-          <section className="page-section">
+          <section className="card page-section">
             <h3 className="page-section__title">All activities · {periodTitle}</h3>
-            <HabitInsightsList rows={habitRows} />
+            <ChartChrome onRemove={() => hide("activityList")}>
+              <HabitInsightsList rows={habitRows} />
+            </ChartChrome>
           </section>
         );
       },
