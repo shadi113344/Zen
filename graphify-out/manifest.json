@@ -290,13 +290,13 @@
     "semantic_hash": ""
   },
   "apps/web/src/components/insights/HabitMetricBars.tsx": {
-    "mtime": 1780651416.278276,
-    "ast_hash": "da91b49e2bf1099fc0f1a2b3638811d7",
+    "mtime": 1781134987.6628819,
+    "ast_hash": "e91a8f9e705855fbb21d4a7edad4dad1",
     "semantic_hash": ""
   },
   "apps/web/src/components/insights/HabitMetricsCard.tsx": {
-    "mtime": 1780651416.2272065,
-    "ast_hash": "020d6d4218fa18ad3760c7288d64fbae",
+    "mtime": 1781134987.6658945,
+    "ast_hash": "20268844c21b13f404a411b35d288021",
     "semantic_hash": ""
   },
   "apps/web/src/components/insights/HeatmapGrid.tsx": {
@@ -315,8 +315,8 @@
     "semantic_hash": ""
   },
   "apps/web/src/components/insights/RadarChart.tsx": {
-    "mtime": 1780943046.7521207,
-    "ast_hash": "0ea0e1e2ba8a6f8c8b76309d75f65a14",
+    "mtime": 1781134987.6679413,
+    "ast_hash": "94788d54206b7bc846938bb3632b79ee",
     "semantic_hash": ""
   },
   "apps/web/src/components/log/AddHabitModal.tsx": {
@@ -375,8 +375,8 @@
     "semantic_hash": ""
   },
   "apps/web/src/components/log/HabitRowMenu.tsx": {
-    "mtime": 1781134894.486329,
-    "ast_hash": "1dd2b86065fac7ab109c7d5d0237e20f",
+    "mtime": 1781135210.8937178,
+    "ast_hash": "cda2fe17c1d52b5e2473749c769fe242",
     "semantic_hash": ""
   },
   "apps/web/src/components/log/HabitSwipeRow.tsx": {
@@ -1055,13 +1055,13 @@
     "semantic_hash": ""
   },
   "apps/web/src/lib/dashboard-cards.ts": {
-    "mtime": 1780943051.4681764,
-    "ast_hash": "87700d93ee00224f1883f0da708ddcda",
+    "mtime": 1781134987.6702306,
+    "ast_hash": "9fec3cb271b6a27eb927ea5a40fa21b4",
     "semantic_hash": ""
   },
   "apps/web/src/routes/DashboardPage.tsx": {
-    "mtime": 1780943051.4681764,
-    "ast_hash": "bd18f51dad0e33b1e9991ec870ee5b0c",
+    "mtime": 1781134987.6713457,
+    "ast_hash": "4ff7a823ec9eb946c36b118233526838",
     "semantic_hash": ""
   },
   "supabase/migrations/0008_dashboard_layout.sql": {
@@ -1225,8 +1225,8 @@
     "semantic_hash": ""
   },
   "apps/web/src/components/dashboard/SortableWidget.tsx": {
-    "mtime": 1780943051.4681764,
-    "ast_hash": "81884d570994830e690da57809e49e1d",
+    "mtime": 1781134987.6593645,
+    "ast_hash": "8b3e1a60f97eb01fe2dc5516b405a6fe",
     "semantic_hash": ""
   },
   "apps/web/src/components/dashboard/WidgetFolderTile.tsx": {
@@ -1235,13 +1235,13 @@
     "semantic_hash": ""
   },
   "apps/web/src/components/dashboard/WidgetGallery.tsx": {
-    "mtime": 1780943051.4681764,
-    "ast_hash": "203b09caaf8c2b9b9004c76ad78450bd",
+    "mtime": 1781134987.6603625,
+    "ast_hash": "7c986e9e2fb72f0a631bdb67b4abe9b5",
     "semantic_hash": ""
   },
   "apps/web/src/components/dashboard/WidgetGrid.tsx": {
-    "mtime": 1780943051.4681764,
-    "ast_hash": "f3e0af100da5bf1cd986590688219dc1",
+    "mtime": 1781134987.6603625,
+    "ast_hash": "90d79b5881067284ba67e242c0091267",
     "semantic_hash": ""
   },
   "apps/web/src/hooks/useWidgetGrid.ts": {

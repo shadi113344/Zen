@@ -1,16 +1,16 @@
 # Graph Report - zen  (2026-06-11)
 
 ## Corpus Check
-- 236 files · ~106,590 words
+- 236 files · ~107,000 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 1699 nodes · 3627 edges · 112 communities (105 shown, 7 thin omitted)
+- 1700 nodes · 3630 edges · 109 communities (102 shown, 7 thin omitted)
 - Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 21 edges (avg confidence: 0.89)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `d4f36636`
+- Built from commit: `b189a760`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -118,12 +118,9 @@
 - [[_COMMUNITY_Community 102|Community 102]]
 - [[_COMMUNITY_Community 103|Community 103]]
 - [[_COMMUNITY_Community 104|Community 104]]
-- [[_COMMUNITY_Community 105|Community 105]]
-- [[_COMMUNITY_Community 106|Community 106]]
 - [[_COMMUNITY_Community 107|Community 107]]
 - [[_COMMUNITY_Community 108|Community 108]]
 - [[_COMMUNITY_Community 109|Community 109]]
-- [[_COMMUNITY_Community 110|Community 110]]
 - [[_COMMUNITY_Community 111|Community 111]]
 
 ## God Nodes (most connected - your core abstractions)
@@ -160,59 +157,59 @@
 - **Mottazen Brand Identity** — logo_mottazen_logo_dark_bg, logo_mottazen_logo_ligh_bg, public_logo, public_logo_dark, public_logo_light [INFERRED 0.85]
 - **App Icon Asset (size and format variants)** — public_icon_png, public_icon_192, public_icon_512, public_icon_svg [INFERRED 0.85]
 
-## Communities (112 total, 7 thin omitted)
+## Communities (109 total, 7 thin omitted)
 
 ### Community 0 - "Core Data & State"
-Cohesion: 0.16
-Nodes (27): ActivityCalendarProps, HabitBreakdownListProps, GoalDetailCardProps, HabitDetailChartsProps, HabitMonthCalendarProps, DataContextValue, DashboardLayout, buildExportBundle() (+19 more)
+Cohesion: 0.17
+Nodes (21): DataContextValue, DashboardLayout, buildExportBundle(), ExportBundle, parseImportJson(), legacyExportToBundle(), parseImportFile(), clearLocalSnapshot() (+13 more)
 
 ### Community 1 - "Category Scoring"
-Cohesion: 0.14
-Nodes (26): toWeightItems(), CategoryDetailPage(), activeHabitCount(), activityLevel(), bestDayInRange(), categoryScore(), categoryScoreBreakdown, CategoryScoreComponent (+18 more)
+Cohesion: 0.05
+Nodes (76): CategoryWeightsSectionProps, toWeightItems(), ActivityCalendar(), HabitBreakdownList(), HabitSort, SegmentedControl(), SegmentedControlProps, WeightEditor() (+68 more)
 
 ### Community 2 - "Insights & Analytics"
-Cohesion: 0.08
-Nodes (33): Modal(), ModalProps, TaskStatsCard(), TaskStatsCardProps, useTasks(), DragCtx, Slot, usePointerReorder() (+25 more)
+Cohesion: 0.11
+Nodes (21): useCategoryOrder(), DisplayContext, DisplayPrefs, DisplayProvider(), readBool(), readDensity(), useDisplayPrefs(), DragCtx (+13 more)
 
 ### Community 3 - "Project Docs & Specs"
 Cohesion: 0.14
-Nodes (19): Cron Reminders Workflow, Deploy Workflow (Cloudflare), Zen App Logic, Routing, Service worker & PWA, GitHub Actions Secrets, GitHub Setup Guide, Cloudflare Deploy & Custom Domain (+11 more)
+Nodes (21): Cron Reminders Workflow, send-reminders Edge Function, Deploy Workflow (Cloudflare), Zen App Logic, Routing, GitHub Actions Secrets, GitHub Setup Guide, Cloudflare Deploy & Custom Domain (+13 more)
 
 ### Community 4 - "Goals Logic"
-Cohesion: 0.14
-Nodes (35): addDaysLocal(), categoryGroupScoreNumeric(), countHabitDaysInPeriod(), countHabitDaysInWeek(), cumulativeTotalForHabit(), datesFromTo(), daysBetween(), formatAmount() (+27 more)
+Cohesion: 0.09
+Nodes (47): addDaysLocal(), categoryGroupScoreNumeric(), countHabitDaysInPeriod(), countHabitDaysInWeek(), cumulativeTotalForHabit(), datesFromTo(), daysBetween(), formatAmount() (+39 more)
 
 ### Community 5 - "Theming & Colors"
-Cohesion: 0.08
-Nodes (46): systemTheme(), ThemeContext, ThemeContextValue, ThemeProvider(), ACCENT_PASTEL, ACCENT_PRESETS, accentLabel(), accentLuminance() (+38 more)
+Cohesion: 0.07
+Nodes (49): systemTheme(), ThemeContext, ThemeContextValue, ThemeMode, ThemeProvider(), ACCENT_PASTEL, ACCENT_PRESETS, accentLabel() (+41 more)
 
 ### Community 6 - "App Shell & Date Nav"
-Cohesion: 0.13
-Nodes (21): CategoryWeightsSection(), CategoryWeightsSectionProps, LogDateChrome(), PageDateChrome(), WeekDateStrip(), WeekDateStripProps, AppDateContext, AppDateContextValue (+13 more)
+Cohesion: 0.07
+Nodes (36): CategoryGoalsSection(), CategoryGoalsSectionProps, AppShell(), ShellContent(), LogDateChrome(), PageDateChrome(), ScreenPageBody(), ScreenPageTop() (+28 more)
 
 ### Community 7 - "Habit & Goal Forms"
-Cohesion: 0.14
-Nodes (15): FabButton(), FabButtonProps, FormNumericStepper(), FormNumericStepperProps, NumericInput(), NumericInputProps, EditHabitModalProps, PROGRESS_SCORING_STREAK_HINT (+7 more)
+Cohesion: 0.28
+Nodes (12): useDashboardCardOrder(), useWidgetGrid(), DASHBOARD_CARDS, DEFAULT_WIDGET_ITEMS, DEFAULT_WIDGET_SIZES, isFolderItem(), mergeCardOrder(), normalizeWidgetSize() (+4 more)
 
 ### Community 8 - "Mood & Emoji UI"
-Cohesion: 0.07
-Nodes (32): AnimatedEmoji(), AnimatedEmojiProps, usePrefersReducedMotion(), useDayMood(), useDayNotes(), PressMenuOption, usePressRadialMenu(), DAY_MOOD_OPTIONS (+24 more)
+Cohesion: 0.05
+Nodes (54): AnimatedEmoji(), AnimatedEmojiProps, usePrefersReducedMotion(), Modal(), ModalProps, TaskStatsCard(), TaskStatsCardProps, useDayMood() (+46 more)
 
 ### Community 9 - "Profile & Haptics"
-Cohesion: 0.11
-Nodes (26): GlassSelect(), GlassSelectOption, GlassSelectProps, useNotifications(), ThemeMode, coachNotify(), defaultTimezone(), getNotifyPermission() (+18 more)
+Cohesion: 0.14
+Nodes (22): useNotifications(), coachNotify(), defaultTimezone(), getNotifyPermission(), isIOS(), isStandalonePWA(), NotifyPermission, requestNotifyPermission() (+14 more)
 
 ### Community 10 - "Charts & Visualization"
-Cohesion: 0.09
-Nodes (26): CategoryHero(), CategoryHeroProps, StatTile, clampPct(), gradIdSafe(), ScoreRing(), ScoreRingProps, celebrateConfetti() (+18 more)
+Cohesion: 0.07
+Nodes (27): AppProviders(), AppRouter(), ErrorBoundary, Props, State, ToastContext, ToastContextValue, ToastProvider() (+19 more)
 
 ### Community 11 - "Habit Cards & Logging UI"
 Cohesion: 0.15
-Nodes (25): weekAverage(), buildRecap(), dayDiff(), RecapStat, WEEKDAY_LABELS, logValueForHabit(), ComebackResult, currentStreak() (+17 more)
+Nodes (23): buildRecap(), dayDiff(), RecapStat, read, scenario(), WEEKDAY_LABELS, addDays(), ComebackResult (+15 more)
 
 ### Community 12 - "Streak Calculation"
-Cohesion: 0.14
-Nodes (17): HeatmapGrid(), HeatmapGridProps, uniqueCategories(), ActivityCellLevel, bestHabitByConsistency(), categoryHabitExtremes(), dayActivityLevel(), habitActivityLevel() (+9 more)
+Cohesion: 0.40
+Nodes (4): HeatmapGrid(), HeatmapGridProps, ActivityCellLevel, HeatmapDayCell
 
 ### Community 13 - "Web App Dependencies"
 Cohesion: 0.07
@@ -235,20 +232,20 @@ Cohesion: 0.06
 Nodes (30): CUT / DUMP (do not build), Definition of Done (every item), G1 — Comeback celebration, G2 — Milestone share cards, G3 — Year/Month in Habits ("Wrapped" recap)  ← top growth lever, G4 — Streak gardens, G5 — Identity mode, How to use this file (+22 more)
 
 ### Community 18 - "Community 18"
-Cohesion: 0.07
-Nodes (38): AppProviders(), AppRouter(), ErrorBoundary, Props, State, DisplayContext, DisplayPrefs, DisplayProvider() (+30 more)
+Cohesion: 0.17
+Nodes (18): HapticSettingsContext, HapticSettingsCtx, HapticSettingsProvider(), persist(), COMPLETION_PATTERN, hapticGoalComplete(), HapticOptions, hapticProgressBump() (+10 more)
 
 ### Community 19 - "Goals Page & Toasts"
 Cohesion: 0.07
 Nodes (26): Auth & data, Categories (`/categories`, `/categories/:slug`), Extra features (beyond rebuild phase docs), Feature inventory (by area), Gaps & known issues, Goals (`/goals`), Habit detail (`/habit/:id`), Insights (`/insights`) (+18 more)
 
 ### Community 20 - "Notification Settings"
-Cohesion: 0.15
-Nodes (25): SortableWidget(), SortableWidgetProps, SIZE_ICON, WIDGET_ICONS, WidgetGallery(), WidgetGalleryProps, WidgetGrid(), WidgetGridProps (+17 more)
+Cohesion: 0.18
+Nodes (16): SIZE_ICON, SortableWidget(), SortableWidgetProps, SIZE_ICON, WIDGET_ICONS, WidgetGallery(), WidgetGalleryProps, WidgetGrid() (+8 more)
 
 ### Community 21 - "App Providers & Bootstrap"
-Cohesion: 0.18
-Nodes (22): AddCategoryModal(), AddCategoryModalProps, CategorySwitcher(), CategoryRow(), CategoryRowProps, sparklineToPolyline(), useCategoryColors(), useCategoryWeights() (+14 more)
+Cohesion: 0.07
+Nodes (53): AddCategoryModal(), AddCategoryModalProps, CategorySwitcher(), CategoryWeightsSection(), CategoryRow(), CategoryRowProps, sparklineToPolyline(), EmptyState() (+45 more)
 
 ### Community 22 - "Root Build Scripts"
 Cohesion: 0.12
@@ -267,8 +264,8 @@ Cohesion: 0.14
 Nodes (13): devDependencies, typescript, vitest, exports, main, name, private, scripts (+5 more)
 
 ### Community 26 - "Display Density Settings"
-Cohesion: 0.38
-Nodes (3): useCategoryOrder(), sortHabitsByOrder(), HabitListGroupedProps
+Cohesion: 0.33
+Nodes (10): ActivityCalendarProps, HabitBreakdownListProps, GoalDetailCardProps, HabitDetailChartsProps, HabitMonthCalendarProps, CategoryChipsRowProps, HeroScoreProps, ReminderCheckInput (+2 more)
 
 ### Community 27 - "Legacy v1 Data Migration"
 Cohesion: 0.17
@@ -315,8 +312,8 @@ Cohesion: 0.25
 Nodes (7): background_color, display, icons, name, short_name, start_url, theme_color
 
 ### Community 38 - "Error Boundary"
-Cohesion: 0.19
-Nodes (16): DataContext, DataProvider(), useDebouncedEffect(), ensureUserSettingsRow(), habitToDb(), normalizeRemindAt(), pushSnapshotToCloud(), snapshotHasData() (+8 more)
+Cohesion: 0.13
+Nodes (24): DataContext, DataProvider(), useDebouncedEffect(), ensureUserSettingsRow(), habitToDb(), normalizeRemindAt(), pushSnapshotToCloud(), snapshotHasData() (+16 more)
 
 ### Community 39 - "Legacy Bundle Migration"
 Cohesion: 0.29
@@ -327,8 +324,8 @@ Cohesion: 0.12
 Nodes (15): 1. Database migrations, 2. Supabase Auth (Site URL + redirects), 3. Google OAuth, 3a. Google Cloud Console, 3b. Supabase, 3c. Test, 4. Deploy to Cloudflare, 5. Custom domain (`zen.mottazen.com`) (+7 more)
 
 ### Community 41 - "Supabase Env & Push Test"
-Cohesion: 0.15
-Nodes (14): d(), demoCategoryColors, demoCategoryWeights, demoGoalHabits, demoGoals, demoHabits, demoLogs, today (+6 more)
+Cohesion: 0.33
+Nodes (6): subscribeToPush(), urlBase64ToUint8Array(), sendTestPush(), getSupabaseEnv(), trimEnv(), { url, anonKey, configured }
 
 ### Community 42 - "Mottazen Logo Assets"
 Cohesion: 0.60
@@ -348,7 +345,7 @@ Nodes (3): example, root, target
 
 ### Community 53 - "Community 53"
 Cohesion: 0.15
-Nodes (14): DayCell(), DayCellProps, dayLabel(), dayNumber(), HabitMonthCalendar(), monthLabel(), MonthPanelProps, MONTHS (+6 more)
+Nodes (15): DayCell(), DayCellProps, dayLabel(), dayNumber(), HabitMonthCalendar(), monthLabel(), MonthPanelProps, MONTHS (+7 more)
 
 ### Community 54 - "Community 54"
 Cohesion: 0.13
@@ -367,8 +364,8 @@ Cohesion: 0.17
 Nodes (11): 10. Edit mode & FAB, 11. Charts & performance, 13. Parity matrix (old app → new), 14. Acceptance criteria (gate to Phase 4), 15. Phase 3 → Phase 4 handoff, 8. Profile & data, 9. Add / Edit habit modal, One-time milestones (Phase 3) (+3 more)
 
 ### Community 58 - "Community 58"
-Cohesion: 0.20
-Nodes (9): SegmentedControl(), SegmentedControlProps, SubTabBar(), SubTabBarProps, SubTabItem, TabBar(), SlidingIndicatorStyle, useSlidingIndicator() (+1 more)
+Cohesion: 0.24
+Nodes (7): SubTabBar(), SubTabBarProps, SubTabItem, TabBar(), SlidingIndicatorStyle, useSlidingIndicator(), primaryNavTabs
 
 ### Community 59 - "Community 59"
 Cohesion: 0.12
@@ -387,16 +384,16 @@ Cohesion: 0.20
 Nodes (10): 3.1 Page state, 3.2 Block A — Hero, 3.3 Block B — Activity calendar, 3.4 Block C — Habit breakdown, 3.5 Block D — Daily bars, 3.6 Block E — Linked goals (Sprint 4), 3.7 Block F — Quick actions, 3.8 Tasks (+2 more)
 
 ### Community 63 - "Community 63"
-Cohesion: 0.19
-Nodes (15): GoalChipsRowProps, GoalColorDot(), GoalColorDotProps, activityProgressPct(), GoalDetailCard(), kindLabel(), todayLogLabel(), typeDetail() (+7 more)
+Cohesion: 0.12
+Nodes (21): GoalColorDot(), GoalColorDotProps, activityProgressPct(), GoalDetailCard(), kindLabel(), todayLogLabel(), typeDetail(), CADENCE_OPTIONS (+13 more)
 
 ### Community 64 - "Community 64"
 Cohesion: 0.22
 Nodes (8): How to use these docs, Milestones at a glance (one-time gates), Mottazen Habits — Rebuild Guide (4 Phases), New in rebuild vs current `index.html`, Phase map, Product vision (one paragraph), Recommended stack (locked for this guide), What you are NOT rebuilding in v1
 
 ### Community 65 - "Community 65"
-Cohesion: 0.14
-Nodes (17): DashboardFab(), DashboardFabProps, useDashboardCardOrder(), useWidgetGrid(), DayScoreBars(), DayScoreBarsProps, HabitInsightsList(), HabitInsightsListProps (+9 more)
+Cohesion: 0.19
+Nodes (11): DashboardFab(), DashboardFabProps, FolderSheet(), FolderSheetProps, WidgetFolderTile(), WidgetFolderTileProps, ChartPickerOption, InsightsAddCharts() (+3 more)
 
 ### Community 66 - "Community 66"
 Cohesion: 0.25
@@ -407,8 +404,8 @@ Cohesion: 0.10
 Nodes (19): 1. Version the local snapshot + add a migration hook  ← top priority, 2. Prefer edges over single-parent fields for anything that may go many-to-many, 3. Keep all scoring math inside core, returning decomposable breakdowns, 4. Lock the local-first boundary explicitly, 5. Don't collapse the score so hard it can't be decomposed later, 6. Plan for snapshot growth before it bites, 7. A tiny `meta?: Record<string, unknown>` bag on core entities, 8. ROI / optimization clashes with Zen's calm-identity brand (+11 more)
 
 ### Community 68 - "Community 68"
-Cohesion: 0.14
-Nodes (19): Zen App Description, Phase Status Audit, Product Principles (Log first, Honest math, Coach not alarm), Tech Stack (React 19, Vite, Supabase, Cloudflare), Why Category Pages Matter, Component Inventory, Design Tokens, Phase 1 Product Principles (+11 more)
+Cohesion: 0.16
+Nodes (16): Zen App Description, Phase Status Audit, Product Principles (Log first, Honest math, Coach not alarm), Tech Stack (React 19, Vite, Supabase, Cloudflare), Why Category Pages Matter, Component Inventory, Design Tokens, Phase 1 Product Principles (+8 more)
 
 ### Community 69 - "Community 69"
 Cohesion: 0.29
@@ -423,16 +420,16 @@ Cohesion: 0.29
 Nodes (7): Build order (recommended sprints), Sprint 1 — Today (P0), Sprint 2 — Categories (P0) ← differentiator, Sprint 3 — Habit detail + Insights (P0), Sprint 4 — Goals (P1), Sprint 5 — Notifications coach (P0), Sprint 6 — Polish, import/export, edge cases (P1)
 
 ### Community 72 - "Community 72"
-Cohesion: 0.26
-Nodes (11): HabitDayEditorSheet(), HabitDayEditorSheetProps, formatCompactNumber(), GridNumericCounterSheet(), GridNumericCounterSheetProps, NumericControls(), HabitGridTile(), HabitGridTileProps (+3 more)
+Cohesion: 0.30
+Nodes (11): HabitDayEditorSheet(), HabitDayEditorSheetProps, useLogs(), formatCompactNumber(), asHapticSwitch(), GridNumericCounterSheet(), GridNumericCounterSheetProps, NumericControls() (+3 more)
 
 ### Community 73 - "Community 73"
-Cohesion: 0.13
-Nodes (15): HabitGoalIndicators(), HabitReminderModal(), HabitReminderModalProps, WEEKDAYS, useHabitSwipe(), buildMetaLine(), HabitCard(), HabitCardProps (+7 more)
+Cohesion: 0.15
+Nodes (13): useHabitSwipe(), buildMetaLine(), HabitCard(), HabitCardProps, HabitSwipeRow(), HabitSwipeRowProps, CONFETTI, StreakFlame() (+5 more)
 
 ### Community 74 - "Community 74"
-Cohesion: 0.10
-Nodes (15): CADENCE_OPTIONS, GoalFormModalProps, KIND_OPTIONS, CategoryScoreResult, GoalCadence, GoalCadencePeriod, GoalConsistencyMeta, GoalCumulativeMeta (+7 more)
+Cohesion: 0.24
+Nodes (9): useHapticSettings(), ProfileHapticsPage(), SettingsActionRow(), SettingsLinkRow(), SettingsPageHeader(), SettingsSection(), SettingsSliderRow(), SettingsToggleRow() (+1 more)
 
 ### Community 75 - "Community 75"
 Cohesion: 0.33
@@ -443,8 +440,8 @@ Cohesion: 0.33
 Nodes (6): 1.1 Components to build, 1.2 Habit card interactions, 1.3 Hero copy, 1.4 Date navigation, 1.5 Tasks, 1. Today page (`/log`)
 
 ### Community 77 - "Community 77"
-Cohesion: 0.14
-Nodes (23): ProtectedLayout(), AppLogo(), AppLogoProps, sizeClass, DesktopHeader(), formatDateBadge(), SessionContext, SessionContextValue (+15 more)
+Cohesion: 0.20
+Nodes (15): DesktopHeader(), formatDateBadge(), SessionContext, SessionContextValue, useTheme(), clearAllLocalSnapshots(), isPasswordAuthUser(), userAuthProvider() (+7 more)
 
 ### Community 78 - "Community 78"
 Cohesion: 0.40
@@ -455,8 +452,8 @@ Cohesion: 0.40
 Nodes (5): 7.1 Settings model, 7.2 Client scheduler (foreground), 7.3 Motivation on log, 7.4 Tasks, 7. Notifications coach (`/profile/notifications`)
 
 ### Community 80 - "Community 80"
-Cohesion: 0.15
-Nodes (16): clearLocalSnapshot(), parseSnapshot(), readLocalSnapshot(), SNAPSHOT_MIGRATIONS, SnapshotData, snapshotStorageKey(), writeLocalSnapshot(), habitGoalProgressPct() (+8 more)
+Cohesion: 0.60
+Nodes (4): runSchemaMigrations(), SchemaMigrations, Snap, VersionedRecord
 
 ### Community 81 - "Community 81"
 Cohesion: 0.50
@@ -491,16 +488,16 @@ Cohesion: 0.67
 Nodes (3): 4. Habit detail (`/habit/:id`), Sections, Tasks
 
 ### Community 90 - "Community 90"
-Cohesion: 0.47
-Nodes (6): send-reminders Edge Function, push_notify_log Dedupe Table, push_subscriptions Migration, Server Reminder Decision Logic, VAPID Keys, Web Push Setup
+Cohesion: 0.31
+Nodes (7): CategoryHero(), CategoryHeroProps, StatTile, clampPct(), gradIdSafe(), ScoreRing(), ScoreRingProps
 
 ### Community 91 - "Community 91"
-Cohesion: 0.12
-Nodes (16): ChartChrome(), ChartChromeProps, ScoreLineChart(), ScoreLineChartProps, CategoryBarChart(), CategoryBarChartProps, DEFAULT_CHARTS, defaultChartsFor() (+8 more)
+Cohesion: 0.16
+Nodes (12): ChartChrome(), ChartChromeProps, ScoreLineChart(), ScoreLineChartProps, CategoryBarChart(), CategoryBarChartProps, DEFAULT_CHARTS, defaultChartsFor() (+4 more)
 
 ### Community 92 - "Community 92"
-Cohesion: 0.24
-Nodes (11): StreakPills(), StreakPillsProps, HabitDetailPage(), habitTypeLabel(), habitDayHistory(), heatmapWeeks(), scenario(), addDays() (+3 more)
+Cohesion: 0.31
+Nodes (8): StreakPills(), StreakPillsProps, HabitDetailPage(), habitTypeLabel(), habitDayHistory(), consistency30d(), streak(), DateRange
 
 ### Community 93 - "Community 93"
 Cohesion: 0.25
@@ -511,8 +508,8 @@ Cohesion: 0.29
 Nodes (7): Domain Logic Separation Rule, Goals Progress Logic, Insights Logic, @mottazen/core Domain Package, Notifications & Scheduler, Streaks Logic, NotificationSettings Model
 
 ### Community 95 - "Community 95"
-Cohesion: 0.11
-Nodes (17): CategoriesIndexPage, CategoriesLayout, CategoryDetailPage, DashboardPage, GoalDetailPage, GoalsPage, HabitDetailPage, NotificationsPage (+9 more)
+Cohesion: 0.09
+Nodes (25): CategoriesIndexPage, CategoriesLayout, CategoryDetailPage, DashboardPage, GoalDetailPage, GoalsPage, HabitDetailPage, NotificationsPage (+17 more)
 
 ### Community 96 - "Community 96"
 Cohesion: 0.33
@@ -531,68 +528,56 @@ Cohesion: 0.50
 Nodes (4): Day log, Domain model (`@mottazen/core`), Goal, Habit
 
 ### Community 100 - "Community 100"
-Cohesion: 0.20
-Nodes (16): slugToCategory(), activeHabits(), dayScore(), dayScoreBreakdown(), DayScoreComponent, habitProgressScoring(), habitScore(), isNotLogged() (+8 more)
+Cohesion: 0.33
+Nodes (7): Service worker & PWA, PWA Files (manifest, sw.js, icons), Phase 4 — Launch Spec, .wranglerignore (asset size fix), Post-deploy Smoke Tests, Web App HTML Shell, Inline Theme Bootstrap Script
 
 ### Community 101 - "Community 101"
-Cohesion: 0.24
-Nodes (15): canSend(), checkMotivationOnLog(), checkNotificationReminders(), coachCopy(), CoachMessage, habitReminderTimes(), isHabitDueToday(), isInQuietHours() (+7 more)
+Cohesion: 0.17
+Nodes (21): HabitReminderModal(), HabitReminderModalProps, WEEKDAYS, canSend(), checkMotivationOnLog(), checkNotificationReminders(), coachCopy(), defaultNotificationSettings() (+13 more)
 
 ### Community 102 - "Community 102"
-Cohesion: 0.43
-Nodes (6): clearNotifyLog(), getSentTagsToday(), markTagSent(), readLog(), SentEntry, writeLog()
+Cohesion: 0.47
+Nodes (5): DayScoreBars(), DayScoreBarsProps, insightsDayScoreTitle(), InsightsPeriod, insightsPeriodLabel()
 
 ### Community 103 - "Community 103"
-Cohesion: 0.19
-Nodes (11): CategoryGoalsSection(), CategoryGoalsSectionProps, ActivityCalendar(), EmptyState(), EmptyStateProps, HabitBreakdownList(), HabitSort, GoalChipsRow() (+3 more)
+Cohesion: 0.50
+Nodes (3): RadarChart(), RadarChartProps, RadarPoint
 
 ### Community 104 - "Community 104"
-Cohesion: 0.24
-Nodes (15): ToastContext, ToastContextValue, ToastProvider(), ToastState, useToast(), GoalFormModal(), EditHabitModal(), useData() (+7 more)
-
-### Community 105 - "Community 105"
-Cohesion: 0.27
-Nodes (8): AppShell(), ShellContent(), ScreenPageBody(), ScreenPageTop(), ScreenPageTopProps, useMediaQuery(), useNotificationScheduler(), CategoriesLayout()
-
-### Community 106 - "Community 106"
-Cohesion: 0.44
-Nodes (7): WeightEditor(), WeightEditorProps, applyLockedWeightChange(), distributeEvenly(), reconcileTotal(), snapWeight(), WeightItem
+Cohesion: 0.67
+Nodes (3): HabitInsightsList(), HabitInsightsListProps, HabitConsistencyRow
 
 ### Community 107 - "Community 107"
 Cohesion: 0.31
 Nodes (7): HabitMetricBarRow, HabitMetricBars(), HabitMetricBarsProps, ActivityMetricView, HabitMetricsCard(), HabitMetricsCardProps, METRIC_OPTIONS
 
 ### Community 108 - "Community 108"
-Cohesion: 0.33
-Nodes (7): HabitMilestone, habitMilestones(), highestMilestone(), MILESTONE_TIERS, milestoneJustReached(), MilestoneTier, check
+Cohesion: 0.31
+Nodes (8): HabitMilestone, habitMilestones(), highestMilestone(), MILESTONE_TIERS, milestoneJustReached(), MilestoneTier, check, currentStreak()
 
 ### Community 109 - "Community 109"
 Cohesion: 0.22
 Nodes (8): 2026-06-07 — Abstinence / quit activities (D-b), 2026-06-07 — Activity model naming (Prime Directive), 2026-06-07 — Scope triage (cheap hedges), 2026-06-07 — Score decomposability guard (M6), 2026-06-07 — Score isolation for Tasks (Prime Directive), 2026-06-07 — Snapshot `schemaVersion` (T1 / Prime Directive), 2026-06-07 — Task lane placement (D-a), Decision log
 
-### Community 110 - "Community 110"
-Cohesion: 0.38
-Nodes (5): FolderSheet(), FolderSheetProps, WidgetFolderTile(), WidgetFolderTileProps, DashboardCardId
-
 ## Knowledge Gaps
-- **719 isolated node(s):** `allow`, `allow`, `name`, `private`, `version` (+714 more)
+- **720 isolated node(s):** `allow`, `allow`, `name`, `private`, `version` (+715 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **7 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `Habit` connect `Core Data & State` to `Category Scoring`, `Goals Logic`, `Habit & Goal Forms`, `Profile & Haptics`, `Charts & Visualization`, `Habit Cards & Logging UI`, `Streak Calculation`, `App Providers & Bootstrap`, `Display Density Settings`, `Error Boundary`, `Supabase Env & Push Test`, `Community 53`, `Community 63`, `Community 65`, `Community 72`, `Community 73`, `Community 74`, `Community 80`, `Community 91`, `Community 92`, `Community 100`, `Community 101`, `Community 103`, `Community 107`, `Community 108`?**
-  _High betweenness centrality (0.028) - this node is a cross-community bridge._
-- **Why does `DayLog` connect `Core Data & State` to `Category Scoring`, `Insights & Analytics`, `Goals Logic`, `Community 101`, `Error Boundary`, `Community 103`, `Community 100`, `Supabase Env & Push Test`, `Charts & Visualization`, `Habit Cards & Logging UI`, `Streak Calculation`, `Community 108`, `Community 74`, `Community 80`, `Community 53`, `App Providers & Bootstrap`, `Community 91`, `Community 63`?**
-  _High betweenness centrality (0.011) - this node is a cross-community bridge._
+- **Why does `Habit` connect `Display Density Settings` to `Core Data & State`, `Category Scoring`, `Insights & Analytics`, `Goals Logic`, `Profile & Haptics`, `Habit Cards & Logging UI`, `Streak Calculation`, `App Providers & Bootstrap`, `Error Boundary`, `Community 53`, `Community 63`, `Community 72`, `Community 73`, `Community 91`, `Community 92`, `Community 101`, `Community 104`, `Community 107`, `Community 108`?**
+  _High betweenness centrality (0.026) - this node is a cross-community bridge._
+- **Why does `DayLog` connect `Display Density Settings` to `Core Data & State`, `Category Scoring`, `Goals Logic`, `Community 101`, `Error Boundary`, `App Shell & Date Nav`, `Habit Cards & Logging UI`, `Streak Calculation`, `Community 108`, `Community 53`, `App Providers & Bootstrap`, `Community 91`, `Community 63`?**
+  _High betweenness centrality (0.012) - this node is a cross-community bridge._
 - **What connects `allow`, `allow`, `name` to the rest of the system?**
-  _722 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _723 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Category Scoring` be split into smaller, more focused modules?**
-  _Cohesion score 0.14285714285714285 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.05318352059925094 - nodes in this community are weakly interconnected._
 - **Should `Insights & Analytics` be split into smaller, more focused modules?**
-  _Cohesion score 0.08048103607770583 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.11264367816091954 - nodes in this community are weakly interconnected._
 - **Should `Project Docs & Specs` be split into smaller, more focused modules?**
-  _Cohesion score 0.14035087719298245 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.1380952380952381 - nodes in this community are weakly interconnected._
 - **Should `Goals Logic` be split into smaller, more focused modules?**
-  _Cohesion score 0.13900134952766532 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.09351432880844646 - nodes in this community are weakly interconnected._

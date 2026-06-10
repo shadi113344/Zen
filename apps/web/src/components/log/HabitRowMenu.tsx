@@ -20,6 +20,8 @@ interface HabitRowMenuProps {
 const DEG = Math.PI / 180;
 /** Extra px between adjacent option circles (beyond their diameters). */
 const MENU_ITEM_PAD_PX = 10;
+/** Scale applied to the computed min arc step (0.5 = half the previous fan spread). */
+const SPACING_SCALE = 0.5;
 /** Fan center — left of the trigger, biased slightly upward. */
 const FAN_CENTER_DEG = 233;
 
@@ -47,7 +49,7 @@ function layoutMenuAngles(options: PressMenuOption[]): Map<string, number> {
   }
 
   // Space for the largest button at the default radius (highlight size is the worst case).
-  const stepRad = minAngleStepRad(BTN_HIGHLIGHT, RADIUS, MENU_ITEM_PAD_PX);
+  const stepRad = minAngleStepRad(BTN_HIGHLIGHT, RADIUS, MENU_ITEM_PAD_PX) * SPACING_SCALE;
   const halfSpanRad = ((n - 1) * stepRad) / 2;
   const centerRad = FAN_CENTER_DEG * DEG;
 
