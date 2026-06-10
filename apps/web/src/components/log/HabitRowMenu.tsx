@@ -18,24 +18,41 @@ interface HabitRowMenuProps {
 }
 
 const DEG = Math.PI / 180;
-const MENU_GAP_DEG = 14;
+/** Extra px between adjacent option circles (beyond their diameters). */
+const MENU_ITEM_PAD_PX = 10;
+/** Fan center — left of the trigger, biased slightly upward. */
+const FAN_CENTER_DEG = 233;
+
+/**
+ * Minimum angle (rad) between option centers so circles don't overlap on the arc.
+ * Chord between centers at radius R: 2R·sin(Δθ/2) ≥ diameter + pad.
+ */
+function minAngleStepRad(diameter: number, radius: number, pad: number): number {
+  const ratio = Math.min(1, (diameter + pad) / (2 * radius));
+  return 2 * Math.asin(ratio);
+}
 
 /**
  * Fan options top → bottom along the left arc (edit highest, delete lowest).
- * Order follows the `options` array from the parent.
+ * Order follows the `options` array from the parent. Arc span grows with item count.
  */
 function layoutMenuAngles(options: PressMenuOption[]): Map<string, number> {
   const angles = new Map<string, number>();
   const n = options.length;
   if (n === 0) return angles;
 
-  const topDeg = 258;
-  const bottomDeg = 208;
-  const gaps = MENU_GAP_DEG * (n - 1);
-  const step = n > 1 ? (topDeg - bottomDeg - gaps) / (n - 1) : 0;
+  if (n === 1) {
+    angles.set(options[0]!.id, FAN_CENTER_DEG * DEG);
+    return angles;
+  }
+
+  // Space for the largest button at the default radius (highlight size is the worst case).
+  const stepRad = minAngleStepRad(BTN_HIGHLIGHT, RADIUS, MENU_ITEM_PAD_PX);
+  const halfSpanRad = ((n - 1) * stepRad) / 2;
+  const centerRad = FAN_CENTER_DEG * DEG;
 
   options.forEach((opt, i) => {
-    angles.set(opt.id, (topDeg - i * (step + MENU_GAP_DEG)) * DEG);
+    angles.set(opt.id, centerRad + halfSpanRad - i * stepRad);
   });
 
   return angles;
